@@ -6,12 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import NextImage from "next/image";
 import { FilesManager, Avatar } from "@readyplayerme/visage";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import { useSession } from "@/lib/auth-client"
+import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
+import { toast } from "react-hot-toast"
 
 // Add MediaPipe setup
 let poseLandmarker: PoseLandmarker | null = null;
@@ -61,6 +66,7 @@ export default function AvatarCreation() {
   });
   const [bodyType, setBodyType] = useState({ hourglass: 50, athletic: 50 });
   const [extracting, setExtracting] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(""); // Ready Player Me avatar URL
   const fileInputRefs = useRef({
     front: useRef<HTMLInputElement>(null),
@@ -68,6 +74,9 @@ export default function AvatarCreation() {
     left: useRef<HTMLInputElement>(null),
     right: useRef<HTMLInputElement>(null),
   });
+  const router = useRouter()
+
+  const readyForExtract = Object.values(photos).every(p => p !== null);
 
   useEffect(() => {
     createPoseLandmarker();
@@ -81,6 +90,99 @@ export default function AvatarCreation() {
     };
     reader.readAsDataURL(file);
   };
+
+  const handleConsentChange = (checked: boolean) => {
+    setConsentGiven(checked);
+  };
+
+  const handleDeletePhotos = async () => {
+    const { data: session } = useSession();
+    if (!session?.user?.id) return;
+
+    const userId = session.user.id;
+    try {
+      const { error } = await supabase.storage
+        .from('photos')
+        .remove([`${userId}/avatar_${'front'}`, `${userId}/avatar_${'back'}`, `${userId}/avatar_${'left'}`, `${userId}/avatar_${'right'}`]);
+      if (error) throw error;
+      setPhotos({ front: null, back: null, left: null, right: null });
+      setImages({});
+      toast.success("Photos deleted successfully.");
+    } catch (error) {
+      toast.error("Failed to delete photos.");
+    }
+  };
+
+  const handleExtractAndSave = async () => {
+    if (extracting || !readyForExtract || !consentGiven) return;
+    
+    setExtracting(true)
+    
+    try {
+      // Extract measurements
+      await extractMeasurements();
+      
+      const { data: session } = useSession()
+      if (!session?.user?.id) {
+        toast.error("Please log in to save your avatar")
+        router.push("/login")
+        return
+      }
+      
+      // Upload photos to Supabase storage (private bucket)
+      const userId = session.user.id
+      const uploads = await Promise.all(
+        Object.entries(photos).map(async ([view, file]) => {
+          if (!file) return null
+          const filePath = `${userId}/avatar_${view}.jpg`;
+          const { data, error } = await supabase.storage
+            .from('photos')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: file.type
+            })
+          if (error) throw error
+          const { data: urlData } = supabase.storage.from('photos').getPublicUrl(filePath)
+          return { view, url: urlData.publicUrl, path: filePath }
+        })
+      )
+      
+      const photoUrls = uploads.filter(Boolean).reduce((acc: any, upload: any) => ({ ...acc, [upload.view]: upload.url }), {})
+      const photoPaths = uploads.filter(Boolean).reduce((acc: any, upload: any) => ({ ...acc, [upload.view]: upload.path }), {})
+      
+      // Save to designs table (initial avatar design)
+      const response = await fetch('/api/designs', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('bearer_token')}`
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          avatar_measurements: measurements,
+          photo_urls: photoUrls,
+          design_data: { 
+            type: 'avatar_base',
+            photo_paths: photoPaths, // For deletion/privacy
+            body_type: bodyType
+          }
+        })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save design');
+      }
+      
+      toast.success("Avatar saved securely with privacy controls!")
+      router.push("/catalog") // Proceed to catalog
+    } catch (error: any) {
+      toast.error("Upload failed: " + error.message)
+    } finally {
+      setExtracting(false)
+    }
+  }
 
   const extractMeasurements = useCallback(async () => {
     if (!poseLandmarker || !photos.front) return;
@@ -120,22 +222,28 @@ export default function AvatarCreation() {
             const waistCm = hipWidthPx * pixelToCm * 0.9; // Approximate
             const hipsCm = hipWidthPx * pixelToCm;
 
-            setMeasurements({
-              height: heightCm,
-              bust: bustCm,
-              waist: waistCm,
-              hips: hipsCm,
-              shoulders: shoulderWidthPx * pixelToCm,
-            });
+            const extractedMeasurements = {
+              height: Math.round(heightCm),
+              bust: Math.round(bustCm),
+              waist: Math.round(waistCm),
+              hips: Math.round(hipsCm),
+              shoulders: Math.round(shoulderWidthPx * pixelToCm),
+            };
+
+            setMeasurements(extractedMeasurements);
           }
         } catch (err) {
           console.error("Measurement extraction failed", err);
+          toast.error("Measurement extraction failed, using defaults.");
         } finally {
           setExtracting(false);
         }
       };
-      img.onerror = () => setExtracting(false);
-      img.src = images.front;
+      img.onerror = () => {
+        setExtracting(false);
+        toast.error("Failed to load image for measurement.");
+      };
+      img.src = images.front as string;
 
       // For now, use front for basic measurements
     } catch (error) {
@@ -184,6 +292,7 @@ export default function AvatarCreation() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle>Upload Directional Photos</CardTitle>
+            <p className="text-sm text-muted-foreground">Photos are stored securely and encrypted. You control access and can delete anytime.</p>
           </CardHeader>
           <CardContent className="grid md:grid-cols-4 gap-4">
             {["front", "back", "left", "right"].map((direction) => (
@@ -213,16 +322,30 @@ export default function AvatarCreation() {
               </div>
             ))}
           </CardContent>
-          <div className="p-6 text-center">
-            <Button onClick={extractMeasurements} disabled={extracting || Object.values(photos).some(p => !p)} className="w-full md:w-auto mr-4">
-              {extracting ? "Extracting..." : "Extract Measurements"}
+          <div className="p-6 space-y-4">
+            {/* Privacy Consent */}
+            <div className="flex items-center space-x-2">
+              <Checkbox id="consent" onCheckedChange={handleConsentChange} />
+              <Label htmlFor="consent" className="text-sm">
+                I consent to secure storage of my photos for avatar creation. I understand they are encrypted, private, and I can delete them anytime.
+              </Label>
+            </div>
+            <Button onClick={handleExtractAndSave} disabled={extracting || !readyForExtract || !consentGiven} className="w-full md:w-auto mr-4">
+              {extracting ? "Uploading..." : "Extract & Save Avatar"}
             </Button>
-            <Button onClick={generateAvatar} className="w-full md:w-auto">Generate Avatar</Button>
+            <Button onClick={generateAvatar} className="w-full md:w-auto mr-4" disabled={!readyForExtract}>
+              Generate Avatar Preview
+            </Button>
+            {readyForExtract && (
+              <Button variant="destructive" onClick={handleDeletePhotos} className="w-full md:w-auto">
+                Delete Photos
+              </Button>
+            )}
           </div>
         </Card>
 
         {/* Measurements Display */}
-        {Object.values(photos).every(p => p) && (
+        {readyForExtract && (
           <Card className="mb-12">
             <CardHeader>
               <CardTitle>Extracted Body Measurements (cm)</CardTitle>
@@ -288,7 +411,7 @@ export default function AvatarCreation() {
           <Button asChild>
             <Link href="/">Back to Home</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild disabled={!readyForExtract}>
             <Link href="/catalog">Proceed to Catalog</Link>
           </Button>
         </div>

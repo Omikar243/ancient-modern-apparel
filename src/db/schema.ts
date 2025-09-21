@@ -66,3 +66,13 @@ export const verification = sqliteTable("verification", {
     () => new Date(),
   ),
 });
+
+export const designs = sqliteTable('designs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  avatarMeasurements: text('avatar_measurements', { mode: 'json' }).notNull(),
+  photoUrls: text('photo_urls', { mode: 'json' }).notNull(),
+  designData: text('design_data', { mode: 'json' }).default('{}'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
