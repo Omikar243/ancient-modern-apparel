@@ -16,7 +16,7 @@ import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { useSession } from "@/lib/auth-client"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 
 // Add MediaPipe setup
 let poseLandmarker: PoseLandmarker | null = null;
@@ -74,7 +74,24 @@ export default function AvatarCreation() {
     left: useRef<HTMLInputElement>(null),
     right: useRef<HTMLInputElement>(null),
   });
-  const router = useRouter()
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  const session = useSession();
+
+  useEffect(() => {
+    if (!loading && !session?.user && window.location.pathname !== "/login") {
+      toast.error("Please log in to create your avatar.");
+      router.push("/login?redirect=/avatar");
+    }
+    setLoading(session?.isPending || false);
+  }, [session, router, loading]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!session?.user) return null;
 
   const readyForExtract = Object.values(photos).every(p => p !== null);
 
@@ -114,6 +131,12 @@ export default function AvatarCreation() {
   };
 
   const handleExtractAndSave = async () => {
+    if (!session?.user?.id) {
+      toast.error("Session expired. Please log in again.");
+      router.push("/login");
+      return;
+    }
+    
     if (extracting || !readyForExtract || !consentGiven) return;
     
     setExtracting(true)
