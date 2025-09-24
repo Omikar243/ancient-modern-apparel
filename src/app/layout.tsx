@@ -45,6 +45,9 @@ export default function RootLayout({
               <Link href="/preview" className="text-sm text-muted-foreground hover:text-foreground">
                 Preview
               </Link>
+              <Link href="/cart" className="text-sm text-muted-foreground hover:text-foreground">
+                Cart
+              </Link>
               <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
                 Login
               </Link>

@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core';
 
 
 
@@ -73,6 +73,30 @@ export const designs = sqliteTable('designs', {
   avatarMeasurements: text('avatar_measurements', { mode: 'json' }).notNull(),
   photoUrls: text('photo_urls', { mode: 'json' }).notNull(),
   designData: text('design_data', { mode: 'json' }).default('{}'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const garments = sqliteTable('garments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  type: text('type').notNull(),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  price: real('price').notNull(),
+  category: text('category').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const materials = sqliteTable('materials', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  origin: text('origin').notNull(),
+  description: text('description'),
+  textureType: text('texture_type').notNull(),
+  imageUrl: text('image_url'),
+  authenticityRating: integer('authenticity_rating').notNull(),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
