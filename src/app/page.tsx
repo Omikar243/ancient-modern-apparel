@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
-import { AvatarIcon, Shirt, Eye } from "lucide-react";
+import { User, Shirt, Eye } from "lucide-react";
 
 // Hero section images from Unsplash (fusion of ancient Indian and modern)
 const heroImages = [
@@ -80,7 +80,7 @@ export default function Home() {
             <Card className="group hover:shadow-lg transition-all rounded-lg border-border/50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AvatarIcon className="w-5 h-5 text-primary" />
+                  <User className="w-5 h-5 text-primary" />
                   3D Avatar Creation
                 </CardTitle>
                 <CardDescription>Upload photos and customize your digital self with precise measurements.</CardDescription>
