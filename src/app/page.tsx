@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import { AvatarIcon, Shirt, Eye } from "lucide-react";
 
 // Hero section images from Unsplash (fusion of ancient Indian and modern)
 const heroImages = [
@@ -14,30 +15,25 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 to-muted/50">
         <div className="absolute inset-0">
           <Image
             src={heroImages[0]}
             alt="Ancient Indian clothing fusion with modern design"
             fill
-            className="object-cover"
+            className="object-cover opacity-70"
             priority
           />
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
         </div>
-        <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 opacity-0 animate-[fade-in_1s_ease-out_forwards]">
-            IndiFusion Wear
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-0 animate-[fade-in_1s_ease-out_0.2s_forwards]">
-            Blending timeless ancient Indian textiles with contemporary silhouettes.
-            Craft your unique style from heritage-inspired designs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-[fade-in_1s_ease-out_0.4s_forwards]">
-            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto animate-fade-in">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-6 leading-tight">IndiFusion Wear</h1>
+          <p className="text-lg sm:text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed">Blending timeless ancient Indian textiles with contemporary silhouettes. Craft your unique style from heritage-inspired designs.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-lg shadow-lg">
               <Link href="/avatar">Create Your Avatar</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20">
+            <Button asChild variant="outline" size="lg" className="border-white/80 text-white hover:bg-white/10 px-8 py-3 rounded-lg">
               <Link href="/catalog">Explore Catalog</Link>
             </Button>
           </div>
@@ -54,17 +50,20 @@ export default function Home() {
         </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {heroImages.slice(1).map((img, idx) => (
-            <Card key={idx} className="overflow-hidden">
+            <Card key={idx} className="overflow-hidden border-border/50 shadow-md hover:shadow-lg transition-shadow rounded-lg">
               <Image
                 src={img}
                 alt={`Fusion design ${idx + 1}`}
                 width={400}
                 height={300}
-                className="object-cover"
+                className="object-cover w-full h-48"
               />
-              <CardContent className="p-6">
-                <CardTitle>Heritage Meets Modernity</CardTitle>
-                <CardDescription>
+              <CardContent className="p-6 bg-card/50">
+                <CardTitle className="flex items-center gap-2 mb-2">
+                  Heritage Meets Modernity
+                  <div className="w-5 h-5 bg-accent rounded-full" /> {/* Simple icon placeholder */}
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Explore how ancient techniques inspire today's fashion.
                 </CardDescription>
               </CardContent>
@@ -78,35 +77,44 @@ export default function Home() {
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-12">Discover Our Features</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <Card>
+            <Card className="group hover:shadow-lg transition-all rounded-lg border-border/50">
               <CardHeader>
-                <CardTitle>3D Avatar Creation</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <AvatarIcon className="w-5 h-5 text-primary" />
+                  3D Avatar Creation
+                </CardTitle>
                 <CardDescription>Upload photos and customize your digital self with precise measurements.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild className="w-full">
+                <Button asChild className="w-full group-hover:bg-primary/90 transition-colors">
                   <Link href="/avatar">Get Started</Link>
                 </Button>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="group hover:shadow-lg transition-all rounded-lg border-border/50">
               <CardHeader>
-                <CardTitle>Garment Catalog</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Shirt className="w-5 h-5 text-primary" />
+                  Garment Catalog
+                </CardTitle>
                 <CardDescription>Browse traditional templates and select authentic materials with rich histories.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild className="w-full">
+                <Button asChild className="w-full group-hover:bg-primary/90 transition-colors">
                   <Link href="/catalog">Browse Now</Link>
                 </Button>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="group hover:shadow-lg transition-all rounded-lg border-border/50">
               <CardHeader>
-                <CardTitle>3D Preview & Export</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-primary" />
+                  3D Preview & Export
+                </CardTitle>
                 <CardDescription>Visualize designs on your avatar and securely export after purchase.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild className="w-full">
+                <Button asChild className="w-full group-hover:bg-primary/90 transition-colors">
                   <Link href="/preview">Preview Designs</Link>
                 </Button>
               </CardContent>
