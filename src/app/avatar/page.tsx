@@ -392,9 +392,10 @@ export default function AvatarCreation() {
                   <Mannequin 
                     rotation={[0, 0, 0]} 
                     scale={[
-                      1 + (measurements.height - 170) / 1000, // Height scale
-                      bodyType.hourglass / 100 + bodyType.athletic / 100 // Simple body adjust (placeholder)
-                    ] as any}
+                      measurements.shoulders / 40, // Shoulder width scale
+                      bodyType.hourglass / 100 * 0.1 + bodyType.athletic / 100 * 0.1 + 1, // Body proportions
+                      (measurements.height / 170) // Height scale
+                    ]}
                   />
                 ) : (
                   <mesh visible={false} />
@@ -433,8 +434,8 @@ export default function AvatarCreation() {
   );
 }
 
-function Mannequin({ rotation }: { rotation: [number, number, number] }) {
-  const { scene } = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF/CesiumMan.gltf");
+function Mannequin({ rotation, scale = [1, 1, 1] }: { rotation: [number, number, number]; scale?: [number, number, number] }) {
+  const { scene } = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/RiggedSimple/glTF/RiggedSimple.gltf");
   useEffect(() => {
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -444,7 +445,7 @@ function Mannequin({ rotation }: { rotation: [number, number, number] }) {
       }
     });
   }, [scene]);
-  return <primitive object={scene} scale={2} rotation={rotation} position={[0, 0, 0]} />;
+  return <primitive object={scene} scale={scale} rotation={rotation} position={[0, -0.5, 0]} />;
 }
 
-useGLTF.preload("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF/CesiumMan.gltf");
+useGLTF.preload("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/RiggedSimple/glTF/RiggedSimple.gltf");
