@@ -13,6 +13,8 @@ import { useSession } from "@/lib/auth-client"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, MeshDistortMaterial, Sphere, Box, Cylinder, useGLTF } from "@react-three/drei";
 
 interface Photo {
   front: File | null;
@@ -27,6 +29,51 @@ interface Measurements {
   waist: number;
   hips: number;
   shoulders: number;
+}
+
+function Avatar3D({ measurements, bodyType }: { measurements: Measurements; bodyType: { hourglass: number; athletic: number } }) {
+  const scale = 1 + (bodyType.hourglass / 100) * 0.1 + (bodyType.athletic / 100) * 0.1;
+  const heightScale = measurements.height / 170;
+  const shoulderWidth = measurements.shoulders / 40;
+
+  return (
+    <group scale={[shoulderWidth, heightScale * scale, 1]}>
+      {/* Head */}
+      <Sphere args={[0.2, 16, 16]} position={[0, 1.8, 0]}>
+        <meshStandardMaterial color="peachpuff" />
+      </Sphere>
+      
+      {/* Torso */}
+      <Cylinder args={[0.3, 0.4, 1.2, 8]} position={[0, 1, 0]}>
+        <meshStandardMaterial color="lightblue" />
+      </Cylinder>
+      
+      {/* Hips */}
+      <Cylinder args={[0.35, 0.3, 0.4, 8]} position={[0, 0.4, 0]}>
+        <meshStandardMaterial color="lightblue" />
+      </Cylinder>
+      
+      {/* Left Arm */}
+      <Cylinder args={[0.08, 0.08, 0.8, 8]} position={[-0.5, 1.2, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <meshStandardMaterial color="lightblue" />
+      </Cylinder>
+      
+      {/* Right Arm */}
+      <Cylinder args={[0.08, 0.08, 0.8, 8]} position={[0.5, 1.2, 0]} rotation={[0, 0, -Math.PI / 4]}>
+        <meshStandardMaterial color="lightblue" />
+      </Cylinder>
+      
+      {/* Left Leg */}
+      <Cylinder args={[0.1, 0.1, 1, 8]} position={[-0.15, -0.2, 0]}>
+        <meshStandardMaterial color="lightblue" />
+      </Cylinder>
+      
+      {/* Right Leg */}
+      <Cylinder args={[0.1, 0.1, 1, 8]} position={[0.15, -0.2, 0]}>
+        <meshStandardMaterial color="lightblue" />
+      </Cylinder>
+    </group>
+  );
 }
 
 export default function AvatarCreation() {
@@ -47,7 +94,7 @@ export default function AvatarCreation() {
   const [bodyType, setBodyType] = useState({ hourglass: 50, athletic: 50 });
   const [extracting, setExtracting] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(""); // For future 3D preview
+  const [avatarUrl, setAvatarUrl] = useState(""); // Remove 3D reference
   const [showPreview, setShowPreview] = useState(false);
 
   const router = useRouter();
@@ -81,7 +128,7 @@ export default function AvatarCreation() {
         shoulders: mockShoulders,
       });
       setShowPreview(true);
-      toast.success("Measurements extracted! Adjust sliders for body type.");
+      toast.success("Measurements extracted!");
     } catch (err) {
       console.error("Extraction failed", err);
       toast.error("Extraction failed, using defaults.");
@@ -217,7 +264,7 @@ export default function AvatarCreation() {
           design_data: { 
             type: 'avatar_base',
             photo_paths: photoPaths, // For deletion/privacy
-            body_type: bodyType
+            // Remove body_type
           }
         })
       });
@@ -236,17 +283,10 @@ export default function AvatarCreation() {
     }
   };
 
-  const generateAvatar = async () => {
-    // Enable preview state
-    setShowPreview(true);
-    setAvatarUrl("placeholder"); // For future 3D
-    toast.info("Preview generated—adjust body type sliders to see changes.");
-  };
-
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">Create Your 3D Avatar</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center">Create Your Avatar</h1>
         <p className="text-center mb-12 text-muted-foreground">
           Upload 4 directional photos and adjust your avatar.
         </p>
@@ -314,9 +354,6 @@ export default function AvatarCreation() {
               <Button onClick={handleExtractAndSave} disabled={extracting || !readyForExtract || !consentGiven} className="w-full sm:w-auto">
                 {extracting ? "Extracting & Uploading..." : "Extract Measurements & Save Avatar"}
               </Button>
-              <Button onClick={generateAvatar} disabled={!photos.front} className="w-full sm:w-auto">
-                Generate Preview
-              </Button>
               {readyForExtract && (
                 <Button variant="destructive" onClick={handleDeletePhotos} className="w-full sm:w-auto">
                   Delete All Photos
@@ -346,42 +383,18 @@ export default function AvatarCreation() {
         {/* Interactive Body Adjustment & Preview */}
         <Card className="mb-12">
           <CardHeader>
-            <CardTitle>Adjust Body Type & Preview</CardTitle>
-            <p className="text-muted-foreground">Fine-tune your avatar after extraction. Preview shows applied changes.</p>
+            <CardTitle>Avatar Preview</CardTitle>
+            <p className="text-muted-foreground">Your avatar preview after extraction.</p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Label>Hourglass Figure ({bodyType.hourglass}%)</Label>
-                <Slider
-                  value={[bodyType.hourglass]}
-                  onValueChange={(value) => setBodyType((prev) => ({ ...prev, hourglass: value[0] }))}
-                  max={100}
-                  step={1}
-                />
-                <div className="text-sm text-muted-foreground">More curves for feminine silhouette</div>
-              </div>
-              <div className="space-y-4">
-                <Label>Athletic Build ({bodyType.athletic}%)</Label>
-                <Slider
-                  value={[bodyType.athletic]}
-                  onValueChange={(value) => setBodyType((prev) => ({ ...prev, athletic: value[0] }))}
-                  max={100}
-                  step={1}
-                />
-                <div className="text-sm text-muted-foreground">More muscle definition for toned look</div>
-              </div>
-            </div>
             <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
               {showPreview ? (
-                <div className="w-full h-full relative transition-transform duration-500"
-                     style={{
-                       transform: `scale(${1 + (bodyType.hourglass / 100) * 0.1 + (bodyType.athletic / 100) * 0.1}) rotateY(${(measurements.shoulders / 40 - 1) * 10}deg)`
-                     }}>
-                  <div className="w-full h-full bg-gray-300 flex items-center justify-center rounded">
-                    <p className="text-muted-foreground text-center">Your custom 3D avatar will appear here after processing.</p>
-                  </div>
-                </div>
+                <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
+                  <ambientLight intensity={0.5} />
+                  <pointLight position={[10, 10, 10]} />
+                  <Avatar3D measurements={measurements} bodyType={bodyType} />
+                  <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} />
+                </Canvas>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center p-4">
                   <p className="text-muted-foreground text-center">Upload photos and extract measurements to preview your custom 3D avatar.</p>
@@ -393,7 +406,7 @@ export default function AvatarCreation() {
                     <p className="text-lg font-medium">Interactive 3D Avatar Preview</p>
                     <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
                     <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
-                    <p className="text-xs mt-4">Sliders adjust scale and rotation. Garments added in catalog.</p>
+                    <p className="text-xs mt-4">Rotate and zoom to view. Garments added in catalog.</p>
                   </div>
                 </div>
               )}
