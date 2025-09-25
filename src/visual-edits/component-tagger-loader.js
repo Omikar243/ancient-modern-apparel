@@ -1,4 +1,3 @@
-
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = componentTagger;
@@ -44,13 +43,11 @@ const threeFiberElems = [
     "polyhedronBufferGeometry",
     "ringBufferGeometry",
     "shapeBufferGeometry",
+    "Sphere",
+    "Cylinder",
     "sphereBufferGeometry",
+    "cylinderBufferGeometry",
     "tetrahedronBufferGeometry",
-    "torusBufferGeometry",
-    "torusKnotBufferGeometry",
-    "tubeBufferGeometry",
-    "wireframeGeometry",
-    "tetrahedronGeometry",
     "octahedronGeometry",
     "icosahedronGeometry",
     "dodecahedronGeometry",
@@ -146,7 +143,9 @@ const threeFiberElems = [
     "fog",
     "fogExp2",
     "shape",
-    "colorShiftMaterial"
+    "colorShiftMaterial",
+    "Canvas",
+    "OrbitControls"
 ];
 const dreiElems = [
     "AsciiRenderer",

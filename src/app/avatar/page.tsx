@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, MeshDistortMaterial, Sphere, Box, Cylinder, useGLTF } from "@react-three/drei";
+import { OrbitControls, Sphere, Cylinder } from "@react-three/drei";
 
 interface Photo {
   front: File | null;
