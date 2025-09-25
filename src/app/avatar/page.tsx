@@ -376,12 +376,9 @@ export default function AvatarCreation() {
                      style={{
                        transform: `scale(${1 + (bodyType.hourglass / 100) * 0.1 + (bodyType.athletic / 100) * 0.1}) rotateY(${(measurements.shoulders / 40 - 1) * 10}deg)`
                      }}>
-                  <NextImage
-                    src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-neutral-c899d0a9-20250925072612.jpg?"
-                    alt="3D Avatar Preview"
-                    fill
-                    className="object-cover"
-                  />
+                  <div className="w-full h-full bg-gray-300 flex items-center justify-center rounded">
+                    <p className="text-muted-foreground text-center">Your custom 3D avatar will appear here after processing.</p>
+                  </div>
                 </div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center p-4">
