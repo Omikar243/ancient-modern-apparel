@@ -54,6 +54,18 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
     clone.rotation.y = rotationY;
     clone.scale.set(1.0, 1.0, 1.0);
     clone.position.set(0, 0, 0);
+    // force neutral grey material so it doesn't render black
+    clone.traverse((obj: any) => {
+      if (obj?.isMesh) {
+        const applyGrey = (mat: any) => {
+          if (!mat) return;
+          if (mat.color) mat.color.set("#9ca3af"); // gray-400
+          if ("metalness" in mat) mat.metalness = 0;
+          if ("roughness" in mat) mat.roughness = 0.8;
+        };
+        Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
+      }
+    });
     return clone;
   }, [gltf, rotationY]);
   
@@ -67,7 +79,7 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
       }} 
       style={{ height: '100%', width: '100%' }}
     >
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.8} />
       <pointLight position={[5, 5, 5]} intensity={1.2} />
       <Bounds fit clip observe margin={1}>
         <primitive object={clonedScene} dispose={null} />
@@ -97,6 +109,18 @@ const AvatarModel = ({ measurements, gltf }: { measurements: Measurements; gltf:
     clone.scale.set(scaleShoulders, scaleY, scaleHips);
     clone.position.set(0, 0, 0);
     clone.rotation.y = 0;
+    // force neutral grey material so it doesn't render black
+    clone.traverse((obj: any) => {
+      if (obj?.isMesh) {
+        const applyGrey = (mat: any) => {
+          if (!mat) return;
+          if (mat.color) mat.color.set("#9ca3af"); // gray-400
+          if ("metalness" in mat) mat.metalness = 0;
+          if ("roughness" in mat) mat.roughness = 0.8;
+        };
+        Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
+      }
+    });
     return clone;
   }, [measurements, gltf]);
   
