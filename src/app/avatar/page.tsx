@@ -48,21 +48,22 @@ interface Measurements {
   shoulders: number;
 }
 
-const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
+const PoseView = ({ rotationY }: { rotationY: number }) => {
+  const gltf = useGLTF("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
   const clonedScene = useMemo(() => {
     const clone = gltf.scene.clone();
     clone.rotation.y = rotationY;
-    clone.scale.set(1.0, 1.0, 1.0);
-    clone.position.set(0, -0.5, 0); // Slightly lower to center head in view
-    // force neutral grey material so it doesn't render black
+    clone.scale.set(2, 2, 2); // Larger scale to ensure visibility
+    clone.position.set(0, 0, 0);
+    // Force light grey material
     clone.traverse((obj: any) => {
       if (obj?.isMesh) {
         const applyGrey = (mat: any) => {
           if (!mat) return;
-          if (mat.color) mat.color.set("#9ca3af"); // gray-400
+          if (mat.color) mat.color.set("#e5e7eb"); // Lighter grey
           if ("metalness" in mat) mat.metalness = 0;
-          if ("roughness" in mat) mat.roughness = 0.8;
-          if ("emissive" in mat) mat.emissive.set("#4b5563"); // Add slight emissive for visibility
+          if ("roughness" in mat) mat.roughness = 0.3;
+          if ("emissive" in mat) mat.emissive.set("#f9fafb"); // Brighter emissive
         };
         Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
       }
@@ -72,55 +73,63 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
   
   return (
     <Canvas 
+      gl={{ alpha: false }} // Opaque background
       camera={{ 
-        position: [0, 0.5, 5],
+        position: [0, 1, 5], // Adjusted for better centering
         fov: 45,
         near: 0.1,
         far: 20 
       }} 
-      style={{ height: '100%', width: '100%' }}
+      style={{ height: '100%', width: '100%', backgroundColor: '#f3f4f6' }} // Light background fallback
     >
-      <ambientLight intensity={1.0} />
+      <ambientLight intensity={3.0} /> {/* Much brighter */}
+      <hemisphereLight intensity={1.0} groundColor="#d1d5db" skyColor="#ffffff" />
       <pointLight position={[5, 5, 5]} intensity={2.0} />
-      <directionalLight position={[0, 1, 0]} intensity={1.0} />
-      <Bounds fit clip observe margin={1.5}>
+      <directionalLight position={[0, 1, 0]} intensity={2.0} />
+      {gltf.scene ? (
         <primitive object={clonedScene} dispose={null} />
-      </Bounds>
+      ) : (
+        <mesh>
+          <boxGeometry args={[1, 2, 0.5]} />
+          <meshStandardMaterial color="#10b981" /> {/* Green box as fallback */}
+        </mesh>
+      )}
       <OrbitControls 
         enablePan={false} 
         enableZoom={true} 
         enableRotate={true} 
+        enableDamping={false} // Disable damping to prevent reverting
         minDistance={2} 
-        maxDistance={8}
-        target={[0, 0, 0]}
+        maxDistance={10}
+        target={[0, 0, 0]} // Updated target
         autoRotate={false}
-        dampingFactor={0.05}
         makeDefault
       />
     </Canvas>
   );
 };
 
-const AvatarModel = ({ measurements, gltf }: { measurements: Measurements; gltf: any }) => {
+const AvatarModel = ({ measurements }: { measurements: Measurements }) => {
+  const gltf = useGLTF("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
   const clonedScene = useMemo(() => {
     const baseHeight = 170, baseBust = 90, baseWaist = 70, baseHips = 95, baseShoulders = 40;
-    const scaleY = measurements.height / baseHeight * 0.2;
-    const scaleHips = measurements.hips / baseHips * 0.2;
-    const scaleShoulders = measurements.shoulders / baseShoulders * 0.2;
+    const scaleY = measurements.height / baseHeight * 1.0; // Adjusted multiplier for proper size
+    const scaleHips = measurements.hips / baseHips * 1.0;
+    const scaleShoulders = measurements.shoulders / baseShoulders * 1.0;
     
     const clone = gltf.scene.clone();
     clone.scale.set(scaleShoulders, scaleY, scaleHips);
-    clone.position.set(0, -0.5, 0); // Adjust position to show head
+    clone.position.set(0, 0, 0);
     clone.rotation.y = 0;
-    // force neutral grey material so it doesn't render black
+    // Force light grey material
     clone.traverse((obj: any) => {
       if (obj?.isMesh) {
         const applyGrey = (mat: any) => {
           if (!mat) return;
-          if (mat.color) mat.color.set("#9ca3af"); // gray-400
+          if (mat.color) mat.color.set("#e5e7eb");
           if ("metalness" in mat) mat.metalness = 0;
-          if ("roughness" in mat) mat.roughness = 0.8;
-          if ("emissive" in mat) mat.emissive.set("#4b5563"); // Add slight emissive
+          if ("roughness" in mat) mat.roughness = 0.3;
+          if ("emissive" in mat) mat.emissive.set("#f9fafb");
         };
         Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
       }
@@ -179,9 +188,6 @@ export default function AvatarCreation() {
   const hasRefetchedRef = useRef(false);
 
   const { data: session, isPending: sessionPending, error, refetch } = useSession();
-
-  const url = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
-  const gltf = useGLTF(url);
 
   const extractMeasurements = useCallback(async () => {
     if (!poseLandmarker || !photos.front) return;
@@ -274,7 +280,26 @@ export default function AvatarCreation() {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  if (!session?.user) return null;
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md p-8">
+          <CardHeader>
+            <CardTitle className="text-center">Access Required</CardTitle>
+            <p className="text-center text-muted-foreground">Please log in to create your avatar.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button asChild className="w-full">
+              <Link href="/login?redirect=/avatar">Log In</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/register">Sign Up</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const readyForExtract = Object.values(photos).every(p => p !== null);
 
@@ -404,7 +429,7 @@ export default function AvatarCreation() {
               <h3 className="font-semibold">Front View</h3>
               <div className="h-64 w-full bg-muted/30 rounded">
                 <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView gltf={gltf} rotationY={0} />
+                  <PoseView rotationY={0} />
                 </Suspense>
               </div>
             </div>
@@ -412,7 +437,7 @@ export default function AvatarCreation() {
               <h3 className="font-semibold">Back View</h3>
               <div className="h-64 w-full bg-muted/30 rounded">
                 <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView gltf={gltf} rotationY={Math.PI} />
+                  <PoseView rotationY={Math.PI} />
                 </Suspense>
               </div>
             </div>
@@ -420,7 +445,7 @@ export default function AvatarCreation() {
               <h3 className="font-semibold">Left Side</h3>
               <div className="h-64 w-full bg-muted/30 rounded">
                 <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView gltf={gltf} rotationY={Math.PI / 2} />
+                  <PoseView rotationY={Math.PI / 2} />
                 </Suspense>
               </div>
             </div>
@@ -428,7 +453,7 @@ export default function AvatarCreation() {
               <h3 className="font-semibold">Right Side</h3>
               <div className="h-64 w-full bg-muted/30 rounded">
                 <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView gltf={gltf} rotationY={-Math.PI / 2} />
+                  <PoseView rotationY={-Math.PI / 2} />
                 </Suspense>
               </div>
             </div>
@@ -540,39 +565,41 @@ export default function AvatarCreation() {
               <div>{bodyType.athletic}%</div>
             </div>
             {/* 3D Preview */}
+            {!avatarUrl && (
+              <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                Upload photos and extract measurements to generate 3D avatar preview.
+              </div>
+            )}
             {avatarUrl && (
-              <div className="h-96">
-                <Canvas 
-                  camera={{ 
-                    position: [0, 0.5, 5], 
-                    fov: 50,
-                    near: 0.1,
-                    far: 15 
-                  }} 
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading preview...</div>}>
-                    <ambientLight intensity={1.0} />
+              <div className="h-96 bg-muted/30 rounded-lg">
+                <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading 3D preview...</div>}>
+                  <Canvas 
+                    gl={{ alpha: false }}
+                    camera={{ 
+                      position: [0, 1, 5], 
+                      fov: 50,
+                      near: 0.1,
+                      far: 20 
+                    }} 
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <ambientLight intensity={3.0} />
+                    <hemisphereLight intensity={1.0} groundColor="#d1d5db" skyColor="#ffffff" />
                     <pointLight position={[5, 5, 5]} intensity={2.0} />
-                    <directionalLight position={[0, 1, 0]} intensity={1.0} />
-                    <Bounds fit clip observe margin={1.5}>
-                      <AvatarModel measurements={measurements} gltf={gltf} />
+                    <directionalLight position={[0, 1, 0]} intensity={2.0} />
+                    <Bounds fit clip={false} observe margin={1.2}>
+                      <AvatarModel measurements={measurements} />
                     </Bounds>
                     <OrbitControls 
                       enablePan={false}
+                      enableDamping={false}
                       minDistance={2}
-                      maxDistance={8}
+                      maxDistance={10}
                       target={[0, 0, 0]}
                       makeDefault
                     />
-                  </Suspense>
-                </Canvas>
-              </div>
-            )}
-
-            {!avatarUrl && (
-              <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-                Upload photos and extract measurements to generate 3D avatar.
+                  </Canvas>
+                </Suspense>
               </div>
             )}
           </CardContent>
