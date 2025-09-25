@@ -49,21 +49,21 @@ interface Measurements {
 }
 
 const PoseView = ({ rotationY, controlsRef }: { rotationY: number; controlsRef?: React.RefObject<any> }) => {
-  const gltf = useGLTF("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
+  const gltf = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb");
   const clonedScene = useMemo(() => {
     const clone = gltf.scene.clone();
     clone.rotation.y = rotationY;
-    clone.scale.set(1.5, 1.5, 1.5); // Slightly smaller scale for better fit in container
-    clone.position.set(0, 0, 0); // Centered at origin
-    // Force dark grey material without over-lighting
+    clone.scale.set(2, 2, 2); // Adjusted scale for human model fit
+    clone.position.set(0, -0.5, 0); // Vertical centering for full body visibility
+    // Matte dark grey material
     clone.traverse((obj: any) => {
       if (obj?.isMesh) {
         const applyGrey = (mat: any) => {
           if (!mat) return;
-          if (mat.color) mat.color.set("#374151"); // Darker grey (slate-700)
+          if (mat.color) mat.color.set("#374151"); // Matte dark grey (slate-700)
           if ("metalness" in mat) mat.metalness = 0;
-          if ("roughness" in mat) mat.roughness = 1; // Matte to avoid shine
-          if ("emissive" in mat) mat.emissive.set("#000000"); // No emissive glow
+          if ("roughness" in mat) mat.roughness = 1; // Full matte finish
+          if ("emissive" in mat) mat.emissive.set("#000000"); // No glow
         };
         Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
       }
@@ -75,18 +75,19 @@ const PoseView = ({ rotationY, controlsRef }: { rotationY: number; controlsRef?:
     <Canvas 
       gl={{ alpha: false }}
       camera={{ 
-        position: [0, 0, 5], // Horizontal view for full body
-        fov: 60, // Wider FOV for better fit
+        position: [0, 0, 6],
+        fov: 50,
         near: 0.1,
         far: 20 
       }} 
-      style={{ height: '100%', width: '100%', backgroundColor: '#f3f4f6' }}
+      style={{ height: '100%', width: '100%' }}
     >
-      <ambientLight intensity={0.3} /> {/* Further dimmed */}
-      <hemisphereLight intensity={0.2} groundColor="#4B5563" skyColor="#6B7280" /> {/* Darker colors */}
-      <pointLight position={[5, 5, 5]} intensity={0.5} />
-      <directionalLight position={[0, 2, 1]} intensity={0.5} />
-      <Bounds fit observe={false} margin={1.5}> {/* No observe to prevent refit/revert, more margin */}
+      <color attach="background" args={['#f3f4f6']} />
+      <ambientLight intensity={0.45} />
+      <hemisphereLight intensity={0.3} groundColor="#4B5563" skyColor="#6B7280" />
+      <pointLight position={[5, 5, 5]} intensity={0.4} />
+      <directionalLight position={[0, 2, 1]} intensity={0.4} />
+      <Bounds fit observe margin={1.2}>
         <primitive object={clonedScene} dispose={null} />
       </Bounds>
       <OrbitControls 
@@ -97,7 +98,7 @@ const PoseView = ({ rotationY, controlsRef }: { rotationY: number; controlsRef?:
         enableDamping={false}
         minDistance={1.5} 
         maxDistance={8}
-        target={[0, 0, 0]} // Centered target
+        target={[0, 0, 0]}
         autoRotate={false}
         makeDefault
       />
@@ -106,7 +107,7 @@ const PoseView = ({ rotationY, controlsRef }: { rotationY: number; controlsRef?:
 };
 
 const AvatarModel = ({ measurements }: { measurements: Measurements }) => {
-  const gltf = useGLTF("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
+  const gltf = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb");
   const clonedScene = useMemo(() => {
     const baseHeight = 170, baseBust = 90, baseWaist = 70, baseHips = 95, baseShoulders = 40;
     const scaleY = measurements.height / baseHeight * 1.0;
@@ -114,10 +115,10 @@ const AvatarModel = ({ measurements }: { measurements: Measurements }) => {
     const scaleShoulders = measurements.shoulders / baseShoulders * 1.0;
     
     const clone = gltf.scene.clone();
-    clone.scale.set(scaleShoulders, scaleY, scaleHips);
-    clone.position.set(0, 0, 0);
+    clone.scale.set(scaleShoulders * 0.5, scaleY * 0.5, scaleHips * 0.5); // Adjusted base scale for human model
+    clone.position.set(0, -0.5, 0); // Vertical centering
     clone.rotation.y = 0;
-    // Match dark grey material
+    // Matte dark grey
     clone.traverse((obj: any) => {
       if (obj?.isMesh) {
         const applyGrey = (mat: any) => {
@@ -594,18 +595,19 @@ export default function AvatarCreation() {
                   <Canvas 
                     gl={{ alpha: false }}
                     camera={{ 
-                      position: [0, 0, 5], // Match pose view
-                      fov: 60,
+                      position: [0, 0, 6],
+                      fov: 50,
                       near: 0.1,
                       far: 20 
                     }} 
                     style={{ height: '100%', width: '100%' }}
                   >
-                    <ambientLight intensity={0.3} />
-                    <hemisphereLight intensity={0.2} groundColor="#4B5563" skyColor="#6B7280" />
-                    <pointLight position={[5, 5, 5]} intensity={0.5} />
-                    <directionalLight position={[0, 2, 1]} intensity={0.5} />
-                    <Bounds fit observe={false} margin={1.5}>
+                    <color attach="background" args={['#f3f4f6']} />
+                    <ambientLight intensity={0.45} />
+                    <hemisphereLight intensity={0.3} groundColor="#4B5563" skyColor="#6B7280" />
+                    <pointLight position={[5, 5, 5]} intensity={0.4} />
+                    <directionalLight position={[0, 2, 1]} intensity={0.4} />
+                    <Bounds fit observe margin={1.2}>
                       <AvatarModel measurements={measurements} />
                     </Bounds>
                     <OrbitControls 
