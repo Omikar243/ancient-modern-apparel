@@ -258,13 +258,15 @@ export default function AvatarCreation() {
             <p className="text-muted-foreground">Take clear, full-body photos in these 4 poses. Use the guides below to see the exact views needed: front, back, left side, right side. Stand straight with arms relaxed at your sides for accurate measurements.</p>
           </CardHeader>
           <CardContent className="text-center">
-            <NextImage
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/image-1758785131237.png"
-              alt="Pose guide: front, back, left, right views"
-              width={800}
-              height={400}
-              className="object-contain rounded"
-            />
+            <div className="grid md:grid-cols-4 gap-4 p-4">
+              {["Front", "Back", "Left Side", "Right Side"].map((view) => (
+                <div key={view} className="text-center">
+                  <div className="w-24 h-48 bg-muted mx-auto rounded border-2 border-dashed border-muted mb-2"></div>
+                  <p className="text-sm font-medium">{view}</p>
+                  <p className="text-xs text-muted-foreground">Full-body view, arms at sides</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
