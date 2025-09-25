@@ -53,7 +53,7 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
     const clone = gltf.scene.clone();
     clone.rotation.y = rotationY;
     clone.scale.set(1.0, 1.0, 1.0);
-    clone.position.set(0, 0, 0);
+    clone.position.set(0, -0.5, 0); // Slightly lower to center head in view
     // force neutral grey material so it doesn't render black
     clone.traverse((obj: any) => {
       if (obj?.isMesh) {
@@ -62,6 +62,7 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
           if (mat.color) mat.color.set("#9ca3af"); // gray-400
           if ("metalness" in mat) mat.metalness = 0;
           if ("roughness" in mat) mat.roughness = 0.8;
+          if ("emissive" in mat) mat.emissive.set("#4b5563"); // Add slight emissive for visibility
         };
         Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
       }
@@ -72,16 +73,17 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
   return (
     <Canvas 
       camera={{ 
-        position: [0, 0, 5],
+        position: [0, 0.5, 5],
         fov: 45,
         near: 0.1,
         far: 20 
       }} 
       style={{ height: '100%', width: '100%' }}
     >
-      <ambientLight intensity={0.8} />
-      <pointLight position={[5, 5, 5]} intensity={1.2} />
-      <Bounds fit clip observe margin={1}>
+      <ambientLight intensity={1.0} />
+      <pointLight position={[5, 5, 5]} intensity={2.0} />
+      <directionalLight position={[0, 1, 0]} intensity={1.0} />
+      <Bounds fit clip observe margin={1.5}>
         <primitive object={clonedScene} dispose={null} />
       </Bounds>
       <OrbitControls 
@@ -89,10 +91,11 @@ const PoseView = ({ gltf, rotationY }: { gltf: any; rotationY: number }) => {
         enableZoom={true} 
         enableRotate={true} 
         minDistance={2} 
-        maxDistance={6}
+        maxDistance={8}
         target={[0, 0, 0]}
         autoRotate={false}
         dampingFactor={0.05}
+        makeDefault
       />
     </Canvas>
   );
@@ -107,7 +110,7 @@ const AvatarModel = ({ measurements, gltf }: { measurements: Measurements; gltf:
     
     const clone = gltf.scene.clone();
     clone.scale.set(scaleShoulders, scaleY, scaleHips);
-    clone.position.set(0, 0, 0);
+    clone.position.set(0, -0.5, 0); // Adjust position to show head
     clone.rotation.y = 0;
     // force neutral grey material so it doesn't render black
     clone.traverse((obj: any) => {
@@ -117,6 +120,7 @@ const AvatarModel = ({ measurements, gltf }: { measurements: Measurements; gltf:
           if (mat.color) mat.color.set("#9ca3af"); // gray-400
           if ("metalness" in mat) mat.metalness = 0;
           if ("roughness" in mat) mat.roughness = 0.8;
+          if ("emissive" in mat) mat.emissive.set("#4b5563"); // Add slight emissive
         };
         Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
       }
@@ -540,7 +544,7 @@ export default function AvatarCreation() {
               <div className="h-96">
                 <Canvas 
                   camera={{ 
-                    position: [0, 0, 5], 
+                    position: [0, 0.5, 5], 
                     fov: 50,
                     near: 0.1,
                     far: 15 
@@ -548,19 +552,24 @@ export default function AvatarCreation() {
                   style={{ height: '100%', width: '100%' }}
                 >
                   <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading preview...</div>}>
-                    <ambientLight intensity={0.6} />
-                    <pointLight position={[5, 5, 5]} intensity={1.2} />
-                    <AvatarModel measurements={measurements} gltf={gltf} />
+                    <ambientLight intensity={1.0} />
+                    <pointLight position={[5, 5, 5]} intensity={2.0} />
+                    <directionalLight position={[0, 1, 0]} intensity={1.0} />
+                    <Bounds fit clip observe margin={1.5}>
+                      <AvatarModel measurements={measurements} gltf={gltf} />
+                    </Bounds>
                     <OrbitControls 
                       enablePan={false}
                       minDistance={2}
                       maxDistance={8}
                       target={[0, 0, 0]}
+                      makeDefault
                     />
                   </Suspense>
                 </Canvas>
               </div>
             )}
+
             {!avatarUrl && (
               <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
                 Upload photos and extract measurements to generate 3D avatar.
