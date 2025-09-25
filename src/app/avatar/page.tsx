@@ -384,32 +384,52 @@ export default function AvatarCreation() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle>Avatar Preview</CardTitle>
-            <p className="text-muted-foreground">Your avatar preview after extraction.</p>
+            <p className="text-muted-foreground">Adjust body type sliders and interact with your 3D avatar (rotate/zoom). Upload/extract for custom fit.</p>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <Label htmlFor="hourglass">Hourglass Shape (%)</Label>
+                <Slider 
+                  id="hourglass"
+                  value={[bodyType.hourglass]} 
+                  onValueChange={(value) => setBodyType(prev => ({ ...prev, hourglass: value[0] }))} 
+                  max={100} 
+                  step={1} 
+                  className="mt-2"
+                />
+                <p className="text-sm text-muted-foreground mt-1">{bodyType.hourglass}%</p>
+              </div>
+              <div>
+                <Label htmlFor="athletic">Athletic Build (%)</Label>
+                <Slider 
+                  id="athletic"
+                  value={[bodyType.athletic]} 
+                  onValueChange={(value) => setBodyType(prev => ({ ...prev, athletic: value[0] }))} 
+                  max={100} 
+                  step={1} 
+                  className="mt-2"
+                />
+                <p className="text-sm text-muted-foreground mt-1">{bodyType.athletic}%</p>
+              </div>
+            </div>
             <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
-              {showPreview ? (
+              <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center">Loading 3D model...</div>}>
                 <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
                   <ambientLight intensity={0.5} />
                   <pointLight position={[10, 10, 10]} />
                   <Avatar3D measurements={measurements} bodyType={bodyType} />
                   <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} />
                 </Canvas>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <p className="text-muted-foreground text-center">Upload photos and extract measurements to preview your custom 3D avatar.</p>
+              </Suspense>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <div className="text-center text-white">
+                  <p className="text-lg font-medium">Interactive 3D Avatar</p>
+                  <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
+                  <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
+                  <p className="text-xs mt-4">Rotate and zoom to view. Extraction updates measurements.</p>
                 </div>
-              )}
-              {showPreview && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <div className="text-center text-white">
-                    <p className="text-lg font-medium">Interactive 3D Avatar Preview</p>
-                    <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
-                    <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
-                    <p className="text-xs mt-4">Rotate and zoom to view. Garments added in catalog.</p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
