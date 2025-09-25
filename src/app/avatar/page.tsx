@@ -13,9 +13,6 @@ import { useSession } from "@/lib/auth-client"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
-import * as THREE from "three";
 
 interface Photo {
   front: File | null;
@@ -260,25 +257,14 @@ export default function AvatarCreation() {
             <CardTitle>Photo Pose Guide</CardTitle>
             <p className="text-muted-foreground">Take clear, full-body photos in these 4 poses. Use the guides below to see the exact views needed: front, back, left side, right side. Stand straight with arms relaxed at your sides for accurate measurements.</p>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-4 w-full">
-            {[
-              { title: "Front View", rotation: [0, 0, 0] },
-              { title: "Back View", rotation: [0, Math.PI, 0] },
-              { title: "Left Side", rotation: [0, Math.PI / 2, 0] },
-              { title: "Right Side", rotation: [0, -Math.PI / 2, 0] }
-            ].map(({ title, rotation }, index) => (
-              <div key={index} className="text-center space-y-2">
-                <h3 className="font-semibold">{title}</h3>
-                <div className="h-64 w-full bg-muted/30 rounded relative">
-                  <Canvas camera={{ position: [0, 1, 3], fov: 50 }}>
-                    <ambientLight intensity={0.5} />
-                    <directionalLight position={[10, 10, 5]} intensity={1} />
-                    <Mannequin rotation={rotation} />
-                    <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={5} />
-                  </Canvas>
-                </div>
-              </div>
-            ))}
+          <CardContent className="text-center">
+            <NextImage
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/image-1758784634138.png"
+              alt="Pose guide: front, back, left, right views"
+              width={800}
+              height={400}
+              className="object-contain rounded"
+            />
           </CardContent>
         </Card>
 
@@ -318,9 +304,9 @@ export default function AvatarCreation() {
           <div className="p-6 space-y-4">
             <div className="flex items-center space-x-2">
               <Checkbox id="consent" checked={consentGiven} onCheckedChange={handleConsentChange} />
-              <Label htmlFor="consent" className="text-sm">
+              <label htmlFor="consent" className="text-sm">
                 I consent to secure storage of my photos for avatar creation. I understand they are encrypted, private, and I can delete them anytime.
-              </Label>
+              </label>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={handleExtractAndSave} disabled={extracting || !readyForExtract || !consentGiven} className="w-full sm:w-auto">
@@ -384,44 +370,39 @@ export default function AvatarCreation() {
                 <div className="text-sm text-muted-foreground">More muscle definition for toned look</div>
               </div>
             </div>
-            <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted">
-              <Canvas camera={{ position: [0, 1.5, 3], fov: 50 }}>
-                <ambientLight intensity={0.4} />
-                <directionalLight position={[10, 10, 5]} intensity={0.8} />
-                {showPreview ? (
-                  <Mannequin 
-                    rotation={[0, 0, 0]} 
-                    scale={[
-                      measurements.shoulders / 40, // Shoulder width scale
-                      bodyType.hourglass / 100 * 0.1 + bodyType.athletic / 100 * 0.1 + 1, // Body proportions
-                      (measurements.height / 170) // Height scale
-                    ]}
+            <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
+              {showPreview ? (
+                <div className="w-full h-full relative transition-transform duration-500"
+                     style={{
+                       transform: `scale(${1 + (bodyType.hourglass / 100) * 0.1 + (bodyType.athletic / 100) * 0.1}) rotateY(${(measurements.shoulders / 40 - 1) * 10}deg)`
+                     }}>
+                  <NextImage
+                    src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/image-1758784644394.png"
+                    alt="3D Avatar Preview"
+                    fill
+                    className="object-cover"
                   />
-                ) : (
-                  <mesh visible={false} />
-                )}
-                <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={5} />
-              </Canvas>
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center p-4">
+                  <p className="text-muted-foreground text-center">Upload photos and extract measurements to preview your custom 3D avatar.</p>
+                </div>
+              )}
               {showPreview && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <div className="text-center text-white">
                     <p className="text-lg font-medium">Interactive 3D Avatar Preview</p>
                     <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
                     <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
-                    <p className="text-xs mt-4">Rotate/zoom to inspect. Garments added in catalog.</p>
+                    <p className="text-xs mt-4">Sliders adjust scale and rotation. Garments added in catalog.</p>
                   </div>
-                </div>
-              )}
-              {!showPreview && (
-                <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <p className="text-muted-foreground text-center">Upload photos and extract measurements to preview your custom 3D avatar.</p>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        <div className="text-center space-x-4">
+        <div className="text-center space-y-4">
           <Button asChild variant="outline">
             <Link href="/">Back to Home</Link>
           </Button>
@@ -433,19 +414,3 @@ export default function AvatarCreation() {
     </div>
   );
 }
-
-function Mannequin({ rotation, scale = [1, 1, 1] }: { rotation: [number, number, number]; scale?: [number, number, number] }) {
-  const { scene } = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/RiggedSimple/glTF/RiggedSimple.gltf");
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.material.color.setHex(0x374151); // Matte dark grey
-        child.material.metalness = 0;
-        child.material.roughness = 1;
-      }
-    });
-  }, [scene]);
-  return <primitive object={scene} scale={scale} rotation={rotation} position={[0, -0.5, 0]} />;
-}
-
-useGLTF.preload("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/RiggedSimple/glTF/RiggedSimple.gltf");
