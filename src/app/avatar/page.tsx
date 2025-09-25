@@ -259,7 +259,7 @@ export default function AvatarCreation() {
           </CardHeader>
           <CardContent className="text-center">
             <NextImage
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/image-1758785041745.png"
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/image-1758785131237.png"
               alt="Pose guide: front, back, left, right views"
               width={800}
               height={400}
@@ -377,7 +377,7 @@ export default function AvatarCreation() {
                        transform: `scale(${1 + (bodyType.hourglass / 100) * 0.1 + (bodyType.athletic / 100) * 0.1}) rotateY(${(measurements.shoulders / 40 - 1) * 10}deg)`
                      }}>
                   <NextImage
-                    src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-neutral-a8da15f8-20250925071849.jpg"
+                    src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-neutral-c899d0a9-20250925072612.jpg?"
                     alt="3D Avatar Preview"
                     fill
                     className="object-cover"
