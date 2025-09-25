@@ -13,6 +13,9 @@ import { useSession } from "@/lib/auth-client"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import * as THREE from "three";
 
 interface Photo {
   front: File | null;
@@ -258,46 +261,24 @@ export default function AvatarCreation() {
             <p className="text-muted-foreground">Take clear, full-body photos in these 4 poses. Use the guides below to see the exact views needed: front, back, left side, right side. Stand straight with arms relaxed at your sides for accurate measurements.</p>
           </CardHeader>
           <CardContent className="grid md:grid-cols-4 gap-4 w-full">
-            <div className="text-center space-y-2">
-              <h3 className="font-semibold">Front View</h3>
-              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
-                <img 
-                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-1eee5a63-20250925071056.jpg?" 
-                  alt="Front pose guide" 
-                  className="max-h-full max-w-full object-contain" 
-                />
+            {[
+              { title: "Front View", rotation: [0, 0, 0] },
+              { title: "Back View", rotation: [0, Math.PI, 0] },
+              { title: "Left Side", rotation: [0, Math.PI / 2, 0] },
+              { title: "Right Side", rotation: [0, -Math.PI / 2, 0] }
+            ].map(({ title, rotation }, index) => (
+              <div key={index} className="text-center space-y-2">
+                <h3 className="font-semibold">{title}</h3>
+                <div className="h-64 w-full bg-muted/30 rounded relative">
+                  <Canvas camera={{ position: [0, 1, 3], fov: 50 }}>
+                    <ambientLight intensity={0.5} />
+                    <directionalLight position={[10, 10, 5]} intensity={1} />
+                    <Mannequin rotation={rotation} />
+                    <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={5} />
+                  </Canvas>
+                </div>
               </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="font-semibold">Back View</h3>
-              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
-                <img 
-                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-2cb8ee6d-20250925071103.jpg?" 
-                  alt="Back pose guide" 
-                  className="max-h-full max-w-full object-contain" 
-                />
-              </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="font-semibold">Left Side</h3>
-              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
-                <img 
-                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-9a2ed6e5-20250925071110.jpg?" 
-                  alt="Left side pose guide" 
-                  className="max-h-full max-w-full object-contain" 
-                />
-              </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="font-semibold">Right Side</h3>
-              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
-                <img 
-                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-0a3c697a-20250925071118.jpg?" 
-                  alt="Right side pose guide" 
-                  className="max-h-full max-w-full object-contain" 
-                />
-              </div>
-            </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -403,17 +384,36 @@ export default function AvatarCreation() {
                 <div className="text-sm text-muted-foreground">More muscle definition for toned look</div>
               </div>
             </div>
-            <div className="h-96 bg-muted/30 rounded-lg flex items-center justify-center text-center p-4 border-2 border-dashed border-muted">
-              {showPreview ? (
-                <div>
-                  <p className="text-lg font-medium">Avatar Preview Ready</p>
-                  <p className="text-sm text-muted-foreground mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
-                  <p className="text-sm text-muted-foreground">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
-                  <p className="text-xs text-muted-foreground mt-4">3D model will render here once garments are added in catalog.</p>
+            <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted">
+              <Canvas camera={{ position: [0, 1.5, 3], fov: 50 }}>
+                <ambientLight intensity={0.4} />
+                <directionalLight position={[10, 10, 5]} intensity={0.8} />
+                {showPreview ? (
+                  <Mannequin 
+                    rotation={[0, 0, 0]} 
+                    scale={[
+                      1 + (measurements.height - 170) / 1000, // Height scale
+                      bodyType.hourglass / 100 + bodyType.athletic / 100 // Simple body adjust (placeholder)
+                    ] as any}
+                  />
+                ) : (
+                  <mesh visible={false} />
+                )}
+                <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={5} />
+              </Canvas>
+              {showPreview && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                  <div className="text-center text-white">
+                    <p className="text-lg font-medium">Interactive 3D Avatar Preview</p>
+                    <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
+                    <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
+                    <p className="text-xs mt-4">Rotate/zoom to inspect. Garments added in catalog.</p>
+                  </div>
                 </div>
-              ) : (
-                <div>
-                  <p className="text-muted-foreground">Upload photos and extract measurements to preview your custom avatar.</p>
+              )}
+              {!showPreview && (
+                <div className="absolute inset-0 flex items-center justify-center p-4">
+                  <p className="text-muted-foreground text-center">Upload photos and extract measurements to preview your custom 3D avatar.</p>
                 </div>
               )}
             </div>
@@ -432,3 +432,19 @@ export default function AvatarCreation() {
     </div>
   );
 }
+
+function Mannequin({ rotation }: { rotation: [number, number, number] }) {
+  const { scene } = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF/CesiumMan.gltf");
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material.color.setHex(0x374151); // Matte dark grey
+        child.material.metalness = 0;
+        child.material.roughness = 1;
+      }
+    });
+  }, [scene]);
+  return <primitive object={scene} scale={2} rotation={rotation} position={[0, 0, 0]} />;
+}
+
+useGLTF.preload("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF/CesiumMan.gltf");
