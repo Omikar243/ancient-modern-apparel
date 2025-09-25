@@ -6,9 +6,9 @@ import { User, Shirt, Eye } from "lucide-react";
 
 // Hero section images from Unsplash (fusion of ancient Indian and modern)
 const heroImages = [
-  "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=600&fit=crop", // Woman in saree with modern twist
-  "https://images.unsplash.com/photo-1578631619929-30aa475ed3e5?w=800&h=600&fit=crop", // Traditional Indian attire
-  "https://images.unsplash.com/photo-1558618047-3c8d3a1b66b9?w=800&h=600&fit=crop", // Ethnic wear fusion
+  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg",
+  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg",
+  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/ethnic-wear-fusion%2c-blending-ancient-i-ec0d520f-20250925192112.jpg",
 ];
 
 export default function Home() {
