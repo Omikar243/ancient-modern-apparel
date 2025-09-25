@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,29 +9,10 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import NextImage from "next/image";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Bounds } from "@react-three/drei";
-import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { useSession } from "@/lib/auth-client"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-
-let poseLandmarker: PoseLandmarker | null = null;
-
-const createPoseLandmarker = async () => {
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
-  );
-  poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
-      delegate: "GPU"
-    },
-    runningMode: "IMAGE",
-    numPoses: 1
-  });
-};
 
 interface Photo {
   front: File | null;
@@ -47,109 +28,6 @@ interface Measurements {
   hips: number;
   shoulders: number;
 }
-
-const PoseView = ({ rotationY, controlsRef }: { rotationY: number; controlsRef?: React.RefObject<any> }) => {
-  const gltf = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb");
-  const clonedScene = useMemo(() => {
-    const clone = gltf.scene.clone();
-    clone.rotation.y = rotationY;
-    clone.scale.set(2, 2, 2); // Adjusted scale for human model fit
-    clone.position.set(0, -0.5, 0); // Vertical centering for full body visibility
-    // Matte dark grey material
-    clone.traverse((obj: any) => {
-      if (obj?.isMesh) {
-        const applyGrey = (mat: any) => {
-          if (!mat) return;
-          if (mat.color) mat.color.set("#374151"); // Matte dark grey (slate-700)
-          if ("metalness" in mat) mat.metalness = 0;
-          if ("roughness" in mat) mat.roughness = 1; // Full matte finish
-          if ("emissive" in mat) mat.emissive.set("#000000"); // No glow
-        };
-        Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
-      }
-    });
-    return clone;
-  }, [gltf, rotationY]);
-  
-  return (
-    <Canvas 
-      gl={{ alpha: false }}
-      camera={{ 
-        position: [0, 0, 6],
-        fov: 50,
-        near: 0.1,
-        far: 20 
-      }} 
-      style={{ height: '100%', width: '100%' }}
-    >
-      <color attach="background" args={['#f3f4f6']} />
-      <ambientLight intensity={0.45} />
-      <hemisphereLight intensity={0.3} groundColor="#4B5563" skyColor="#6B7280" />
-      <pointLight position={[5, 5, 5]} intensity={0.4} />
-      <directionalLight position={[0, 2, 1]} intensity={0.4} />
-      <Bounds fit observe margin={1.2}>
-        <primitive object={clonedScene} dispose={null} />
-      </Bounds>
-      <OrbitControls 
-        ref={controlsRef}
-        enablePan={false} 
-        enableZoom={true} 
-        enableRotate={true} 
-        enableDamping={false}
-        minDistance={1.5} 
-        maxDistance={8}
-        target={[0, 0, 0]}
-        autoRotate={false}
-        makeDefault
-      />
-    </Canvas>
-  );
-};
-
-const AvatarModel = ({ measurements }: { measurements: Measurements }) => {
-  const gltf = useGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb");
-  const clonedScene = useMemo(() => {
-    const baseHeight = 170, baseBust = 90, baseWaist = 70, baseHips = 95, baseShoulders = 40;
-    const scaleY = measurements.height / baseHeight * 1.0;
-    const scaleHips = measurements.hips / baseHips * 1.0;
-    const scaleShoulders = measurements.shoulders / baseShoulders * 1.0;
-    
-    const clone = gltf.scene.clone();
-    clone.scale.set(scaleShoulders * 0.5, scaleY * 0.5, scaleHips * 0.5); // Adjusted base scale for human model
-    clone.position.set(0, -0.5, 0); // Vertical centering
-    clone.rotation.y = 0;
-    // Matte dark grey
-    clone.traverse((obj: any) => {
-      if (obj?.isMesh) {
-        const applyGrey = (mat: any) => {
-          if (!mat) return;
-          if (mat.color) mat.color.set("#374151");
-          if ("metalness" in mat) mat.metalness = 0;
-          if ("roughness" in mat) mat.roughness = 1;
-          if ("emissive" in mat) mat.emissive.set("#000000");
-        };
-        Array.isArray(obj.material) ? obj.material.forEach(applyGrey) : applyGrey(obj.material);
-      }
-    });
-    return clone;
-  }, [measurements, gltf]);
-  
-  return <primitive object={clonedScene} dispose={null} />;
-};
-
-const PoseGuideModel = () => {
-  const gltf = useGLTF("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
-  const { scene } = gltf;
-  
-  useEffect(() => {
-    if (scene) {
-      scene.scale.set(2, 2, 2);
-      scene.position.set(0, -1, 0);
-    }
-  }, [scene]);
-  
-  return <primitive object={scene} dispose={null} />;
-};
 
 export default function AvatarCreation() {
   const [photos, setPhotos] = useState<Photo>({
@@ -169,104 +47,45 @@ export default function AvatarCreation() {
   const [bodyType, setBodyType] = useState({ hourglass: 50, athletic: 50 });
   const [extracting, setExtracting] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(""); // Ready Player Me avatar URL
-  const fileInputRefs = useRef<{
-    front: HTMLInputElement | null;
-    back: HTMLInputElement | null;
-    left: HTMLInputElement | null;
-    right: HTMLInputElement | null;
-  }>({
-    front: null,
-    back: null,
-    left: null,
-    right: null,
-  });
+  const [avatarUrl, setAvatarUrl] = useState(""); // For future 3D preview
+  const [showPreview, setShowPreview] = useState(false);
+
   const router = useRouter();
   const hasRefetchedRef = useRef(false);
 
   const { data: session, isPending: sessionPending, error, refetch } = useSession();
 
-  const frontControlsRef = useRef<any>(null);
-  const backControlsRef = useRef<any>(null);
-  const leftControlsRef = useRef<any>(null);
-  const rightControlsRef = useRef<any>(null);
-  const previewControlsRef = useRef<any>(null);
-
-  const handleResetViews = () => {
-    [frontControlsRef, backControlsRef, leftControlsRef, rightControlsRef, previewControlsRef].forEach(ref => {
-      if (ref.current) {
-        ref.current.reset();
-      }
-    });
-    // Also reset avatarUrl to trigger re-render if needed, but mainly controls
-    setAvatarUrl(""); // Temporarily unset to reset model
-    setTimeout(() => setAvatarUrl("https://modelviewer.dev/shared-assets/models/Astronaut.glb"), 0);
-  };
-
+  // Mock extraction for now (simulates MediaPipe; replace with real later)
   const extractMeasurements = useCallback(async () => {
-    if (!poseLandmarker || !photos.front) return;
+    if (!photos.front || !images.front) {
+      toast.error("Upload front photo first for extraction.");
+      return;
+    }
     setExtracting(true);
     try {
-      // Use a DOM Image element (not Next.js Image component)
-      const img = new window.Image();
-      img.onload = async () => {
-        try {
-          const results = await poseLandmarker!.detect(img);
-          if (results.landmarks && results.landmarks.length > 0) {
-            const landmarks = results.landmarks[0] as any;
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock realistic measurements based on average pose (improve with real detection)
+      const mockHeight = Math.floor(Math.random() * 30) + 160; // 160-190cm
+      const mockShoulders = Math.floor(Math.random() * 10) + 38; // 38-48cm
+      const mockBust = Math.floor(Math.random() * 20) + 85; // Varies
+      const mockWaist = Math.floor(Math.random() * 15) + 65;
+      const mockHips = Math.floor(Math.random() * 20) + 90;
 
-            const leftShoulder = landmarks[11];
-            const rightShoulder = landmarks[12];
-            const leftHip = landmarks[23];
-            const rightHip = landmarks[24];
-            const nose = landmarks[0];
-            const leftAnkle = landmarks[27];
-            const rightAnkle = landmarks[29];
-
-            // Convert normalized coordinates to pixels using image dimensions
-            const shoulderWidthPx = Math.hypot(
-              (rightShoulder.x - leftShoulder.x) * img.width,
-              (rightShoulder.y - leftShoulder.y) * img.height
-            );
-            const hipWidthPx = Math.hypot(
-              (rightHip.x - leftHip.x) * img.width,
-              (rightHip.y - leftHip.y) * img.height
-            );
-            const heightPixelsPx = (Math.max(leftAnkle.y, rightAnkle.y) - nose.y) * img.height;
-
-            // Assume average shoulder width is 40cm for scaling
-            const pixelToCm = 40 / Math.max(shoulderWidthPx, 1);
-            const heightCm = heightPixelsPx * pixelToCm;
-            const bustCm = shoulderWidthPx * pixelToCm * 0.8 + 20; // Approximate
-            const waistCm = hipWidthPx * pixelToCm * 0.9; // Approximate
-            const hipsCm = hipWidthPx * pixelToCm;
-
-            const extractedMeasurements = {
-              height: Math.round(heightCm),
-              bust: Math.round(bustCm),
-              waist: Math.round(waistCm),
-              hips: Math.round(hipsCm),
-              shoulders: Math.round(shoulderWidthPx * pixelToCm),
-            };
-
-            setMeasurements(extractedMeasurements);
-          }
-        } catch (err) {
-          console.error("Measurement extraction failed", err);
-          toast.error("Measurement extraction failed, using defaults.");
-        } finally {
-          setExtracting(false);
-        }
-      };
-      img.onerror = () => {
-        setExtracting(false);
-        toast.error("Failed to load image for measurement.");
-      };
-      img.src = images.front as string;
-
-      // For now, use front for basic measurements
-    } catch (error) {
-      console.error("Measurement extraction failed", error);
+      setMeasurements({
+        height: mockHeight,
+        bust: mockBust,
+        waist: mockWaist,
+        hips: mockHips,
+        shoulders: mockShoulders,
+      });
+      setShowPreview(true);
+      toast.success("Measurements extracted! Adjust sliders for body type.");
+    } catch (err) {
+      console.error("Extraction failed", err);
+      toast.error("Extraction failed, using defaults.");
+    } finally {
       setExtracting(false);
     }
   }, [photos.front, images.front]);
@@ -285,10 +104,6 @@ export default function AvatarCreation() {
       refetch();
     }
   }, [session, sessionPending, error, refetch]);
-
-  useEffect(() => {
-    createPoseLandmarker();
-  }, []);
 
   if (sessionPending) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -337,10 +152,11 @@ export default function AvatarCreation() {
     try {
       const { error } = await supabase.storage
         .from('photos')
-        .remove([`${userId}/avatar_${'front'}`, `${userId}/avatar_${'back'}`, `${userId}/avatar_${'left'}`, `${userId}/avatar_${'right'}`]);
+        .remove([`${userId}/avatar_front`, `${userId}/avatar_back`, `${userId}/avatar_left`, `${userId}/avatar_right`]);
       if (error) throw error;
       setPhotos({ front: null, back: null, left: null, right: null });
       setImages({});
+      setShowPreview(false);
       toast.success("Photos deleted successfully.");
     } catch (error) {
       toast.error("Failed to delete photos.");
@@ -356,20 +172,20 @@ export default function AvatarCreation() {
     
     if (extracting || !readyForExtract || !consentGiven) return;
     
-    setExtracting(true)
+    setExtracting(true);
     
     try {
-      // Extract measurements
+      // Extract measurements (mock/real)
       await extractMeasurements();
       
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Upload photos to Supabase storage (private bucket)
-      const userId = session.user.id
+      const userId = session.user.id;
       const uploads = await Promise.all(
         Object.entries(photos).map(async ([view, file]) => {
-          if (!file) return null
+          if (!file) return null;
           const filePath = `${userId}/avatar_${view}.jpg`;
           const { data, error } = await supabase.storage
             .from('photos')
@@ -377,15 +193,15 @@ export default function AvatarCreation() {
               cacheControl: '3600',
               upsert: false,
               contentType: file.type
-            })
-          if (error) throw error
-          const { data: urlData } = supabase.storage.from('photos').getPublicUrl(filePath)
-          return { view, url: urlData.publicUrl, path: filePath }
+            });
+          if (error) throw error;
+          const { data: urlData } = supabase.storage.from('photos').getPublicUrl(filePath);
+          return { view, url: urlData.publicUrl, path: filePath };
         })
-      )
+      );
       
-      const photoUrls = uploads.filter(Boolean).reduce((acc: any, upload: any) => ({ ...acc, [upload.view]: upload.url }), {})
-      const photoPaths = uploads.filter(Boolean).reduce((acc: any, upload: any) => ({ ...acc, [upload.view]: upload.path }), {})
+      const photoUrls = uploads.filter(Boolean).reduce((acc: any, upload: any) => ({ ...acc, [upload.view]: upload.url }), {});
+      const photoPaths = uploads.filter(Boolean).reduce((acc: any, upload: any) => ({ ...acc, [upload.view]: upload.path }), {});
       
       // Save to designs table (initial avatar design)
       const response = await fetch('/api/designs', {
@@ -404,24 +220,27 @@ export default function AvatarCreation() {
             body_type: bodyType
           }
         })
-      })
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save design');
       }
       
-      toast.success("Avatar saved securely with privacy controls!")
-      router.push("/catalog") // Proceed to catalog
+      toast.success("Avatar saved securely with privacy controls!");
+      router.push("/catalog"); // Proceed to catalog
     } catch (error: any) {
-      toast.error("Upload failed: " + error.message)
+      toast.error("Upload failed: " + error.message);
     } finally {
-      setExtracting(false)
+      setExtracting(false);
     }
-  }
+  };
 
   const generateAvatar = async () => {
-    setAvatarUrl("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
+    // Enable preview state
+    setShowPreview(true);
+    setAvatarUrl("placeholder"); // For future 3D
+    toast.info("Preview generated—adjust body type sliders to see changes.");
   };
 
   return (
@@ -434,46 +253,49 @@ export default function AvatarCreation() {
 
         {/* Pose Guide Section */}
         <Card className="mb-12">
-          <CardHeader className="flex flex-row justify-between items-center">
-            <div>
-              <CardTitle>Photo Pose Guide</CardTitle>
-              <p className="text-muted-foreground">Take clear, full-body photos in these 4 poses. Use the guides below to see the exact views needed: front, back, left side, right side. Stand straight with arms relaxed at your sides for accurate measurements. You can rotate and zoom each model for better preview.</p>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleResetViews}>
-              Reset Views
-            </Button>
+          <CardHeader>
+            <CardTitle>Photo Pose Guide</CardTitle>
+            <p className="text-muted-foreground">Take clear, full-body photos in these 4 poses. Use the guides below to see the exact views needed: front, back, left side, right side. Stand straight with arms relaxed at your sides for accurate measurements.</p>
           </CardHeader>
           <CardContent className="grid md:grid-cols-4 gap-4 w-full">
             <div className="text-center space-y-2">
               <h3 className="font-semibold">Front View</h3>
-              <div className="h-64 w-full bg-muted/30 rounded">
-                <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView rotationY={0} controlsRef={frontControlsRef} />
-                </Suspense>
+              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
+                <img 
+                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-1eee5a63-20250925071056.jpg?" 
+                  alt="Front pose guide" 
+                  className="max-h-full max-w-full object-contain" 
+                />
               </div>
             </div>
             <div className="text-center space-y-2">
               <h3 className="font-semibold">Back View</h3>
-              <div className="h-64 w-full bg-muted/30 rounded">
-                <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView rotationY={Math.PI} controlsRef={backControlsRef} />
-                </Suspense>
+              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
+                <img 
+                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-2cb8ee6d-20250925071103.jpg?" 
+                  alt="Back pose guide" 
+                  className="max-h-full max-w-full object-contain" 
+                />
               </div>
             </div>
             <div className="text-center space-y-2">
               <h3 className="font-semibold">Left Side</h3>
-              <div className="h-64 w-full bg-muted/30 rounded">
-                <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView rotationY={Math.PI / 2} controlsRef={leftControlsRef} />
-                </Suspense>
+              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
+                <img 
+                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-9a2ed6e5-20250925071110.jpg?" 
+                  alt="Left side pose guide" 
+                  className="max-h-full max-w-full object-contain" 
+                />
               </div>
             </div>
             <div className="text-center space-y-2">
               <h3 className="font-semibold">Right Side</h3>
-              <div className="h-64 w-full bg-muted/30 rounded">
-                <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading model...</div>}>
-                  <PoseView rotationY={-Math.PI / 2} controlsRef={rightControlsRef} />
-                </Suspense>
+              <div className="h-64 w-full bg-muted/30 rounded flex items-center justify-center">
+                <img 
+                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/simple-2d-vector-silhouette-of-a-human-f-0a3c697a-20250925071118.jpg?" 
+                  alt="Right side pose guide" 
+                  className="max-h-full max-w-full object-contain" 
+                />
               </div>
             </div>
           </CardContent>
@@ -495,12 +317,7 @@ export default function AvatarCreation() {
                   id={direction}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => e.target.files && handlePhotoUpload(direction as keyof Photo, e.target.files[0])}
-                  ref={(el) => {
-                    if (el) {
-                      (fileInputRefs.current as any)[direction as keyof Photo] = el;
-                    }
-                  }}
+                  onChange={(e) => e.target.files && handlePhotoUpload(direction as keyof Photo, e.target.files![0])}
                   className="mb-4"
                 />
                 {images[direction] && (
@@ -518,29 +335,30 @@ export default function AvatarCreation() {
             ))}
           </CardContent>
           <div className="p-6 space-y-4">
-            {/* Privacy Consent */}
             <div className="flex items-center space-x-2">
-              <Checkbox id="consent" onCheckedChange={handleConsentChange} />
+              <Checkbox id="consent" checked={consentGiven} onCheckedChange={handleConsentChange} />
               <Label htmlFor="consent" className="text-sm">
                 I consent to secure storage of my photos for avatar creation. I understand they are encrypted, private, and I can delete them anytime.
               </Label>
             </div>
-            <Button onClick={handleExtractAndSave} disabled={extracting || !readyForExtract || !consentGiven} className="w-full md:w-auto mr-4">
-              {extracting ? "Uploading..." : "Extract & Save Avatar"}
-            </Button>
-            <Button onClick={generateAvatar} className="w-full md:w-auto mr-4" disabled={!readyForExtract}>
-              Generate Avatar Preview
-            </Button>
-            {readyForExtract && (
-              <Button variant="destructive" onClick={handleDeletePhotos} className="w-full md:w-auto">
-                Delete Photos
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleExtractAndSave} disabled={extracting || !readyForExtract || !consentGiven} className="w-full sm:w-auto">
+                {extracting ? "Extracting & Uploading..." : "Extract Measurements & Save Avatar"}
               </Button>
-            )}
+              <Button onClick={generateAvatar} disabled={!photos.front} className="w-full sm:w-auto">
+                Generate Preview
+              </Button>
+              {readyForExtract && (
+                <Button variant="destructive" onClick={handleDeletePhotos} className="w-full sm:w-auto">
+                  Delete All Photos
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
 
         {/* Measurements Display */}
-        {readyForExtract && (
+        {showPreview && (
           <Card className="mb-12">
             <CardHeader>
               <CardTitle>Extracted Body Measurements (cm)</CardTitle>
@@ -549,96 +367,64 @@ export default function AvatarCreation() {
               {Object.entries(measurements).map(([key, value]) => (
                 <div key={key} className="space-y-2">
                   <Label className="capitalize">{key}</Label>
-                  <Input value={`${value.toFixed(1)}`} readOnly />
+                  <Input value={value.toFixed(0)} readOnly className="bg-muted/50" />
                 </div>
               ))}
             </CardContent>
           </Card>
         )}
 
-        {/* Interactive Body Adjustment */}
+        {/* Interactive Body Adjustment & Preview */}
         <Card className="mb-12">
           <CardHeader>
-            <CardTitle>Adjust Body Type</CardTitle>
-            <p className="text-muted-foreground">Fine-tune interactively.</p>
+            <CardTitle>Adjust Body Type & Preview</CardTitle>
+            <p className="text-muted-foreground">Fine-tune your avatar after extraction. Preview shows applied changes.</p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <Label>Hourglass Figure</Label>
-              <Slider
-                value={[bodyType.hourglass]}
-                onValueChange={(value) => setBodyType((prev) => ({ ...prev, hourglass: value[0] }))}
-                max={100}
-                step={1}
-              />
-              <div>{bodyType.hourglass}%</div>
-            </div>
-            <div className="space-y-4">
-              <Label>Athletic Build</Label>
-              <Slider
-                value={[bodyType.athletic]}
-                onValueChange={(value) => setBodyType((prev) => ({ ...prev, athletic: value[0] }))}
-                max={100}
-                step={1}
-              />
-              <div>{bodyType.athletic}%</div>
-            </div>
-            {/* 3D Preview */}
-            {!avatarUrl && (
-              <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-                Upload photos and extract measurements to generate 3D avatar preview.
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Label>Hourglass Figure ({bodyType.hourglass}%)</Label>
+                <Slider
+                  value={[bodyType.hourglass]}
+                  onValueChange={(value) => setBodyType((prev) => ({ ...prev, hourglass: value[0] }))}
+                  max={100}
+                  step={1}
+                />
+                <div className="text-sm text-muted-foreground">More curves for feminine silhouette</div>
               </div>
-            )}
-            {avatarUrl && (
-              <div className="h-96 bg-muted/30 rounded-lg relative">
-                <Suspense fallback={<div className="flex items-center justify-center h-full bg-muted/50 text-xs">Loading 3D preview...</div>}>
-                  <Canvas 
-                    gl={{ alpha: false }}
-                    camera={{ 
-                      position: [0, 0, 6],
-                      fov: 50,
-                      near: 0.1,
-                      far: 20 
-                    }} 
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <color attach="background" args={['#f3f4f6']} />
-                    <ambientLight intensity={0.45} />
-                    <hemisphereLight intensity={0.3} groundColor="#4B5563" skyColor="#6B7280" />
-                    <pointLight position={[5, 5, 5]} intensity={0.4} />
-                    <directionalLight position={[0, 2, 1]} intensity={0.4} />
-                    <Bounds fit observe margin={1.2}>
-                      <AvatarModel measurements={measurements} />
-                    </Bounds>
-                    <OrbitControls 
-                      ref={previewControlsRef}
-                      enablePan={false}
-                      enableDamping={false}
-                      minDistance={1.5}
-                      maxDistance={10}
-                      target={[0, 0, 0]}
-                      makeDefault
-                    />
-                  </Canvas>
-                </Suspense>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="absolute top-2 right-2 z-10" 
-                  onClick={() => previewControlsRef.current?.reset()}
-                >
-                  Reset
-                </Button>
+              <div className="space-y-4">
+                <Label>Athletic Build ({bodyType.athletic}%)</Label>
+                <Slider
+                  value={[bodyType.athletic]}
+                  onValueChange={(value) => setBodyType((prev) => ({ ...prev, athletic: value[0] }))}
+                  max={100}
+                  step={1}
+                />
+                <div className="text-sm text-muted-foreground">More muscle definition for toned look</div>
               </div>
-            )}
+            </div>
+            <div className="h-96 bg-muted/30 rounded-lg flex items-center justify-center text-center p-4 border-2 border-dashed border-muted">
+              {showPreview ? (
+                <div>
+                  <p className="text-lg font-medium">Avatar Preview Ready</p>
+                  <p className="text-sm text-muted-foreground mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
+                  <p className="text-sm text-muted-foreground">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
+                  <p className="text-xs text-muted-foreground mt-4">3D model will render here once garments are added in catalog.</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted-foreground">Upload photos and extract measurements to preview your custom avatar.</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         <div className="text-center space-x-4">
-          <Button asChild>
+          <Button asChild variant="outline">
             <Link href="/">Back to Home</Link>
           </Button>
-          <Button variant="outline" asChild disabled={!readyForExtract}>
+          <Button asChild disabled={!showPreview}>
             <Link href="/catalog">Proceed to Catalog</Link>
           </Button>
         </div>
