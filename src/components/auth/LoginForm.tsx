@@ -29,31 +29,27 @@ export const LoginForm = () => {
     }
     setLoading(true);
     try {
-      const callbackURL = search.get("redirect") || "/";
-      await authClient.signIn.email({
+      const callbackURL = search.get("redirect") || "/catalog";
+      const { data, error } = await authClient.signIn.email({
         email,
         password,
         rememberMe,
         callbackURL,
-      }, {
-        onSuccess: (ctx) => {
-          const authToken = ctx.response?.headers?.get("set-auth-token");
-          if (authToken) {
-            localStorage.setItem("bearer_token", authToken);
-          }
-          refetch();
-          toast.success("Logged in successfully!");
-          window.location.href = callbackURL;
-        },
-        onError: (ctx) => {
-          console.error("Auth error code:", ctx.error.code);
-          let errorMessage = "Login failed. Please try again.";
-          if (ctx.error.code === "BAD_EMAIL_PASSWORD") {
-            errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
-          }
-          toast.error(errorMessage);
-        }
       });
+      
+      if (error?.code) {
+        let errorMessage = "Login failed. Please try again.";
+        if (error.code === "BAD_EMAIL_PASSWORD") {
+          errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
+        }
+        toast.error(errorMessage);
+        return;
+      }
+      
+      // On success, refetch session and redirect
+      await refetch();
+      toast.success("Logged in successfully!");
+      router.push(callbackURL);
     } catch (err) {
       console.error("Detailed login error:", err);
       toast.error("Login failed - check console for details");
