@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 export const LoginForm = () => {
   const router = useRouter();
@@ -18,6 +19,7 @@ export const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
+  const { refetch } = useSession();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,20 +30,37 @@ export const LoginForm = () => {
     setLoading(true);
     try {
       const callbackURL = search.get("redirect") || "/";
-      const { error } = await authClient.signIn.email({
+      const response = await authClient.signIn.email({
         email,
         password,
         rememberMe,
         callbackURL,
       });
+      const { data, error } = response;
+      console.log("Login response:", { data, error }); // Debug full response
+
       if (error?.code) {
-        toast.error("Invalid email or password. Please make sure you have already registered an account and try again.");
-        setLoading(false);
+        console.error("Auth error code:", error.code); // Log specific code
+        let errorMessage = "Login failed. Please try again.";
+        if (error.code === "BAD_EMAIL_PASSWORD") {
+          errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
+        }
+        toast.error(errorMessage);
         return;
       }
-      router.push(callbackURL);
+
+      if (data && data.user) {
+        // Refetch session to ensure useSession updates immediately
+        await refetch();
+        toast.success("Logged in successfully!");
+        router.push(callbackURL);
+      } else {
+        throw new Error("No user data returned from login");
+      }
     } catch (err) {
-      toast.error("Login failed");
+      console.error("Detailed login error:", err); // Enhanced logging
+      toast.error("Login failed - check console for details");
+    } finally {
       setLoading(false);
     }
   };
