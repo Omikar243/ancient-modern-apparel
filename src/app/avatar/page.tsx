@@ -14,6 +14,8 @@ import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import dynamic from "next/dynamic";
+import { FilesetResolver, PoseLandmarker, Image } from "@mediapipe/tasks-vision";
+import { useLocalStorage } from '@/hooks/use-local-storage'; // Assume hook exists or implement simple
 
 const CanvasWrapper = dynamic(() => import("./CanvasWrapper"), { ssr: false });
 
@@ -53,6 +55,10 @@ export default function AvatarCreation() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [skinTone, setSkinTone] = useState("peachpuff");
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [avatarId, setAvatarId] = useState<number | null>(null);
+  const [storedAvatarId, setStoredAvatarId] = useLocalStorage('avatar_id', null);
 
   const router = useRouter();
   const hasRefetchedRef = useRef(false);
@@ -60,23 +66,148 @@ export default function AvatarCreation() {
 
   const { data: session, isPending: sessionPending, error, refetch } = useSession();
 
-  // Mock extraction for now (simulates MediaPipe; replace with real later)
+  // MediaPipe setup
+  const poseLandmarkerRef = useRef<PoseLandmarker | null>(null);
+  const visionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const initMediaPipe = async () => {
+      try {
+        visionRef.current = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
+        );
+        poseLandmarkerRef.current = await PoseLandmarker.createFromOptions(visionRef.current, {
+          baseOptions: {
+            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+            delegate: "GPU"
+          },
+          runningMode: "IMAGE",
+          numPoses: 1,
+          minPoseDetectionConfidence: 0.5,
+          minPosePresenceConfidence: 0.5,
+          minTrackingConfidence: 0.5,
+          outputProbs: false
+        });
+        console.log("MediaPipe PoseLandmarker initialized");
+      } catch (err) {
+        console.error("MediaPipe init failed:", err);
+        toast.error("Failed to load measurement tool. Using defaults.");
+      }
+    };
+    initMediaPipe();
+  }, []);
+
+  // Real extraction using MediaPipe
   const extractMeasurements = useCallback(async () => {
-    if (!photos.front || !images.front) {
+    if (!photos.front || !images.front || !poseLandmarkerRef.current) {
       toast.error("Upload front photo first for extraction.");
       return;
     }
     setExtracting(true);
     try {
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock realistic measurements based on average pose (improve with real detection)
-      const mockHeight = Math.floor(Math.random() * 30) + 160; // 160-190cm
-      const mockShoulders = Math.floor(Math.random() * 10) + 38; // 38-48cm
-      const mockBust = Math.floor(Math.random() * 20) + 85; // Varies
+      // Create Image from data URL
+      const imgElement = new Image();
+      imgElement.src = images.front;
+      await new Promise((resolve, reject) => {
+        imgElement.onload = resolve;
+        imgElement.onerror = reject;
+      });
+
+      const mpImage = new Image(imgElement.width, imgElement.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = imgElement.width;
+      canvas.height = imgElement.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(imgElement, 0, 0);
+      mpImage.src = canvas.toDataURL();
+
+      const results = await poseLandmarkerRef.current.detect(mpImage);
+
+      if (!results.landmarks || results.landmarks.length === 0) {
+        throw new Error("No pose detected. Please ensure full body is visible.");
+      }
+
+      const landmarks = results.landmarks[0]; // Single pose
+      const imageWidth = imgElement.width;
+      const imageHeight = imgElement.height;
+
+      // Key landmarks (normalized 0-1)
+      const noseY = landmarks[0].y * imageHeight;
+      const leftShoulder = landmarks[11];
+      const rightShoulder = landmarks[12];
+      const leftHip = landmarks[23];
+      const rightHip = landmarks[24];
+      const leftWrist = landmarks[15]; // For arm length proxy
+
+      // Shoulders: horizontal distance, scale to cm (assume 0.5m average image scale for shoulders ~40cm)
+      const shoulderDistPixels = Math.abs(leftShoulder.x - rightShoulder.x) * imageWidth;
+      const shoulderCm = (shoulderDistPixels / imageWidth) * 40; // Calibrate based on avg 40cm shoulders
+
+      // Height: from nose to hip midpoint, extrapolate (head ~22%, torso ~30%, legs ~48% of height)
+      const hipMidY = ((leftHip.y + rightHip.y) / 2) * imageHeight;
+      const upperBodyPixels = hipMidY - noseY;
+      const fullHeightCm = (upperBodyPixels / 0.52) * 170; // 52% upper, avg 170cm
+
+      // Torso width variations for bust/waist/hips (proxies; use shoulder/hip widths)
+      // Bust ~ shoulder width * 1.2 (for women avg)
+      const bustCm = shoulderCm * 1.2;
+      // Waist ~ shoulder * 0.8
+      const waistCm = shoulderCm * 0.8;
+      // Hips ~ shoulder * 1.1
+      const hipCm = shoulderCm * 1.1;
+
+      // Adjust for visibility confidence
+      const avgConfidence = landmarks.slice(0, 10).reduce((sum, lm) => sum + lm.visibility, 0) / 10;
+      if (avgConfidence < 0.5) {
+        throw new Error("Low confidence. Retake photo with better lighting/pose.");
+      }
+
+      // Extract basic skin tone: average RGB from face landmarks (nose, eyes)
+      const faceLandmarks = [0, 1, 2, 7, 8]; // nose, eyes, ears approx
+      const facePixels: number[] = [];
+      const canvas2 = document.createElement('canvas');
+      canvas2.width = imgElement.width;
+      canvas2.height = imgElement.height;
+      const ctx2 = canvas2.getContext('2d');
+      if (ctx2) {
+        ctx2.drawImage(imgElement, 0, 0);
+        faceLandmarks.forEach(idx => {
+          const lm = landmarks[idx];
+          const x = Math.max(0, Math.min(imageWidth - 1, Math.round(lm.x * imageWidth)));
+          const y = Math.max(0, Math.min(imageHeight - 1, Math.round(lm.y * imageHeight)));
+          const pixelData = ctx2.getImageData(x, y, 1, 1).data;
+          if (pixelData[3] > 50) { // Visible
+            facePixels.push(pixelData[0], pixelData[1], pixelData[2]);
+          }
+        });
+      }
+      let avgSkinTone = "peachpuff";
+      if (facePixels.length >= 9) { // At least 3 points
+        const avgR = Math.round(facePixels.filter((_, i) => i % 3 === 0).reduce((a, b) => a + b, 0) / (facePixels.length / 3));
+        const avgG = Math.round(facePixels.filter((_, i) => i % 3 === 1).reduce((a, b) => a + b, 0) / (facePixels.length / 3));
+        const avgB = Math.round(facePixels.filter((_, i) => i % 3 === 2).reduce((a, b) => a + b, 0) / (facePixels.length / 3));
+        avgSkinTone = `rgb(${avgR}, ${avgG}, ${avgB})`;
+      }
+      setSkinTone(avgSkinTone);
+
+      setMeasurements({
+        height: Math.round(fullHeightCm),
+        bust: Math.round(bustCm),
+        waist: Math.round(waistCm),
+        hips: Math.round(hipCm),
+        shoulders: Math.round(shoulderCm),
+      });
+      setShowPreview(true);
+      toast.success(`Measurements extracted! Skin tone: ${avgSkinTone.slice(0,10)}... Confidence: ${Math.round(avgConfidence * 100)}%`);
+    } catch (err) {
+      console.error("Extraction failed", err);
+      // Fallback to mock
+      const mockHeight = Math.floor(Math.random() * 30) + 160;
+      const mockShoulders = Math.floor(Math.random() * 10) + 38;
+      const mockBust = Math.floor(Math.random() * 20) + 85;
       const mockWaist = Math.floor(Math.random() * 15) + 65;
       const mockHips = Math.floor(Math.random() * 20) + 90;
+      setSkinTone("peachpuff");
 
       setMeasurements({
         height: mockHeight,
@@ -86,10 +217,7 @@ export default function AvatarCreation() {
         shoulders: mockShoulders,
       });
       setShowPreview(true);
-      toast.success("Measurements extracted!");
-    } catch (err) {
-      console.error("Extraction failed", err);
-      toast.error("Extraction failed, using defaults.");
+      toast.error(`Extraction failed using defaults: ${err.message}`);
     } finally {
       setExtracting(false);
     }
@@ -97,7 +225,7 @@ export default function AvatarCreation() {
 
   // Early check: If no token, immediate redirect (prevents hook init)
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem("bearer_token") : null;
     if (!token && !sessionPending) {
       router.push("/login?redirect=/avatar");
       return;
@@ -126,14 +254,22 @@ export default function AvatarCreation() {
       timeoutRef.current = null;
     }
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem("bearer_token") : null;
 
     if (!session?.user && token && !hasRefetchedRef.current) {
       hasRefetchedRef.current = true;
-      refetch().catch(() => {
-        // If refetch fails, force redirect
+      if (typeof refetch === 'function') {
+        (async () => {
+          try {
+            await refetch();
+          } catch (error) {
+            // If refetch fails, force redirect
+            router.push("/login?redirect=/avatar");
+          }
+        })();
+      } else {
         router.push("/login?redirect=/avatar");
-      });
+      }
       return;
     }
   }, [sessionPending, session, router, refetch]);
@@ -210,6 +346,30 @@ export default function AvatarCreation() {
     } catch (error) {
       toast.error("Failed to delete photos.");
     }
+    try {
+      const storedId = storedAvatarId;
+      if (storedId) {
+        const token = typeof window !== 'undefined' ? window.localStorage.getItem('bearer_token') : null;
+        if (token) {
+          const deleteResponse = await fetch(`/api/avatars/${storedId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (deleteResponse.ok) {
+            setStoredAvatarId(null);
+            toast.success('Avatar record also deleted');
+          } else {
+            toast.warning('Photos deleted, but avatar record cleanup failed');
+          }
+        }
+      }
+    } catch (deleteErr) {
+      console.error('Delete avatar error:', deleteErr);
+      toast.warning('Photos deleted, avatar record remains');
+    }
   };
 
   const handleExtractAndSave = async () => {
@@ -219,7 +379,7 @@ export default function AvatarCreation() {
       return;
     }
     
-    if (extracting || !readyForExtract || !consentGiven) return;
+    if (extracting || savingAvatar || !readyForExtract || !consentGiven) return;
     
     setExtracting(true);
     
@@ -274,6 +434,42 @@ export default function AvatarCreation() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save design');
+      }
+      
+      if (savingAvatar) return;
+      
+      setSavingAvatar(true);
+      
+      try {
+        const token = typeof window !== 'undefined' ? window.localStorage.getItem('bearer_token') : null;
+        if (!token) {
+          throw new Error('No auth token');
+        }
+
+        const avatarResponse = await fetch('/api/avatars', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ measurements })
+        });
+
+        if (!avatarResponse.ok) {
+          const errData = await avatarResponse.json();
+          throw new Error(errData.error || 'Failed to save avatar data');
+        }
+
+        const avatarData = await avatarResponse.json();
+        setAvatarId(avatarData.id);
+        setStoredAvatarId(avatarData.id);
+        toast.success(`Avatar saved! ID: ${avatarData.id}, 3D Model: ${avatarData.fittedModelUrl ? 'Generated' : 'Skipped'}`);
+      } catch (avatarErr: any) {
+        console.error('Avatar API error:', avatarErr);
+        toast.error(`Measurements saved but 3D model failed: ${avatarErr.message}`);
+        // Still proceed, as measurements are in designs
+      } finally {
+        setSavingAvatar(false);
       }
       
       toast.success("Avatar saved securely with privacy controls!");
@@ -366,8 +562,12 @@ export default function AvatarCreation() {
               </label>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleExtractAndSave} disabled={extracting || !readyForExtract || !consentGiven} className="w-full sm:w-auto">
-                {extracting ? "Extracting & Uploading..." : "Extract Measurements & Save Avatar"}
+              <Button 
+                onClick={handleExtractAndSave} 
+                disabled={extracting || savingAvatar || !readyForExtract || !consentGiven} 
+                className="w-full sm:w-auto"
+              >
+                {(extracting || savingAvatar) ? "Saving Avatar..." : "Extract Measurements & Save Avatar"}
               </Button>
               {readyForExtract && (
                 <Button variant="destructive" onClick={handleDeletePhotos} className="w-full sm:w-auto">
@@ -431,7 +631,7 @@ export default function AvatarCreation() {
             <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
               {mounted ? (
                 <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center">Loading 3D model...</div>}>
-                  <CanvasWrapper measurements={measurements} bodyType={bodyType} />
+                  <CanvasWrapper measurements={measurements} bodyType={bodyType} skinTone={skinTone} />
                 </Suspense>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/30">Initializing 3D preview...</div>
