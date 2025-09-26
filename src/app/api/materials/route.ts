@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { materials } from '@/db/schema';
-import { eq, like, and, or, desc } from 'drizzle-orm';
-import { getSessionCookie } from "better-auth/cookies";
-import { sessions } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, like, or, desc } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionCookie = getSessionCookie(request);
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    const sessionRecords = await db.select()
-      .from(sessions)
-      .where(eq(sessions.sessionToken, sessionCookie))
-      .limit(1);
-
-    const sessionRecord = sessionRecords[0];
-    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -56,8 +39,7 @@ export async function GET(request: NextRequest) {
       const searchCondition = or(
         like(materials.name, `%${search}%`),
         like(materials.origin, `%${search}%`),
-        like(materials.description, `%${search}%`),
-        like(materials.textureType, `%${search}%`)
+        like(materials.artisanOrigin, `%${search}%`)
       );
       query = query.where(searchCondition);
     }
@@ -78,23 +60,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionCookie = getSessionCookie(request);
-    if (!sessionCookie) {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const sessionRecords = await db.select()
-      .from(sessions)
-      .where(eq(sessions.sessionToken, sessionCookie))
-      .limit(1);
-
-    const sessionRecord = sessionRecords[0];
-    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
-    }
-
     const requestBody = await request.json();
-    const { name, origin, description, textureType, imageUrl, authenticityRating } = requestBody;
+    const { name, origin, gsm, stretch, drape, colors, textureUrl, careInstructions, artisanOrigin } = requestBody;
 
     // Validate required fields
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -111,49 +83,76 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (!textureType || typeof textureType !== 'string' || textureType.trim() === '') {
+    if (gsm === undefined || gsm === null || !Number.isInteger(gsm) || gsm <= 0) {
       return NextResponse.json({ 
-        error: "Texture type is required and must be a non-empty string",
-        code: "MISSING_TEXTURE_TYPE" 
+        error: "GSM is required and must be a positive integer",
+        code: "INVALID_GSM" 
       }, { status: 400 });
     }
 
-    if (authenticityRating === undefined || authenticityRating === null) {
+    if (stretch === undefined || stretch === null || typeof stretch !== 'number' || stretch < 0 || stretch > 1) {
       return NextResponse.json({ 
-        error: "Authenticity rating is required",
-        code: "MISSING_AUTHENTICITY_RATING" 
+        error: "Stretch is required and must be a number between 0 and 1",
+        code: "INVALID_STRETCH" 
       }, { status: 400 });
     }
 
-    if (!Number.isInteger(authenticityRating) || authenticityRating < 1 || authenticityRating > 10) {
+    if (drape === undefined || drape === null || typeof drape !== 'number' || drape < 0 || drape > 1) {
       return NextResponse.json({ 
-        error: "Authenticity rating must be an integer between 1 and 10 inclusive",
-        code: "INVALID_AUTHENTICITY_RATING" 
+        error: "Drape is required and must be a number between 0 and 1",
+        code: "INVALID_DRAPE" 
       }, { status: 400 });
     }
 
-    // Validate optional fields
-    if (description !== undefined && typeof description !== 'string') {
+    if (!colors || !Array.isArray(colors) || colors.length === 0) {
       return NextResponse.json({ 
-        error: "Description must be a string",
-        code: "INVALID_DESCRIPTION" 
+        error: "Colors is required and must be a non-empty array",
+        code: "MISSING_COLORS" 
       }, { status: 400 });
     }
 
-    if (imageUrl !== undefined && typeof imageUrl !== 'string') {
+    // Validate hex colors
+    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
+    for (const color of colors) {
+      if (typeof color !== 'string' || !hexColorRegex.test(color)) {
+        return NextResponse.json({ 
+          error: "All colors must be valid hex color strings (e.g., #FF0000)",
+          code: "INVALID_COLOR_FORMAT" 
+        }, { status: 400 });
+      }
+    }
+
+    if (!textureUrl || typeof textureUrl !== 'string' || textureUrl.trim() === '') {
       return NextResponse.json({ 
-        error: "Image URL must be a string",
-        code: "INVALID_IMAGE_URL" 
+        error: "Texture URL is required and must be a non-empty string",
+        code: "MISSING_TEXTURE_URL" 
+      }, { status: 400 });
+    }
+
+    if (!careInstructions || typeof careInstructions !== 'string' || careInstructions.trim() === '') {
+      return NextResponse.json({ 
+        error: "Care instructions are required and must be a non-empty string",
+        code: "MISSING_CARE_INSTRUCTIONS" 
+      }, { status: 400 });
+    }
+
+    if (!artisanOrigin || typeof artisanOrigin !== 'string' || artisanOrigin.trim() === '') {
+      return NextResponse.json({ 
+        error: "Artisan origin is required and must be a non-empty string",
+        code: "MISSING_ARTISAN_ORIGIN" 
       }, { status: 400 });
     }
 
     const insertData = {
       name: name.trim(),
       origin: origin.trim(),
-      description: description?.trim() || null,
-      textureType: textureType.trim(),
-      imageUrl: imageUrl?.trim() || null,
-      authenticityRating,
+      gsm,
+      stretch,
+      drape,
+      colors,
+      textureUrl: textureUrl.trim(),
+      careInstructions: careInstructions.trim(),
+      artisanOrigin: artisanOrigin.trim(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -173,19 +172,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const sessionCookie = getSessionCookie(request);
-    if (!sessionCookie) {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    const sessionRecords = await db.select()
-      .from(sessions)
-      .where(eq(sessions.sessionToken, sessionCookie))
-      .limit(1);
-
-    const sessionRecord = sessionRecords[0];
-    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -199,7 +188,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const requestBody = await request.json();
-    const { name, origin, description, textureType, imageUrl, authenticityRating } = requestBody;
+    const { name, origin, gsm, stretch, drape, colors, textureUrl, careInstructions, artisanOrigin } = requestBody;
 
     // Check if material exists
     const existingMaterial = await db.select()
@@ -236,44 +225,84 @@ export async function PUT(request: NextRequest) {
       updates.origin = origin.trim();
     }
 
-    if (textureType !== undefined) {
-      if (typeof textureType !== 'string' || textureType.trim() === '') {
+    if (gsm !== undefined) {
+      if (!Number.isInteger(gsm) || gsm <= 0) {
         return NextResponse.json({ 
-          error: "Texture type must be a non-empty string",
-          code: "INVALID_TEXTURE_TYPE" 
+          error: "GSM must be a positive integer",
+          code: "INVALID_GSM" 
         }, { status: 400 });
       }
-      updates.textureType = textureType.trim();
+      updates.gsm = gsm;
     }
 
-    if (authenticityRating !== undefined) {
-      if (!Number.isInteger(authenticityRating) || authenticityRating < 1 || authenticityRating > 10) {
+    if (stretch !== undefined) {
+      if (typeof stretch !== 'number' || stretch < 0 || stretch > 1) {
         return NextResponse.json({ 
-          error: "Authenticity rating must be an integer between 1 and 10 inclusive",
-          code: "INVALID_AUTHENTICITY_RATING" 
+          error: "Stretch must be a number between 0 and 1",
+          code: "INVALID_STRETCH" 
         }, { status: 400 });
       }
-      updates.authenticityRating = authenticityRating;
+      updates.stretch = stretch;
     }
 
-    if (description !== undefined) {
-      if (typeof description !== 'string') {
+    if (drape !== undefined) {
+      if (typeof drape !== 'number' || drape < 0 || drape > 1) {
         return NextResponse.json({ 
-          error: "Description must be a string",
-          code: "INVALID_DESCRIPTION" 
+          error: "Drape must be a number between 0 and 1",
+          code: "INVALID_DRAPE" 
         }, { status: 400 });
       }
-      updates.description = description.trim() || null;
+      updates.drape = drape;
     }
 
-    if (imageUrl !== undefined) {
-      if (typeof imageUrl !== 'string') {
+    if (colors !== undefined) {
+      if (!Array.isArray(colors) || colors.length === 0) {
         return NextResponse.json({ 
-          error: "Image URL must be a string",
-          code: "INVALID_IMAGE_URL" 
+          error: "Colors must be a non-empty array",
+          code: "INVALID_COLORS" 
         }, { status: 400 });
       }
-      updates.imageUrl = imageUrl.trim() || null;
+      
+      const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
+      for (const color of colors) {
+        if (typeof color !== 'string' || !hexColorRegex.test(color)) {
+          return NextResponse.json({ 
+            error: "All colors must be valid hex color strings (e.g., #FF0000)",
+            code: "INVALID_COLOR_FORMAT" 
+          }, { status: 400 });
+        }
+      }
+      updates.colors = colors;
+    }
+
+    if (textureUrl !== undefined) {
+      if (typeof textureUrl !== 'string' || textureUrl.trim() === '') {
+        return NextResponse.json({ 
+          error: "Texture URL must be a non-empty string",
+          code: "INVALID_TEXTURE_URL" 
+        }, { status: 400 });
+      }
+      updates.textureUrl = textureUrl.trim();
+    }
+
+    if (careInstructions !== undefined) {
+      if (typeof careInstructions !== 'string' || careInstructions.trim() === '') {
+        return NextResponse.json({ 
+          error: "Care instructions must be a non-empty string",
+          code: "INVALID_CARE_INSTRUCTIONS" 
+        }, { status: 400 });
+      }
+      updates.careInstructions = careInstructions.trim();
+    }
+
+    if (artisanOrigin !== undefined) {
+      if (typeof artisanOrigin !== 'string' || artisanOrigin.trim() === '') {
+        return NextResponse.json({ 
+          error: "Artisan origin must be a non-empty string",
+          code: "INVALID_ARTISAN_ORIGIN" 
+        }, { status: 400 });
+      }
+      updates.artisanOrigin = artisanOrigin.trim();
     }
 
     const updated = await db.update(materials)
@@ -292,19 +321,9 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const sessionCookie = getSessionCookie(request);
-    if (!sessionCookie) {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    const sessionRecords = await db.select()
-      .from(sessions)
-      .where(eq(sessions.sessionToken, sessionCookie))
-      .limit(1);
-
-    const sessionRecord = sessionRecords[0];
-    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);

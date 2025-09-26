@@ -16,7 +16,6 @@ import { Search, Filter, Palette } from "lucide-react";
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import dynamic from 'next/dynamic';
 const CanvasWrapper = dynamic(() => import('../avatar/CanvasWrapper'), { ssr: false });
-import { authClient } from "@/lib/auth-client";
 
 // Types
 interface Garment {
@@ -45,7 +44,7 @@ export default function Catalog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState(null);
-  const [avatarLoading, setAvatarLoading] = useState(true);
+  const [avatarLoading, setAvatarLoading] = useState(false); // Only load if logged in
   const [avatarError, setAvatarError] = useState(null);
 
   // Filters
@@ -60,35 +59,20 @@ export default function Catalog() {
   const session = useSession();
   const router = useRouter();
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
   useEffect(() => {
-    if (!session?.user && !session?.isPending) {
-      router.push("/login?redirect=/catalog");
-      return;
-    }
-
+    // No redirect for public access - always load catalog
     fetchGarments();
     fetchMaterials();
-  }, [session, router]);
+  }, [router]);
 
   const fetchGarments = async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/garments", {
-        headers,
         credentials: 'include',
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          toast.error("Session expired. Please log in again.");
-          localStorage.removeItem("bearer_token");
-          await authClient.signOut();
-          router.push("/login?redirect=/catalog");
-          return;
-        }
         throw new Error("Failed to fetch garments");
       }
 
@@ -106,18 +90,10 @@ export default function Catalog() {
   const fetchMaterials = async () => {
     try {
       const response = await fetch("/api/materials", {
-        headers,
         credentials: 'include',
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          toast.error("Session expired. Please log in again.");
-          localStorage.removeItem("bearer_token");
-          await authClient.signOut();
-          router.push("/login?redirect=/catalog");
-          return;
-        }
         throw new Error("Failed to fetch materials");
       }
 
@@ -128,25 +104,22 @@ export default function Catalog() {
     }
   };
 
+  // Load user avatar only if logged in
   useEffect(() => {
     const fetchUserAvatar = async () => {
-      if (!session?.user?.id || !token) return;
+      if (!session?.user?.id) {
+        setUserAvatar(null);
+        setAvatarLoading(false);
+        return;
+      }
       try {
         setAvatarLoading(true);
-        const response = await fetch('/api/avatars', {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: 'include',
-        });
+        const response = await fetch('/api/avatars/by-user/' + session.user.id);
         if (response.ok) {
           const avatarsData = await response.json();
           // Use latest avatar or first
           const latestAvatar = avatarsData.length > 0 ? avatarsData[0] : null;
           setUserAvatar(latestAvatar);
-        } else if (response.status === 401) {
-          toast.error("Session expired. Redirecting...");
-          localStorage.removeItem("bearer_token");
-          await authClient.signOut();
-          router.push("/login?redirect=/catalog");
         } else {
           setAvatarError("No avatar found, using defaults");
         }
@@ -158,7 +131,7 @@ export default function Catalog() {
       }
     };
     fetchUserAvatar();
-  }, [session, token, router]);
+  }, [session]);
 
   useEffect(() => {
     let filtered = garments.filter((garment) => {
@@ -173,7 +146,40 @@ export default function Catalog() {
     setFilteredGarments(filtered);
   }, [garments, searchTerm, selectedCategory, priceRange]);
 
-  if (session?.isPending || loading) {
+  const handleAddToCart = (garment) => {
+    if (!session?.user) {
+      toast.error("Please log in to customize and add garments to your cart.");
+      router.push("/login?redirect=/catalog");
+      return;
+    }
+    // Proceed with cart logic only if logged in
+    const cartItem = {
+      id: garment.id,
+      name: garment.name,
+      price: garment.price,
+      imageUrl: garment.imageUrl || '/placeholder.svg'
+    };
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if (!cart.find((item: any) => item.id === garment.id)) {
+      cart.push(cartItem);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      toast.success(`${garment.name} added to cart`);
+    } else {
+      toast.info('Item already in cart');
+    }
+    // Check for avatar before preview
+    if (!userAvatar) {
+      toast.warning("Create your avatar first to preview garments.");
+      router.push("/avatar");
+      return;
+    }
+    // Pass avatar if available
+    const avatarData = userAvatar ? { measurements: userAvatar.measurements, modelUrl: userAvatar.fittedModelUrl } : null;
+    sessionStorage.setItem('previewGarment', JSON.stringify({ garmentId: garment.id, avatarData }));
+    router.push('/preview');
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-lg">Loading catalog...</div>
@@ -257,92 +263,72 @@ export default function Catalog() {
               </CardContent>
             </Card>
 
-            {/* Avatar Loading/Warning */}
-            {avatarLoading && (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2 text-muted-foreground">Loading your avatar...</span>
-              </div>
+            {/* Avatar Loading/Warning - only show if logged in and no avatar */}
+            {session?.user && !session.isPending && (
+              <>
+                {avatarLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2 text-muted-foreground">Loading your avatar...</span>
+                  </div>
+                )}
+
+                {avatarError && !avatarLoading && (
+                  <Card className="mb-4 p-4 bg-destructive/5 border-destructive/20">
+                    <p className="text-sm text-destructive">{avatarError}</p>
+                    <Button variant="outline" size="sm" onClick={() => router.push('/avatar')}>Create Avatar</Button>
+                  </Card>
+                )}
+              </>
             )}
 
-            {avatarError && !avatarLoading && (
-              <Card className="mb-4 p-4 bg-destructive/5 border-destructive/20">
-                <p className="text-sm text-destructive">{avatarError}</p>
-                <Button variant="outline" size="sm" onClick={() => window.location.href = '/avatar'}>Create Avatar</Button>
+            {/* Public message if not logged in */}
+            {!session?.user && !session?.isPending && (
+              <Card className="mb-4 p-4 bg-accent/10">
+                <p className="text-sm text-muted-foreground">
+                  Log in or sign up to create your avatar and customize garments.
+                  <Button variant="link" size="sm" onClick={() => router.push('/login?redirect=/catalog')} className="p-0 h-auto">
+                    Get started
+                  </Button>
+                </p>
               </Card>
             )}
 
             {/* Garment Grid */}
-            {loading ? (
-              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <div className="h-48 bg-muted rounded-t-lg"></div>
-                    <CardContent className="p-4 space-y-2">
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                      <div className="h-3 bg-muted rounded w-1/2"></div>
-                      <div className="h-4 bg-muted rounded w-1/4"></div>
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredGarments.length > 0 ? (
+                filteredGarments.map((garment) => (
+                  <Card key={garment.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative h-48">
+                      <Image
+                        src={garment.imageUrl || "/placeholder.svg"}
+                        alt={garment.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <CardContent className="p-4">
+                      <CardTitle className="font-semibold mb-1">{garment.name}</CardTitle>
+                      <CardDescription className="mb-2">{garment.description.substring(0, 100)}...</CardDescription>
+                      <div className="flex justify-between items-center mb-2">
+                        <Badge variant="secondary">{garment.category}</Badge>
+                        <span className="text-lg font-bold">${garment.price}</span>
+                      </div>
+                      <Button
+                        className="w-full"
+                        onClick={() => handleAddToCart(garment)}
+                      >
+                        {session?.user ? "Add to Cart & Customize" : "Log in to Customize"}
+                      </Button>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredGarments.length > 0 ? (
-                  filteredGarments.map((garment) => (
-                    <Card key={garment.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="relative h-48">
-                        <Image
-                          src={garment.imageUrl || "/placeholder.svg"}
-                          alt={garment.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <CardContent className="p-4">
-                        <CardTitle className="font-semibold mb-1">{garment.name}</CardTitle>
-                        <CardDescription className="mb-2">{garment.description.substring(0, 100)}...</CardDescription>
-                        <div className="flex justify-between items-center mb-2">
-                          <Badge variant="secondary">{garment.category}</Badge>
-                          <span className="text-lg font-bold">${garment.price}</span>
-                        </div>
-                        <Button
-                          asChild
-                          className="w-full"
-                          onClick={() => {
-                            // Stub: Add to cart (in production, use real cart state)
-                            const cartItem = {
-                              id: garment.id,
-                              name: garment.name,
-                              price: garment.price,
-                              imageUrl: garment.imageUrl || '/placeholder.svg'
-                            };
-                            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                            if (!cart.find((item: any) => item.id === garment.id)) {
-                              cart.push(cartItem);
-                              localStorage.setItem('cart', JSON.stringify(cart));
-                              toast.success(`${garment.name} added to cart`);
-                            } else {
-                              toast.info('Item already in cart');
-                            }
-                            // Pass avatar if available
-                            const avatarData = userAvatar ? { measurements: userAvatar.measurements, modelUrl: userAvatar.fittedModelUrl } : null;
-                            sessionStorage.setItem('previewGarment', JSON.stringify({ garmentId: garment.id, avatarData }));
-                            router.push('/preview');
-                          }}
-                        >
-                          <span>Add to Cart & Customize</span>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <p className="col-span-full text-center text-muted-foreground py-8">
-                    No garments found matching your filters.
-                  </p>
-                )}
-              </div>
-            )}
+                ))
+              ) : (
+                <p className="col-span-full text-center text-muted-foreground py-8">
+                  No garments found matching your filters.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Materials Sidebar */}
