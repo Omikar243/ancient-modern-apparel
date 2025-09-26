@@ -5,6 +5,7 @@ import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner";
+import { NavBar } from "@/components/NavBar";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,7 +22,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ErrorReporter />
         <Script
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/route-messenger.js"
           strategy="afterInteractive"
           data-target-origin="*"
           data-message-type="ROUTE_CHANGE"
@@ -35,29 +36,7 @@ export default function RootLayout({
             <Link href="/" className="font-semibold text-lg">
               IndiFusion Wear
             </Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/avatar" className="text-sm text-muted-foreground hover:text-foreground">
-                Avatar
-              </Link>
-              <Link href="/catalog" className="text-sm text-muted-foreground hover:text-foreground">
-                Catalog
-              </Link>
-              <Link href="/preview" className="text-sm text-muted-foreground hover:text-foreground">
-                Preview
-              </Link>
-              <Link href="/cart" className="text-sm text-muted-foreground hover:text-foreground">
-                Cart
-              </Link>
-              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="text-sm rounded-md bg-primary text-primary-foreground px-3 py-1.5 hover:bg-primary/90"
-              >
-                Register
-              </Link>
-            </nav>
+            <NavBar />
           </div>
         </header>
         <Toaster position="top-right" richColors />
