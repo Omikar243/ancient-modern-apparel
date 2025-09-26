@@ -382,14 +382,12 @@ export default function AvatarCreation() {
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/30">Initializing 3D preview...</div>
               )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                <div className="text-center text-white">
-                  <p className="text-lg font-medium">Interactive 3D Avatar</p>
-                  <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
-                  <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
-                  <p className="text-xs mt-4">Rotate and zoom to view. Extraction updates measurements.</p>
-                </div>
-              </div>
+            </div>
+            <div className="text-center text-white mt-4">
+              <p className="text-lg font-medium">Interactive 3D Avatar</p>
+              <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
+              <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
+              <p className="text-xs mt-4">Rotate and zoom to view. Extraction updates measurements.</p>
             </div>
           </CardContent>
         </Card>
