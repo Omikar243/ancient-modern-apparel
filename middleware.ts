@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
  
 export async function middleware(request: NextRequest) {
 	const session = await auth.api.getSession({
-		headers: await headers()
+		headers: request.headers
 	})
  
 	if(!session) {
