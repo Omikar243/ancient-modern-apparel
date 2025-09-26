@@ -260,9 +260,22 @@ export default function AvatarCreation() {
           </CardHeader>
           <CardContent className="text-center">
             <div className="grid md:grid-cols-4 gap-4 p-4">
-              {["Front", "Back", "Left Side", "Right Side"].map((view) => (
+              {[
+                { view: "Front", src: "/images/pose-guide/front.png" },
+                { view: "Back", src: "/images/pose-guide/back.png" },
+                { view: "Left Side", src: "/images/pose-guide/left.png" },
+                { view: "Right Side", src: "/images/pose-guide/right.png" }
+              ].map(({ view, src }) => (
                 <div key={view} className="text-center">
-                  <div className="w-24 h-48 bg-muted mx-auto rounded border-2 border-dashed border-muted mb-2"></div>
+                  <div className="w-24 h-48 bg-muted mx-auto rounded border-2 border-dashed border-muted mb-2 flex items-center justify-center">
+                    <NextImage
+                      src={src}
+                      alt={`${view.toLowerCase()} pose`}
+                      width={96}
+                      height={192}
+                      className="object-contain"
+                    />
+                  </div>
                   <p className="text-sm font-medium">{view}</p>
                   <p className="text-xs text-muted-foreground">Full-body view, arms at sides</p>
                 </div>
@@ -383,7 +396,7 @@ export default function AvatarCreation() {
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/30">Initializing 3D preview...</div>
               )}
             </div>
-            <div className="text-center text-white mt-4">
+            <div className="text-center text-foreground mt-4">
               <p className="text-lg font-medium">Interactive 3D Avatar</p>
               <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
               <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
