@@ -4,7 +4,6 @@ import { garments } from '@/db/schema';
 import { eq, like, and, or, desc } from 'drizzle-orm';
 import { getSessionCookie } from "better-auth/cookies";
 import { sessions } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
