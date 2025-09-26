@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Search, Filter, Palette } from "lucide-react";
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import dynamic from 'next/dynamic';
+const CanvasWrapper = dynamic(() => import('../avatar/CanvasWrapper'), { ssr: false });
+import { authClient } from "@/lib/auth-client";
 
 // Types
 interface Garment {
@@ -40,6 +44,9 @@ export default function Catalog() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState(null);
+  const [avatarLoading, setAvatarLoading] = useState(true);
+  const [avatarError, setAvatarError] = useState(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,7 +84,9 @@ export default function Catalog() {
       if (!response.ok) {
         if (response.status === 401) {
           toast.error("Session expired. Please log in again.");
-          router.push("/login");
+          localStorage.removeItem("bearer_token");
+          await authClient.signOut();
+          router.push("/login?redirect=/catalog");
           return;
         }
         throw new Error("Failed to fetch garments");
@@ -104,7 +113,9 @@ export default function Catalog() {
       if (!response.ok) {
         if (response.status === 401) {
           toast.error("Session expired. Please log in again.");
-          router.push("/login");
+          localStorage.removeItem("bearer_token");
+          await authClient.signOut();
+          router.push("/login?redirect=/catalog");
           return;
         }
         throw new Error("Failed to fetch materials");
@@ -116,6 +127,38 @@ export default function Catalog() {
       console.error("Error fetching materials:", err);
     }
   };
+
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (!session?.user?.id || !token) return;
+      try {
+        setAvatarLoading(true);
+        const response = await fetch('/api/avatars', {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const avatarsData = await response.json();
+          // Use latest avatar or first
+          const latestAvatar = avatarsData.length > 0 ? avatarsData[0] : null;
+          setUserAvatar(latestAvatar);
+        } else if (response.status === 401) {
+          toast.error("Session expired. Redirecting...");
+          localStorage.removeItem("bearer_token");
+          await authClient.signOut();
+          router.push("/login?redirect=/catalog");
+        } else {
+          setAvatarError("No avatar found, using defaults");
+        }
+      } catch (err) {
+        console.error("Avatar fetch error:", err);
+        setAvatarError(err.message);
+      } finally {
+        setAvatarLoading(false);
+      }
+    };
+    fetchUserAvatar();
+  }, [session, token, router]);
 
   useEffect(() => {
     let filtered = garments.filter((garment) => {
@@ -214,6 +257,21 @@ export default function Catalog() {
               </CardContent>
             </Card>
 
+            {/* Avatar Loading/Warning */}
+            {avatarLoading && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-2 text-muted-foreground">Loading your avatar...</span>
+              </div>
+            )}
+
+            {avatarError && !avatarLoading && (
+              <Card className="mb-4 p-4 bg-destructive/5 border-destructive/20">
+                <p className="text-sm text-destructive">{avatarError}</p>
+                <Button variant="outline" size="sm" onClick={() => window.location.href = '/avatar'}>Create Avatar</Button>
+              </Card>
+            )}
+
             {/* Garment Grid */}
             {loading ? (
               <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -267,7 +325,10 @@ export default function Catalog() {
                             } else {
                               toast.info('Item already in cart');
                             }
-                            router.push(`/preview?garmentId=${garment.id}`);
+                            // Pass avatar if available
+                            const avatarData = userAvatar ? { measurements: userAvatar.measurements, modelUrl: userAvatar.fittedModelUrl } : null;
+                            sessionStorage.setItem('previewGarment', JSON.stringify({ garmentId: garment.id, avatarData }));
+                            router.push('/preview');
                           }}
                         >
                           <span>Add to Cart & Customize</span>
