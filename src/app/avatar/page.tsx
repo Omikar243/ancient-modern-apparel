@@ -216,8 +216,8 @@ export default function AvatarCreation() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('bearer_token')}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           user_id: userId,
           avatar_measurements: measurements,
@@ -236,7 +236,7 @@ export default function AvatarCreation() {
       }
       
       toast.success("Avatar saved securely with privacy controls!");
-      router.push("/catalog"); // Proceed to catalog
+      window.location.href = "/catalog"; // Proceed to catalog
     } catch (error: any) {
       toast.error("Upload failed: " + error.message);
     } finally {
@@ -410,7 +410,10 @@ export default function AvatarCreation() {
             <Link href="/">Back to Home</Link>
           </Button>
           <Button asChild disabled={!showPreview}>
-            <Link href="/catalog">Proceed to Catalog</Link>
+            <Link href="/catalog" onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/catalog";
+            }}>Proceed to Catalog</Link>
           </Button>
         </div>
       </div>

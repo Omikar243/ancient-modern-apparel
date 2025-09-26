@@ -66,18 +66,9 @@ export default function Catalog() {
   }, [session, router]);
 
   const fetchGarments = async () => {
-    if (!token) {
-      setError("Authentication required");
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       const response = await fetch("/api/garments", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         credentials: 'include',
       });
 
@@ -102,13 +93,8 @@ export default function Catalog() {
   };
 
   const fetchMaterials = async () => {
-    if (!token) return;
-
     try {
       const response = await fetch("/api/materials", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         credentials: 'include',
       });
 

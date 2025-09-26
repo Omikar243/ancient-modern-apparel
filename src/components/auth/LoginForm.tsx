@@ -53,7 +53,8 @@ export const LoginForm = () => {
         // Refetch session to ensure useSession updates immediately
         await refetch();
         toast.success("Logged in successfully!");
-        router.push(callbackURL);
+        // Use full reload to sync session cookies for protected routes
+        window.location.href = callbackURL;
       } else {
         throw new Error("No user data returned from login");
       }
