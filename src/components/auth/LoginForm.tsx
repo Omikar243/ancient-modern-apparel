@@ -35,6 +35,13 @@ export const LoginForm = () => {
         password,
         rememberMe,
         callbackURL,
+      }, {
+        onSuccess: (ctx) => {
+          const authToken = ctx.response.headers.get("set-auth-token");
+          if (authToken) {
+            localStorage.setItem("bearer_token", authToken);
+          }
+        }
       });
       
       if (error?.code) {
