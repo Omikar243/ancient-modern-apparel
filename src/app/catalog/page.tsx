@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Search, Filter, Fabric } from "lucide-react";
+import { Search, Filter, Palette } from "lucide-react";
 
 // Types
 interface Garment {
@@ -292,7 +292,7 @@ export default function Catalog() {
           <Card className="w-full lg:w-80">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Fabric className="w-4 h-4" />
+                <Palette className="w-4 h-4" />
                 Materials
               </CardTitle>
               <CardDescription>Click to learn about authentic Indian textiles</CardDescription>
