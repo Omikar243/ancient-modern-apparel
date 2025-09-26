@@ -13,8 +13,9 @@ import { useSession } from "@/lib/auth-client"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Sphere, Cylinder } from "@react-three/drei";
+import dynamic from "next/dynamic";
+
+const CanvasWrapper = dynamic(() => import("./CanvasWrapper"), { ssr: false });
 
 interface Photo {
   front: File | null;
@@ -29,51 +30,6 @@ interface Measurements {
   waist: number;
   hips: number;
   shoulders: number;
-}
-
-function Avatar3D({ measurements, bodyType }: { measurements: Measurements; bodyType: { hourglass: number; athletic: number } }) {
-  const scale = 1 + (bodyType.hourglass / 100) * 0.1 + (bodyType.athletic / 100) * 0.1;
-  const heightScale = measurements.height / 170;
-  const shoulderWidth = measurements.shoulders / 40;
-
-  return (
-    <group scale={[shoulderWidth, heightScale * scale, 1]}>
-      {/* Head */}
-      <Sphere args={[0.2, 16, 16]} position={[0, 1.8, 0]}>
-        <meshStandardMaterial color="peachpuff" />
-      </Sphere>
-      
-      {/* Torso */}
-      <Cylinder args={[0.3, 0.4, 1.2, 8]} position={[0, 1, 0]}>
-        <meshStandardMaterial color="lightblue" />
-      </Cylinder>
-      
-      {/* Hips */}
-      <Cylinder args={[0.35, 0.3, 0.4, 8]} position={[0, 0.4, 0]}>
-        <meshStandardMaterial color="lightblue" />
-      </Cylinder>
-      
-      {/* Left Arm */}
-      <Cylinder args={[0.08, 0.08, 0.8, 8]} position={[-0.5, 1.2, 0]} rotation={[0, 0, Math.PI / 4]}>
-        <meshStandardMaterial color="lightblue" />
-      </Cylinder>
-      
-      {/* Right Arm */}
-      <Cylinder args={[0.08, 0.08, 0.8, 8]} position={[0.5, 1.2, 0]} rotation={[0, 0, -Math.PI / 4]}>
-        <meshStandardMaterial color="lightblue" />
-      </Cylinder>
-      
-      {/* Left Leg */}
-      <Cylinder args={[0.1, 0.1, 1, 8]} position={[-0.15, -0.2, 0]}>
-        <meshStandardMaterial color="lightblue" />
-      </Cylinder>
-      
-      {/* Right Leg */}
-      <Cylinder args={[0.1, 0.1, 1, 8]} position={[0.15, -0.2, 0]}>
-        <meshStandardMaterial color="lightblue" />
-      </Cylinder>
-    </group>
-  );
 }
 
 export default function AvatarCreation() {
@@ -94,8 +50,9 @@ export default function AvatarCreation() {
   const [bodyType, setBodyType] = useState({ hourglass: 50, athletic: 50 });
   const [extracting, setExtracting] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(""); // Remove 3D reference
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const router = useRouter();
   const hasRefetchedRef = useRef(false);
@@ -136,6 +93,10 @@ export default function AvatarCreation() {
       setExtracting(false);
     }
   }, [photos.front, images.front]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!sessionPending && !session?.user) {
@@ -415,12 +376,7 @@ export default function AvatarCreation() {
             </div>
             <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
               <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center">Loading 3D model...</div>}>
-                <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
-                  <ambientLight intensity={0.5} />
-                  <pointLight position={[10, 10, 10]} />
-                  <Avatar3D measurements={measurements} bodyType={bodyType} />
-                  <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} />
-                </Canvas>
+                <CanvasWrapper measurements={measurements} bodyType={bodyType} />
               </Suspense>
               <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                 <div className="text-center text-white">
