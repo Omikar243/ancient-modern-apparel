@@ -78,6 +78,7 @@ export default function Catalog() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -108,6 +109,7 @@ export default function Catalog() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
