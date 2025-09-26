@@ -103,14 +103,13 @@ export default function AvatarCreation() {
     const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
 
     if (!session?.user) {
-      // If we have a token but session isn't hydrated yet, refetch once before redirecting
+      // If we have a token but session isn't hydrated yet, refetch once before rendering
       if (token && !hasRefetchedRef.current) {
         hasRefetchedRef.current = true;
         refetch();
         return; // wait for refetch result instead of redirecting
       }
-      toast.error("Please log in to create your avatar.");
-      router.push("/login?redirect=/avatar");
+      // No toast or redirect here - let render handle unauthenticated state
     }
   }, [session, sessionPending, router, refetch]);
 
@@ -118,26 +117,8 @@ export default function AvatarCreation() {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  if (!session?.user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md p-8">
-          <CardHeader>
-            <CardTitle className="text-center">Access Required</CardTitle>
-            <p className="text-center text-muted-foreground">Please log in to create your avatar.</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild className="w-full">
-              <Link href="/login?redirect=/avatar">Log In</Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/register">Sign Up</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Removed client-side unauth render - middleware handles protection
+  // If session fails to hydrate (rare), functions below will catch it
 
   const readyForExtract = Object.values(photos).every(p => p !== null);
 
@@ -155,7 +136,11 @@ export default function AvatarCreation() {
   };
 
   const handleDeletePhotos = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      toast.error("Session expired. Please log in again.");
+      router.push("/login");
+      return;
+    }
 
     const userId = session.user.id;
     try {

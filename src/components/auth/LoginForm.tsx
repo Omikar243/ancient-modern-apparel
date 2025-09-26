@@ -30,21 +30,19 @@ export const LoginForm = () => {
     setLoading(true);
     try {
       const callbackURL = search.get("redirect") || "/";
-      const response = await authClient.signIn.email({
+      await authClient.signIn.email({
         email,
         password,
         rememberMe,
         callbackURL,
       }, {
         onSuccess: (ctx) => {
-          const authToken = ctx.response.headers.get("set-auth-token");
+          const authToken = ctx.response?.headers?.get("set-auth-token");
           if (authToken) {
             localStorage.setItem("bearer_token", authToken);
           }
-          // Refetch session to ensure useSession updates immediately
           refetch();
           toast.success("Logged in successfully!");
-          // Use full reload to sync session cookies for protected routes
           window.location.href = callbackURL;
         },
         onError: (ctx) => {
@@ -56,7 +54,6 @@ export const LoginForm = () => {
           toast.error(errorMessage);
         }
       });
-      // Removed direct response handling since onSuccess/onError callbacks handle it
     } catch (err) {
       console.error("Detailed login error:", err);
       toast.error("Login failed - check console for details");
