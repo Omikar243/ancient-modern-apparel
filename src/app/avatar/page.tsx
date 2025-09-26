@@ -99,19 +99,20 @@ export default function AvatarCreation() {
   }, []);
 
   useEffect(() => {
-    if (!sessionPending && !session?.user) {
+    if (sessionPending) return;
+    const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
+
+    if (!session?.user) {
+      // If we have a token but session isn't hydrated yet, refetch once before redirecting
+      if (token && !hasRefetchedRef.current) {
+        hasRefetchedRef.current = true;
+        refetch();
+        return; // wait for refetch result instead of redirecting
+      }
       toast.error("Please log in to create your avatar.");
       router.push("/login?redirect=/avatar");
     }
-  }, [session, sessionPending, router]);
-
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
-    if (token && !sessionPending && !session?.user && !error && !hasRefetchedRef.current) {
-      hasRefetchedRef.current = true;
-      refetch();
-    }
-  }, [session, sessionPending, error, refetch]);
+  }, [session, sessionPending, router, refetch]);
 
   if (sessionPending) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
