@@ -375,9 +375,13 @@ export default function AvatarCreation() {
               </div>
             </div>
             <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
-              <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center">Loading 3D model...</div>}>
-                <CanvasWrapper measurements={measurements} bodyType={bodyType} />
-              </Suspense>
+              {mounted ? (
+                <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center">Loading 3D model...</div>}>
+                  <CanvasWrapper measurements={measurements} bodyType={bodyType} />
+                </Suspense>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/30">Initializing 3D preview...</div>
+              )}
               <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                 <div className="text-center text-white">
                   <p className="text-lg font-medium">Interactive 3D Avatar</p>
