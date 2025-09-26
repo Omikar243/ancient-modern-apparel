@@ -2,15 +2,29 @@
 import { createAuthClient } from "better-auth/react"
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
-  fetchOptions: () => {
+  baseURL: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+  fetch: (url?: string, options?: RequestInit) => {
+    const baseURL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const fullUrl = url ? new URL(url, baseURL).toString() : '';
+    const isAuthEndpoint = fullUrl.startsWith(`${baseURL}/api/auth`);
+    
     const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
-    const headers = new Headers();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
+    const headers = new Headers(options?.headers);
+    if (options?.headers) {
+      headers.forEach((value, key) => {
+        if (key.toLowerCase() !== 'authorization') {
+          headers.set(key, value);
+        }
+      });
     }
     headers.set("Content-Type", "application/json");
+    
+    if (!isAuthEndpoint && token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    
     return {
+      ...options,
       credentials: 'include',
       headers,
     };

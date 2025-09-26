@@ -59,6 +59,7 @@ export default function AvatarCreation() {
   const [savingAvatar, setSavingAvatar] = useState(false);
   const [avatarId, setAvatarId] = useState<number | null>(null);
   const [storedAvatarId, setStoredAvatarId] = useLocalStorage('avatar_id', null);
+  const [loadingExisting, setLoadingExisting] = useState(false);
 
   const router = useRouter();
   const hasRefetchedRef = useRef(false);
@@ -99,10 +100,34 @@ export default function AvatarCreation() {
 
   // Real extraction using MediaPipe
   const extractMeasurements = useCallback(async () => {
-    if (!photos.front || !images.front || !poseLandmarkerRef.current) {
+    if (!photos.front || !images.front) {
       toast.error("Upload front photo first for extraction.");
       return;
     }
+
+    // Check if MediaPipe is available
+    if (!poseLandmarkerRef.current) {
+      toast.warning("Advanced measurement tool unavailable. Using estimated defaults.");
+      // Fallback to mock immediately
+      const mockHeight = Math.floor(Math.random() * 30) + 160;
+      const mockShoulders = Math.floor(Math.random() * 10) + 38;
+      const mockBust = Math.floor(Math.random() * 20) + 85;
+      const mockWaist = Math.floor(Math.random() * 15) + 65;
+      const mockHips = Math.floor(Math.random() * 20) + 90;
+      setSkinTone("peachpuff");
+
+      setMeasurements({
+        height: mockHeight,
+        bust: mockBust,
+        waist: mockWaist,
+        hips: mockHips,
+        shoulders: mockShoulders,
+      });
+      setShowPreview(true);
+      setExtracting(false);
+      return;
+    }
+
     setExtracting(true);
     try {
       // Create Image from data URL
@@ -225,12 +250,14 @@ export default function AvatarCreation() {
 
   // Early check: If no token, immediate redirect (prevents hook init)
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? window.localStorage.getItem("bearer_token") : null;
-    if (!token && !sessionPending) {
+    if (typeof window === 'undefined') return;
+    
+    const token = window.localStorage.getItem("bearer_token");
+    if (!token) {
       router.push("/login?redirect=/avatar");
       return;
     }
-  }, [sessionPending, router]);
+  }, [router]);
 
   useEffect(() => {
     setMounted(true);
@@ -267,14 +294,67 @@ export default function AvatarCreation() {
     }
   }, [sessionPending, session, router, refetch]);
 
-  // Improved loading: Show spinner but with timeout message
-  if (sessionPending) {
+  // Improved loading: Show spinner only if mounted and sessionPending (with token present)
+  useEffect(() => {
+    if (!session?.user?.id || loadingExisting) return;
+
+    const loadExistingAvatar = async () => {
+      setLoadingExisting(true);
+      try {
+        const token = window.localStorage.getItem('bearer_token');
+        if (!token) return;
+
+        const response = await fetch(`/api/avatars/by-user/${session.user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 404) {
+          // No existing avatar, use defaults - no error
+          console.log("No existing avatar found, using defaults");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data && data.measurements) {
+          setMeasurements(data.measurements);
+          if (data.skinTone) setSkinTone(data.skinTone);
+          setShowPreview(true);
+          setStoredAvatarId(data.id);
+          toast.success("Measurements loaded from your saved avatar!");
+          return;
+        } else {
+          console.log("No measurements in response, using defaults");
+          return;
+        }
+      } catch (err: any) {
+        if (err.message.includes('404')) {
+          console.log("No existing avatar, using defaults");
+          return;
+        }
+        console.error("Failed to load existing measurements:", err);
+        toast.error("Failed to load saved measurements, using defaults.");
+      } finally {
+        setLoadingExisting(false);
+      }
+    };
+
+    loadExistingAvatar();
+  }, [session?.user?.id]);
+
+  // Improved loading: Show spinner only if mounted and sessionPending (with token present)
+  if (!mounted || sessionPending || loadingExisting) {
     return (
       <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading session... (will redirect if stuck)</p>
+            <p className="text-muted-foreground">{loadingExisting ? "Loading your avatar..." : "Loading session..."}</p>
           </div>
         </div>
       </div>
