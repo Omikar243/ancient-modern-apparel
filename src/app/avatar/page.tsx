@@ -56,6 +56,7 @@ export default function AvatarCreation() {
 
   const router = useRouter();
   const hasRefetchedRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: session, isPending: sessionPending, error, refetch } = useSession();
 
@@ -94,27 +95,81 @@ export default function AvatarCreation() {
     }
   }, [photos.front, images.front]);
 
+  // Early check: If no token, immediate redirect (prevents hook init)
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
+    if (!token && !sessionPending) {
+      router.push("/login?redirect=/avatar");
+      return;
+    }
+  }, [sessionPending, router]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (sessionPending) return;
+    if (sessionPending) {
+      // Shorter timeout for stuck state: 3s max before force redirect
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        toast.error("Session loading failed. Redirecting to login.");
+        router.push("/login?redirect=/avatar");
+      }, 3000);
+      return () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      };
+    }
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
 
-    if (!session?.user) {
-      // If we have a token but session isn't hydrated yet, refetch once before rendering
-      if (token && !hasRefetchedRef.current) {
-        hasRefetchedRef.current = true;
-        refetch();
-        return; // wait for refetch result instead of redirecting
-      }
-      // No toast or redirect here - let render handle unauthenticated state
+    if (!session?.user && token && !hasRefetchedRef.current) {
+      hasRefetchedRef.current = true;
+      refetch().catch(() => {
+        // If refetch fails, force redirect
+        router.push("/login?redirect=/avatar");
+      });
+      return;
     }
-  }, [session, sessionPending, router, refetch]);
+  }, [sessionPending, session, router, refetch]);
 
+  // Improved loading: Show spinner but with timeout message
   if (sessionPending) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading session... (will redirect if stuck)</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !session?.user) {
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Access Denied</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-destructive">Please log in to create your avatar.</p>
+              <Button onClick={() => router.push("/login?redirect=/avatar")} className="w-full">
+                Go to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   // Removed client-side unauth render - middleware handles protection
