@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { RedirectIfAuthenticated } from "@/components/auth/RedirectIfAuthenticated";
 
 export const metadata: Metadata = {
   title: "Login | IndiFusion Wear",
@@ -7,25 +8,6 @@ export const metadata: Metadata = {
 
 // Add a small client-side redirect to avoid showing login when already authenticated
 // without turning the whole page into a client component.
-import { useSession } from "@/lib/auth-client";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-
-function RedirectIfAuthenticated() {
-  const { data: session, isPending } = useSession();
-  const router = useRouter();
-  const search = useSearchParams();
-
-  useEffect(() => {
-    if (isPending) return;
-    if (session?.user) {
-      const dest = search.get("redirect") || "/";
-      router.replace(dest);
-    }
-  }, [session, isPending, router, search]);
-
-  return null;
-}
 
 export default function LoginPage() {
   return (
