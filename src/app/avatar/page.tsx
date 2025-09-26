@@ -259,14 +259,7 @@ export default function AvatarCreation() {
     if (!session?.user && token && !hasRefetchedRef.current) {
       hasRefetchedRef.current = true;
       if (typeof refetch === 'function') {
-        (async () => {
-          try {
-            await refetch();
-          } catch (error) {
-            // If refetch fails, force redirect
-            router.push("/login?redirect=/avatar");
-          }
-        })();
+        refetch();
       } else {
         router.push("/login?redirect=/avatar");
       }
