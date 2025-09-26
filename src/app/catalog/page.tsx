@@ -54,6 +54,7 @@ export default function Catalog() {
   const router = useRouter();
 
   const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
     if (!session?.user && !session?.isPending) {
@@ -69,6 +70,7 @@ export default function Catalog() {
     try {
       setLoading(true);
       const response = await fetch("/api/garments", {
+        headers,
         credentials: 'include',
       });
 
@@ -95,10 +97,16 @@ export default function Catalog() {
   const fetchMaterials = async () => {
     try {
       const response = await fetch("/api/materials", {
+        headers,
         credentials: 'include',
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          router.push("/login");
+          return;
+        }
         throw new Error("Failed to fetch materials");
       }
 

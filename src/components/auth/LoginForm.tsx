@@ -35,31 +35,30 @@ export const LoginForm = () => {
         password,
         rememberMe,
         callbackURL,
-      });
-      const { data, error } = response;
-      console.log("Login response:", { data, error }); // Debug full response
-
-      if (error?.code) {
-        console.error("Auth error code:", error.code); // Log specific code
-        let errorMessage = "Login failed. Please try again.";
-        if (error.code === "BAD_EMAIL_PASSWORD") {
-          errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
+      }, {
+        onSuccess: (ctx) => {
+          const authToken = ctx.response.headers.get("set-auth-token");
+          if (authToken) {
+            localStorage.setItem("bearer_token", authToken);
+          }
+          // Refetch session to ensure useSession updates immediately
+          refetch();
+          toast.success("Logged in successfully!");
+          // Use full reload to sync session cookies for protected routes
+          window.location.href = callbackURL;
+        },
+        onError: (ctx) => {
+          console.error("Auth error code:", ctx.error.code);
+          let errorMessage = "Login failed. Please try again.";
+          if (ctx.error.code === "BAD_EMAIL_PASSWORD") {
+            errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
+          }
+          toast.error(errorMessage);
         }
-        toast.error(errorMessage);
-        return;
-      }
-
-      if (data && data.user) {
-        // Refetch session to ensure useSession updates immediately
-        await refetch();
-        toast.success("Logged in successfully!");
-        // Use full reload to sync session cookies for protected routes
-        window.location.href = callbackURL;
-      } else {
-        throw new Error("No user data returned from login");
-      }
+      });
+      // Removed direct response handling since onSuccess/onError callbacks handle it
     } catch (err) {
-      console.error("Detailed login error:", err); // Enhanced logging
+      console.error("Detailed login error:", err);
       toast.error("Login failed - check console for details");
     } finally {
       setLoading(false);

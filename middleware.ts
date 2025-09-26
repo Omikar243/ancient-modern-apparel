@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
+import { auth } from "@/lib/auth";
 
 export async function middleware(request: NextRequest) {
-  const sessionCookie = getSessionCookie(request);
+  const session = await auth.api.getSession({ headers: request.headers });
  
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!session?.user) {
+    return NextResponse.redirect(new URL("/login?redirect=" + encodeURIComponent(request.nextUrl.pathname), request.url));
   }
  
   return NextResponse.next();
@@ -13,5 +13,5 @@ export async function middleware(request: NextRequest) {
  
 export const config = {
   runtime: "nodejs",
-  matcher: ["/avatar", "/catalog", "/preview"], // Apply middleware to specific routes
+  matcher: ["/avatar", "/catalog", "/preview"],
 };

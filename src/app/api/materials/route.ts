@@ -2,13 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { materials } from '@/db/schema';
 import { eq, like, and, or, desc } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { getSessionCookie } from "better-auth/cookies";
+import { sessions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user) {
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const sessionRecords = await db.select()
+      .from(sessions)
+      .where(eq(sessions.sessionToken, sessionCookie))
+      .limit(1);
+
+    const sessionRecord = sessionRecords[0];
+    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -66,9 +78,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user) {
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const sessionRecords = await db.select()
+      .from(sessions)
+      .where(eq(sessions.sessionToken, sessionCookie))
+      .limit(1);
+
+    const sessionRecord = sessionRecords[0];
+    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
     }
 
     const requestBody = await request.json();
@@ -151,9 +173,19 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user) {
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const sessionRecords = await db.select()
+      .from(sessions)
+      .where(eq(sessions.sessionToken, sessionCookie))
+      .limit(1);
+
+    const sessionRecord = sessionRecords[0];
+    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -260,9 +292,19 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user) {
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const sessionRecords = await db.select()
+      .from(sessions)
+      .where(eq(sessions.sessionToken, sessionCookie))
+      .limit(1);
+
+    const sessionRecord = sessionRecords[0];
+    if (!sessionRecord || new Date(sessionRecord.expiresAt) < new Date()) {
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
