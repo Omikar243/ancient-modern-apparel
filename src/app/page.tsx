@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import Image from "next/image";
 import { User, Shirt, Eye } from "lucide-react";
 
 // Hero section images from Unsplash (fusion of ancient Indian and modern)
@@ -17,11 +16,10 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 to-muted/50">
         <div className="absolute inset-0">
-          <Image
+          <img
             src={heroImages[0]}
             alt="Ancient Indian clothing fusion with modern design"
-            fill
-            className="object-cover opacity-70"
+            className="object-cover w-full h-full opacity-70"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
@@ -51,11 +49,9 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {heroImages.slice(1).map((img, idx) => (
             <Card key={idx} className="overflow-hidden border-border/50 shadow-md hover:shadow-lg transition-shadow rounded-lg">
-              <Image
+              <img
                 src={img}
                 alt={`Fusion design ${idx + 1}`}
-                width={400}
-                height={300}
                 className="object-cover w-full h-48"
               />
               <CardContent className="p-6 bg-card/50">
