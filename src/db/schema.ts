@@ -83,6 +83,9 @@ export const garments = sqliteTable('garments', {
   imageUrl: text('image_url'),
   price: real('price').notNull(),
   category: text('category').notNull(),
+  measurements: text('measurements', { mode: 'json' }),
+  qualityRating: integer('quality_rating'),
+  history: text('history'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
@@ -119,4 +122,12 @@ export const orders = sqliteTable('orders', {
   invoiceNo: text('invoice_no').notNull().unique(),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
+});
+
+export const avatars = sqliteTable('avatars', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  measurements: text('measurements', { mode: 'json' }).notNull(),
+  fittedModelUrl: text('fitted_model_url'),
+  createdAt: text('created_at').notNull(),
 });

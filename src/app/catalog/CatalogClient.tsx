@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Search, Filter, Palette } from "lucide-react";
+import Link from "next/link";
 
 // Types
 interface Garment {
@@ -278,23 +279,29 @@ export default function CatalogClient() {
             <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredGarments.length > 0 ? (
                 filteredGarments.map((garment) => (
-                  <Card key={garment.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative h-48">
-                      <Image src={garment.imageUrl || "/placeholder.svg"} alt={garment.name} fill className="object-cover" />
-                    </div>
-                    <CardContent className="p-4">
-                      <CardTitle className="font-semibold mb-1">{garment.name}</CardTitle>
-                      <CardDescription className="mb-2">{garment.description.substring(0, 100)}...</CardDescription>
-                      <div className="flex justify-between items-center mb-2">
-                        <Badge variant="secondary">{garment.category}</Badge>
-                        <span className="text-lg font-bold">${garment.price}</span>
+                  <Link href={`/catalog/${garment.id}`} key={garment.id} className="block hover:no-underline">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                      <div className="relative h-48">
+                        <Image src={garment.imageUrl || "/placeholder.svg"} alt={garment.name} fill className="object-cover" />
                       </div>
-                      <Button className="w-full" onClick={() => handleAddToCart(garment)}>
+                      <CardContent className="p-4">
+                        <CardTitle className="font-semibold mb-1">{garment.name}</CardTitle>
+                        <CardDescription className="mb-2">{garment.description.substring(0, 100)}...</CardDescription>
+                        <div className="flex justify-between items-center mb-2">
+                          <Badge variant="secondary">{garment.category}</Badge>
+                          <span className="text-lg font-bold">${garment.price}</span>
+                        </div>
                         {/* @ts-expect-error session typing */}
-                        {session?.user ? "Add to Cart & Customize" : "Log in to Customize"}
-                      </Button>
-                    </CardContent>
-                  </Card>
+                        <Button variant="outline" size="sm" className="w-full" onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAddToCart(garment);
+                        }}>
+                          {session?.user ? "Quick Add to Cart" : "Log in to Customize"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))
               ) : (
                 <p className="col-span-full text-center text-muted-foreground py-8">No garments found matching your filters.</p>
