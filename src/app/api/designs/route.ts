@@ -68,31 +68,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const { userId } = await getServerSession(); // Assuming auth extracts userId
-
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const design = await db.query.designs.findFirst({
-    where: eq(designs.id, parseInt(id)),
-    with: { user: true }
-  });
-
-  if (!design || design.userId !== userId) {
-    return NextResponse.json({ error: "Design not found" }, { status: 404 });
-  }
-
-  await db
-    .update(designs)
-    .set({ purchased: true, purchasedAt: new Date() })
-    .where(eq(designs.id, parseInt(id)));
-
-  return NextResponse.json({ success: true, design: { ...design, purchased: true } });
-}

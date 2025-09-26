@@ -1,7 +1,5 @@
 import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core';
 
-
-
 // Auth tables for better-auth
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -93,10 +91,32 @@ export const materials = sqliteTable('materials', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   origin: text('origin').notNull(),
-  description: text('description'),
-  textureType: text('texture_type').notNull(),
-  imageUrl: text('image_url'),
-  authenticityRating: integer('authenticity_rating').notNull(),
+  gsm: integer('gsm').notNull(),
+  stretch: real('stretch').notNull(),
+  drape: real('drape').notNull(),
+  colors: text('colors', { mode: 'json' }).notNull(),
+  textureUrl: text('texture_url').notNull(),
+  careInstructions: text('care_instructions').notNull(),
+  artisanOrigin: text('artisan_origin').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const userAvatars = sqliteTable('user_avatars', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  measurements: text('measurements', { mode: 'json' }).notNull(),
+  photos: text('photos', { mode: 'json' }).notNull(),
+  unitPreference: text('unit_preference').notNull().default('cm'),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const orders = sqliteTable('orders', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  totalPrice: real('total_price').notNull(),
+  status: text('status').notNull().default('pending'),
+  invoiceNo: text('invoice_no').notNull().unique(),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
