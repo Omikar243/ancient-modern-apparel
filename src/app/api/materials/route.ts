@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { materials } from '@/db/schema';
 import { eq, like, or, desc } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +25,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Material not found' }, { status: 404 });
       }
 
-      return NextResponse.json(material[0]);
+      // Safe JSON parsing for response
+      let parsedColors;
+      try {
+        parsedColors = typeof material[0].colors === 'string' 
+          ? JSON.parse(material[0].colors) 
+          : material[0].colors;
+      } catch (error) {
+        console.error('JSON parse error for colors:', error);
+        parsedColors = [];
+      }
+
+      const parsedMaterial = {
+        ...material[0],
+        colors: parsedColors
+      };
+
+      return NextResponse.json(parsedMaterial);
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
@@ -49,7 +64,25 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    return NextResponse.json(results);
+    // Safe JSON parsing for all results
+    const parsedResults = results.map(material => {
+      let parsedColors;
+      try {
+        parsedColors = typeof material.colors === 'string' 
+          ? JSON.parse(material.colors) 
+          : material.colors;
+      } catch (error) {
+        console.error('JSON parse error for material', material.id, ':', error);
+        parsedColors = [];
+      }
+
+      return {
+        ...material,
+        colors: parsedColors
+      };
+    });
+
+    return NextResponse.json(parsedResults);
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json({ 

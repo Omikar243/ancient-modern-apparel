@@ -10,6 +10,10 @@ import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import dynamic from 'next/dynamic';
+const CanvasWrapper = dynamic(() => import('../avatar/CanvasWrapper'), { ssr: false });
+import * as THREE from 'three';
 
 // Import for export (simplified to JSON for prototype; real GLB later)
 import jsPDF from "jspdf"; // For PDF placeholder
@@ -39,33 +43,78 @@ interface Measurements {
   shoulders: number;
 }
 
-const AvatarWithGarment = ({ measurements, avatarUrl, garment, material, color }: { measurements: Measurements; avatarUrl: string; garment: string; material: string; color: string }) => {
-  const { scene: avatarScene } = useGLTF(avatarUrl || defaultAvatarUrl);
+const AvatarWithGarment = ({ measurements, avatarUrl, garment, material, color, bodyType = { hourglass: 50, athletic: 50 }, skinTone = 'peachpuff' }: {
+  measurements: Measurements;
+  avatarUrl?: string;
+  garment: string;
+  material: string;
+  color: string;
+  bodyType?: { hourglass: number; athletic: number };
+  skinTone?: string;
+}) => {
+  const { scene: avatarScene } = useGLTF(avatarUrl || '/models/default-avatar.glb');
+  const [useFallback, setUseFallback] = useState(false);
 
   useEffect(() => {
-    if (avatarScene) {
-      // Scale based on measurements (prototype simplification)
-      const baseHeight = 170;
-      const scaleY = measurements.height / baseHeight;
-      avatarScene.scale.set(1, scaleY, 1);
-      // Simulate garment overlay (text for prototype; real: load GLTF)
-      const overlay = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 1),
-        new THREE.MeshBasicMaterial({ color: color === "red" ? "red" : "blue", transparent: true, opacity: 0.7 })
-      );
-      overlay.position.set(0, 1, 0);
-      avatarScene.add(overlay);
+    if (avatarUrl && avatarScene && !useFallback) {
+      try {
+        // Scale based on measurements
+        const baseHeight = 170;
+        const scaleY = measurements.height / baseHeight;
+        avatarScene.scale.set(1, scaleY, 1);
+        
+        // Simulate garment overlay on loaded model
+        const overlayGeometry = new THREE.PlaneGeometry(2, 1.5);
+        const overlayMaterial = new THREE.MeshBasicMaterial({ 
+          color: color === 'red' ? new THREE.Color('red') : new THREE.Color('blue'), 
+          transparent: true, 
+          opacity: 0.7 
+        });
+        const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial);
+        overlay.position.set(0, measurements.height / 200, 0.01); // Slight offset forward
+        avatarScene.add(overlay);
+
+        // Update material colors if skinTone available (for head/torso)
+        avatarScene.traverse((child) => {
+          if (child.isMesh && child.material) {
+            if (child.name.includes('head') || child.name.includes('skin')) {
+              child.material.color.set(skinTone);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('GLTF loading error, falling back to procedural:', err);
+        setUseFallback(true);
+      }
     }
-  }, [avatarScene, measurements, color]);
+  }, [avatarScene, measurements, color, skinTone, useFallback]);
+
+  if (useFallback || !avatarUrl) {
+    return (
+      <group>
+        <CanvasWrapper 
+          measurements={measurements} 
+          bodyType={bodyType} 
+          skinTone={skinTone} 
+        />
+        {/* Overlay garment text */}
+        <mesh position={[0, measurements.height / 200 + 1, 0.01]}>
+          <planeGeometry args={[3, 1]} />
+          <meshBasicMaterial color="white" transparent opacity={0.8} />
+          {/* Note: TextGeometry requires font loader in prod */}
+          <textGeometry args={[`${garment} - ${material}`, { font: null, size: 0.3, height: 0.05 }]} />
+        </mesh>
+      </group>
+    );
+  }
 
   return (
     <>
       <primitive object={avatarScene} />
-      {/* Garment text overlay for prototype */}
-      <mesh position={[0, 2, 0]}>
-        <planeGeometry args={[3, 1]} />
-        <meshBasicMaterial color="white" transparent opacity={0.8} />
-        <text geometry={new THREE.TextGeometry(`${garment} - ${material}`, { font: null })} position={[0, 0, 0.01]} />
+      {/* Garment overlay for GLTF */}
+      <mesh position={[0, measurements.height / 200, 0.01]}>
+        <planeGeometry args={[3, 1.5]} />
+        <meshBasicMaterial color={color} transparent opacity={0.7} />
       </mesh>
     </>
   );
@@ -76,33 +125,79 @@ export default function Preview() {
   const [selectedDesign, setSelectedDesign] = useState<Design | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(null);
+  const [avatarLoading, setAvatarLoading] = useState(true);
+  const [garmentForPreview, setGarmentForPreview] = useState(null);
   const session = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    const fetchDesigns = async () => {
+    const fetchData = async () => {
       if (!session?.user?.id) {
-        setLoading(false);
+        setAvatarLoading(false);
         return;
       }
       try {
+        // Fetch designs (existing)
         const res = await fetch(`/api/designs?userId=${session.user.id}`);
         if (res.ok) {
           const data = await res.json();
           setDesigns(data);
           if (data.length > 0 && !selectedDesign) {
-            setSelectedDesign(data[0]); // Auto-select first
+            setSelectedDesign(data[0]);
+          }
+        }
+
+        // Fetch user avatar
+        setAvatarLoading(true);
+        const avatarRes = await fetch('/api/avatars', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('bearer_token')}` },
+          credentials: 'include',
+        });
+        if (avatarRes.ok) {
+          const avatarsData = await avatarRes.json();
+          // Use latest or first if available
+          const latestAvatar = avatarsData.length > 0 ? {
+            measurements: avatarsData[0].measurements,
+            modelUrl: avatarsData[0].fittedModelUrl,
+            id: avatarsData[0].id
+          } : null;
+          setUserAvatar(latestAvatar);
+        } else if (avatarRes.status === 401) {
+          toast.error("Session expired. Redirecting...");
+          router.push("/login");
+        }
+
+        // Check for garment from catalog redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('garmentId')) {
+          const garmentId = parseInt(urlParams.get('garmentId'));
+          // Fetch garment by ID (assume API exists or use local state)
+          // For now, mock or use from sessionStorage
+          const storedGarment = sessionStorage.getItem('previewGarment');
+          if (storedGarment) {
+            const { garmentId: storedId, avatarData } = JSON.parse(storedGarment);
+            if (storedId === garmentId) {
+              const mockGarment = {
+                name: 'Custom Garment',
+                garment: 'Saree', // example
+                material: 'Silk',
+                color: 'Red'
+              };
+              setGarmentForPreview(mockGarment);
+            }
           }
         }
       } catch (error) {
-        toast.error("Failed to load designs");
+        console.error('Fetch error:', error);
+        toast.error("Failed to load data");
       } finally {
-        setLoading(false);
+        setAvatarLoading(false);
       }
     };
 
     if (session) {
-      fetchDesigns();
+      fetchData();
     }
   }, [session]);
 
@@ -173,6 +268,17 @@ export default function Preview() {
     }
   };
 
+  if (avatarLoading && !designs.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your avatar and designs...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto">
@@ -200,6 +306,23 @@ export default function Preview() {
 
         {selectedDesign && (
           <>
+            {/* Avatar Info Card */}
+            {userAvatar && (
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>Using Your Avatar</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Avatar ID: {userAvatar.id} | Height: {userAvatar.measurements?.height}cm</p>
+                  {userAvatar.modelUrl ? (
+                    <Button variant="outline" size="sm" onClick={() => router.push('/avatar')}>Update Avatar</Button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Procedural avatar - <Link href="/avatar" className="text-primary">Create 3D model</Link></p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Preview Section */}
             <Card className="mb-12">
               <CardHeader>
@@ -210,13 +333,24 @@ export default function Preview() {
                   <Canvas camera={{ position: [0, 1.7, 3] }}>
                     <ambientLight intensity={0.6} />
                     <directionalLight position={[0, 10, 5]} intensity={1} />
-                    <AvatarWithGarment
-                      measurements={selectedDesign.measurements}
-                      avatarUrl={selectedDesign.avatarUrl}
-                      garment={selectedDesign.garment}
-                      material={selectedDesign.material}
-                      color={selectedDesign.color}
-                    />
+                    {userAvatar ? (
+                      <AvatarWithGarment
+                        measurements={userAvatar.measurements || selectedDesign?.measurements || defaultMeasurements}
+                        avatarUrl={userAvatar.modelUrl}
+                        garment={selectedDesign?.garment || garmentForPreview?.garment || 'Sample Garment'}
+                        material={selectedDesign?.material || garmentForPreview?.material || 'Cotton'}
+                        color={selectedDesign?.color || 'blue'}
+                        bodyType={selectedDesign?.bodyType || { hourglass: 50, athletic: 50 }}
+                        skinTone={selectedDesign?.skinTone || 'peachpuff'}
+                      />
+                    ) : (
+                      <AvatarWithGarment
+                        measurements={selectedDesign?.measurements || defaultMeasurements}
+                        garment={selectedDesign?.garment || 'Sample Garment'}
+                        material={selectedDesign?.material || 'Cotton'}
+                        color={selectedDesign?.color || 'blue'}
+                      />
+                    )}
                     <OrbitControls />
                   </Canvas>
                   {!selectedDesign.purchased && (
@@ -230,7 +364,7 @@ export default function Preview() {
                   <div>
                     <Label>Body Adjustments</Label>
                     <div className="space-y-2 mt-2">
-                      <div className="flex justify-between text-xs"><span>Height:</span> <span>{selectedDesign.measurements.height}cm</span></div>
+                      <div className="flex justify-between text-xs"><span>Height:</span> <span>{(userAvatar?.measurements || selectedDesign?.measurements || defaultMeasurements).height}cm</span></div>
                       <input type="range" min="150" max="200" value={selectedDesign.measurements.height} readOnly className="w-full" />
                       <div className="flex justify-between text-xs"><span>Waist:</span> <span>{selectedDesign.measurements.waist}cm</span></div>
                       <input type="range" min="60" max="100" value={selectedDesign.measurements.waist} readOnly className="w-full" />

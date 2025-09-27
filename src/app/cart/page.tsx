@@ -112,7 +112,6 @@ export default function Cart() {
               <Button
                 onClick={() => {
                   if (cartItems.length > 0) {
-                    // Stub: Link to preview for export (in full flow, handle checkout)
                     toast.info("Proceeding to preview and export");
                     router.push(`/preview?cart=${encodeURIComponent(JSON.stringify(cartItems))}`);
                   }
@@ -128,4 +127,3 @@ export default function Cart() {
     </div>
   );
 }
-"

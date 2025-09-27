@@ -28,25 +28,35 @@ export const RegisterForm = () => {
       toast.error("Passwords do not match");
       return;
     }
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
     setLoading(true);
     try {
-      const { error } = await authClient.signUp.email({
+      const { data, error } = await authClient.signUp.email({
         email,
         name,
         password,
       });
+      console.log("Registration response:", { data, error });
       if (error?.code) {
         const errorMap: Record<string, string> = {
           USER_ALREADY_EXISTS: "Email already registered",
+          USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: "Email already registered. Please use another email.",
+          INVALID_EMAIL: "Please enter a valid email address",
+          INVALID_PASSWORD: "Password must meet security requirements"
         };
         toast.error(errorMap[error.code] || "Registration failed");
         setLoading(false);
         return;
       }
-      toast.success("Account created! Please log in.");
+      toast.success("Account created! Please check your email for verification, then log in.");
       router.push("/login?registered=true");
     } catch (err) {
-      toast.error("Registration failed");
+      console.error("Registration error:", err);
+      toast.error("Registration failed. Please try again.");
+    } finally {
       setLoading(false);
     }
   };

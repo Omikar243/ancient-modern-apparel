@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    // No authentication required for GET requests - catalog data is public
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -26,23 +27,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Garment not found' }, { status: 404 });
       }
 
-      // Parse JSON fields for response with safe parsing
-      const parsedGarment = {
-        ...garment[0],
-        measurements: garment[0].measurements ? (
-          typeof garment[0].measurements === 'string' 
-            ? (() => {
-                try {
-                  return JSON.parse(garment[0].measurements);
-                } catch (e) {
-                  return null;
-                }
-              })()
-            : garment[0].measurements
-        ) : null
+      // Return garment with existing structure - no measurements parsing needed for now
+      const responseGarment = {
+        id: garment[0].id,
+        name: garment[0].name,
+        type: garment[0].type,
+        description: garment[0].description,
+        imageUrl: garment[0].imageUrl,
+        price: garment[0].price,
+        category: garment[0].category,
+        measurements: null, // Field doesn't exist in current schema
+        qualityRating: null, // Field doesn't exist in current schema  
+        history: null, // Field doesn't exist in current schema
+        createdAt: garment[0].createdAt,
+        updatedAt: garment[0].updatedAt
       };
 
-      return NextResponse.json(parsedGarment);
+      return NextResponse.json(responseGarment);
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
@@ -70,20 +71,20 @@ export async function GET(request: NextRequest) {
 
     const results = await query.limit(limit).offset(offset);
 
-    // Parse JSON fields for all results with safe parsing
+    // Parse results with safe structure mapping
     const parsedResults = results.map(garment => ({
-      ...garment,
-      measurements: garment.measurements ? (
-        typeof garment.measurements === 'string' 
-          ? (() => {
-              try {
-                return JSON.parse(garment.measurements);
-              } catch (e) {
-                return null;
-              }
-            })()
-          : garment.measurements
-      ) : null
+      id: garment.id,
+      name: garment.name,
+      type: garment.type,
+      description: garment.description,
+      imageUrl: garment.imageUrl,
+      price: garment.price,
+      category: garment.category,
+      measurements: null, // Field doesn't exist in current schema
+      qualityRating: null, // Field doesn't exist in current schema
+      history: null, // Field doesn't exist in current schema
+      createdAt: garment.createdAt,
+      updatedAt: garment.updatedAt
     }));
 
     return NextResponse.json(parsedResults);
