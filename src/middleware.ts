@@ -37,5 +37,5 @@ export async function middleware(request: NextRequest) {
 export const config = {
   runtime: "nodejs",
   // Run on all pages (exclude assets and api) so headers are set consistently for embedding
-  matcher: ["/(?!_next/static|_next/image|favicon.ico|api).*"],
+  matcher: ["/((?!_next/static|_next/image|api|favicon.ico).*)"],
 };
