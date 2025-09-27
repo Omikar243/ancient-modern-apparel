@@ -398,18 +398,6 @@ const wrapMultiline = (text: string): string => {
   return text;
 };
 
-// Helper function to safely post message
-const safePostMessage = (data: any) => {
-  try {
-    if (window.self !== window.top) {
-      window.parent.postMessage(data, "*");
-    }
-  } catch (error) {
-    // Silently ignore connection refusals
-    console.warn("[VisualEditsMessenger] PostMessage failed silently:", error);
-  }
-};
-
 export default function HoverReceiver() {
   const [hoverBox, setHoverBox] = useState<Box>(null);
   const [hoverBoxes, setHoverBoxes] = useState<Box[]>([]);
@@ -477,10 +465,16 @@ export default function HoverReceiver() {
     if (isVisualEditMode) {
       // Send acknowledgement to parent that visual edit mode is active
       // This will sync the parent's state with our restored state
-      safePostMessage({ type: CHANNEL, msg: "VISUAL_EDIT_MODE_ACK", active: true });
+      window.parent.postMessage(
+        { type: CHANNEL, msg: "VISUAL_EDIT_MODE_ACK", active: true },
+        "*"
+      );
 
       // Also send a special message to indicate this was restored from localStorage
-      safePostMessage({ type: CHANNEL, msg: "VISUAL_EDIT_MODE_RESTORED", active: true });
+      window.parent.postMessage(
+        { type: CHANNEL, msg: "VISUAL_EDIT_MODE_RESTORED", active: true },
+        "*"
+      );
 
       // Restore focused element after a short delay to ensure DOM is ready
       setTimeout(() => {
@@ -658,7 +652,7 @@ export default function HoverReceiver() {
         column: parsed.column,
       };
 
-      safePostMessage(msg);
+      postMessageDedup(msg);
 
       // Update the original content reference
       originalContentRef.current = newText;
@@ -763,7 +757,7 @@ export default function HoverReceiver() {
       column: parsed.column,
     };
 
-    safePostMessage(msg);
+    postMessageDedup(msg);
 
     // Reset style changes flag
     hasStyleChangesRef.current = false;
@@ -797,7 +791,7 @@ export default function HoverReceiver() {
       column: parsed.column,
     };
 
-    safePostMessage(msg);
+    postMessageDedup(msg);
 
     originalSrcRef.current = newSrc; // reset baseline
     focusedImageElementRef.current = null; // clear reference
@@ -1030,11 +1024,11 @@ export default function HoverReceiver() {
           parentRect.height - parentPaddingTop - parentPaddingBottom;
 
         /*
-         * Soft-clamp strategy: we respect the parent's max size until the
-         * user's cursor actually travels beyond that limit.  As soon as the
+         * Soft-clamp strategy: we respect the parent’s max size until the
+         * user’s cursor actually travels beyond that limit.  As soon as the
          * drag distance would produce a dimension larger than the container
          * can accommodate we stop clamping and let the element follow the
-         * cursor, effectively allowing it to "spill" out of its parent.
+         * cursor, effectively allowing it to “spill” out of its parent.
          */
         const exceedsWidth = newWidth > maxWidth;
         const exceedsHeight = newHeight > maxHeight;
@@ -1061,7 +1055,7 @@ export default function HoverReceiver() {
 
       // Send resize message to parent
       if (focusedElementId) {
-        safePostMessage(
+        window.parent.postMessage(
           {
             type: CHANNEL,
             msg: "RESIZE_ELEMENT",
@@ -1172,7 +1166,7 @@ export default function HoverReceiver() {
           }
         }
 
-        safePostMessage(msg, "*");
+        window.parent.postMessage(msg, "*");
       }
 
       setIsResizing(false);
@@ -1317,7 +1311,7 @@ export default function HoverReceiver() {
                 height: fBox.height,
               },
             };
-            safePostMessage(focMsg);
+            postMessageDedup(focMsg);
           }
         }
       };
@@ -1373,7 +1367,7 @@ export default function HoverReceiver() {
             tag: null,
             rect: null,
           };
-          safePostMessage(msg);
+          postMessageDedup(msg);
           return;
         }
 
@@ -1434,7 +1428,7 @@ export default function HoverReceiver() {
               ? expandBox(hit.getBoundingClientRect())
               : null,
         };
-        safePostMessage(msg);
+        postMessageDedup(msg);
       }
     }
 
@@ -1460,7 +1454,7 @@ export default function HoverReceiver() {
         tag: null,
         rect: null,
       };
-      safePostMessage(msg);
+      postMessageDedup(msg);
     }
 
     // Handle mousedown to prepare element for editing
@@ -1724,7 +1718,8 @@ export default function HoverReceiver() {
           src: srcRaw,
         };
 
-        safePostMessage(msg);
+        // Send message with all data at once
+        postMessageDedup(msg);
 
         // Move cleanup operations to after message is sent
         setTimeout(() => {
@@ -1784,7 +1779,7 @@ export default function HoverReceiver() {
             currentStyles: {},
             className: "",
           };
-          safePostMessage(msg);
+          postMessageDedup(msg);
         }
       }
     }
@@ -1839,7 +1834,7 @@ export default function HoverReceiver() {
         }
 
         // Send acknowledgement back to parent so it knows we received the mode change
-        safePostMessage(
+        window.parent.postMessage(
           { type: CHANNEL, msg: "VISUAL_EDIT_MODE_ACK", active: newMode },
           "*"
         );
@@ -1875,7 +1870,7 @@ export default function HoverReceiver() {
             tag: null,
             rect: null,
           };
-          safePostMessage(msg);
+          postMessageDedup(msg);
         }
       }
 
@@ -1975,7 +1970,7 @@ export default function HoverReceiver() {
         type: CHANNEL,
         msg: "SCROLL_STARTED",
       };
-      safePostMessage(scrollMsg);
+      postMessageDedup(scrollMsg);
 
       // Reset the notification flag after scrolling stops
       if (scrollTimeoutRef.current) {
@@ -1987,7 +1982,7 @@ export default function HoverReceiver() {
           type: CHANNEL,
           msg: "SCROLL_STOPPED",
         };
-        safePostMessage(scrollStopMsg);
+        postMessageDedup(scrollStopMsg);
       }, 16); // One frame (16ms) for instant restoration
     }
 

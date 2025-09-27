@@ -1,3 +1,4 @@
+
 "use client";
 
 import ErrorReporter from "@/components/ErrorReporter";
