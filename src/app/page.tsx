@@ -24,18 +24,18 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
         </div>
-        <div className="relative z-10 text-center text-white px-2 max-w-[95vw] mx-auto w-full mt-8 sm:mt-0">
-          <h1 className="text-xs sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight sm:leading-tight mb-1 sm:mb-0">
+        <div className="relative z-10 text-center text-white px-2 max-w-[95vw] mx-auto w-full mt-16 sm:mt-0">
+          <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight sm:leading-tight mb-1 sm:mb-0">
             IndiFusion Wear
           </h1>
-          <p className="text-[8px] sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-1 lg:mb-3 max-w-[90vw] sm:max-w-2xl mx-auto leading-tight sm:leading-relaxed tracking-tight">
+          <p className="text-sm sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-1 lg:mb-3 max-w-[90vw] sm:max-w-2xl mx-auto leading-tight sm:leading-relaxed tracking-tight">
             Ancient textiles meet modern style. Create unique designs.
           </p>
           <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 lg:gap-3 justify-center items-center mt-1 w-full">
-            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 px-2 sm:px-3 lg:px-5 py-1 sm:py-2 rounded-lg shadow-lg min-w-[80px] sm:min-w-[140px] lg:min-w-[180px] text-[8px] sm:text-sm leading-tight">
+            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 px-2 sm:px-3 lg:px-5 py-1 sm:py-2 rounded-lg shadow-lg min-w-[80px] sm:min-w-[140px] lg:min-w-[180px] text-base sm:text-sm leading-tight">
               <Link href="/avatar">Create Avatar</Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="border-white/80 text-white hover:bg-white/10 px-2 sm:px-3 lg:px-5 py-1 sm:py-2 rounded-lg min-w-[80px] sm:min-w-[140px] lg:min-w-[180px] text-[8px] sm:text-sm leading-tight">
+            <Button asChild variant="outline" size="sm" className="border-white/80 text-white hover:bg-white/10 px-2 sm:px-3 lg:px-5 py-1 sm:py-2 rounded-lg min-w-[80px] sm:min-w-[140px] lg:min-w-[180px] text-base sm:text-sm leading-tight">
               <Link href="/catalog">Explore Catalog</Link>
             </Button>
           </div>
