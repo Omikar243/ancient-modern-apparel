@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 to-muted/50">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 to-muted/50">
         <div className="absolute inset-0">
           <img
             src={heroImages[0]}
@@ -24,14 +24,18 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
         </div>
-        <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto animate-fade-in">
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-6 leading-tight">IndiFusion Wear</h1>
-          <p className="text-lg sm:text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed">Blending timeless ancient Indian textiles with contemporary silhouettes. Craft your unique style from heritage-inspired designs.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-lg shadow-lg">
+        <div className="relative z-10 text-center text-white px-2 sm:px-4 max-w-[95vw] mx-auto animate-fade-in pt-4 pb-20 sm:pt-4 sm:pb-8">
+          <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 lg:mb-4 leading-tight">
+            IndiFusion Wear
+          </h1>
+          <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mb-3 sm:mb-4 lg:mb-6 max-w-[90vw] sm:max-w-2xl mx-auto leading-relaxed tracking-tight">
+            Blending timeless ancient Indian textiles with contemporary silhouettes. Craft your unique style from heritage-inspired designs.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4 justify-center items-center">
+            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-lg shadow-lg min-w-[140px] sm:min-w-[160px] lg:min-w-[200px]">
               <Link href="/avatar">Create Your Avatar</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white/80 text-white hover:bg-white/10 px-8 py-3 rounded-lg">
+            <Button asChild variant="outline" size="sm" className="border-white/80 text-white hover:bg-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-lg min-w-[140px] sm:min-w-[160px] lg:min-w-[200px]">
               <Link href="/catalog">Explore Catalog</Link>
             </Button>
           </div>
