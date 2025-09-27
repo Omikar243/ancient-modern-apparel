@@ -43,6 +43,7 @@ export default function RootLayout({
         </header>
         <Toaster position="top-right" richColors />
         {children}
+        <Footer />
         <VisualEditsMessenger />
       </body>
     </html>
