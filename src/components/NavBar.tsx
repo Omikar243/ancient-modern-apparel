@@ -39,36 +39,36 @@ export function NavBar() {
   }
 
   return (
-    <div className="flex items-center gap-6">
-      <Link href="/avatar" className="text-sm text-muted-foreground hover:text-foreground">
+    <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 whitespace-nowrap overflow-x-auto pb-1 sm:pb-0">
+      <Link href="/avatar" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 sm:px-2">
         Avatar
       </Link>
-      <Link href="/catalog" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link href="/catalog" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 sm:px-2">
         Catalog
       </Link>
-      <Link href="/preview" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link href="/preview" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 sm:px-2">
         Preview
       </Link>
-      <Link href="/cart" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link href="/cart" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 sm:px-2">
         Cart
       </Link>
       {session ? (
-        <div className="flex items-center gap-4">
-          <Link href="/profile" className="text-sm text-muted-foreground hover:text-foreground">
+        <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
+          <Link href="/profile" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 truncate max-w-[120px] sm:max-w-none">
             Profile ({session.user.name || session.user.email})
           </Link>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <Button variant="ghost" size="sm" className="h-7 sm:h-8 px-2 text-xs sm:text-sm" onClick={handleLogout}>
             Logout
           </Button>
         </div>
       ) : (
         <>
-          <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/login" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 sm:px-2">
             Login
           </Link>
           <Link
             href="/register"
-            className="text-sm rounded-md bg-primary text-primary-foreground px-3 py-1.5 hover:bg-primary/90"
+            className="text-xs sm:text-sm rounded-md bg-primary text-primary-foreground px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-primary/90 whitespace-nowrap"
           >
             Register
           </Link>
