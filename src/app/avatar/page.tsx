@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import dynamic from "next/dynamic";
-import { FilesetResolver, PoseLandmarker, Image } from "@mediapipe/tasks-vision";
+import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { useLocalStorage } from '@/hooks/use-local-storage'; // Assume hook exists or implement simple
 
 const CanvasWrapper = dynamic(() => import("./CanvasWrapper"), { ssr: false });
@@ -130,23 +130,16 @@ export default function AvatarCreation() {
 
     setExtracting(true);
     try {
-      // Create Image from data URL
+      // Create HTMLImageElement from data URL
       const imgElement = new Image();
       imgElement.src = images.front;
       await new Promise((resolve, reject) => {
-        imgElement.onload = resolve;
-        imgElement.onerror = reject;
+        imgElement.onload = resolve as any;
+        imgElement.onerror = reject as any;
       });
 
-      const mpImage = new Image(imgElement.width, imgElement.height);
-      const canvas = document.createElement('canvas');
-      canvas.width = imgElement.width;
-      canvas.height = imgElement.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(imgElement, 0, 0);
-      mpImage.src = canvas.toDataURL();
-
-      const results = await poseLandmarkerRef.current.detect(mpImage);
+      // Run pose detection directly on the HTMLImageElement
+      const results = await poseLandmarkerRef.current.detect(imgElement as HTMLImageElement);
 
       if (!results.landmarks || results.landmarks.length === 0) {
         throw new Error("No pose detected. Please ensure full body is visible.");
@@ -182,7 +175,7 @@ export default function AvatarCreation() {
       const hipCm = shoulderCm * 1.1;
 
       // Adjust for visibility confidence
-      const avgConfidence = landmarks.slice(0, 10).reduce((sum, lm) => sum + lm.visibility, 0) / 10;
+      const avgConfidence = landmarks.slice(0, 10).reduce((sum, lm) => sum + (lm.visibility ?? 1), 0) / 10;
       if (avgConfidence < 0.5) {
         throw new Error("Low confidence. Retake photo with better lighting/pose.");
       }
@@ -224,7 +217,7 @@ export default function AvatarCreation() {
       });
       setShowPreview(true);
       toast.success(`Measurements extracted! Skin tone: ${avgSkinTone.slice(0,10)}... Confidence: ${Math.round(avgConfidence * 100)}%`);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Extraction failed", err);
       // Fallback to mock
       const mockHeight = Math.floor(Math.random() * 30) + 160;
