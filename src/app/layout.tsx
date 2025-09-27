@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
-import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner";
@@ -21,31 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <ErrorReporter />
-        <Script
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/route-messenger.js"
-          strategy="afterInteractive"
-          data-target-origin="*"
-          data-message-type="ROUTE_CHANGE"
-          data-include-search-params="true"
-          data-only-in-iframe="true"
-          data-debug="true"
-          data-custom-data='{"appName": "IndiFusion Wear", "version": "1.0.0", "greeting": "hi"}'
-        />
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/20 shadow-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-center">
-            <Link href="/" className="font-serif text-2xl font-bold text-primary hover:text-accent transition-colors">
-              IndiFusion Wear
-            </Link>
-            <div className="ml-auto flex items-center space-x-8">
-              <NavBar className="text-foreground text-sm font-medium space-x-6" />
-            </div>
-          </div>
-        </header>
-        <Toaster position="top-right" richColors />
         {children}
-        <Footer />
-        <VisualEditsMessenger />
       </body>
     </html>
   );
