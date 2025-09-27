@@ -62,8 +62,6 @@ export default function AvatarCreation() {
   const [loadingExisting, setLoadingExisting] = useState(false);
 
   const router = useRouter();
-  const hasRefetchedRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: session, isPending: sessionPending, error, refetch } = useSession();
 
@@ -256,38 +254,22 @@ export default function AvatarCreation() {
     setMounted(true);
   }, []);
 
+  // Simplified session effect: Short timeout fallback if pending too long
   useEffect(() => {
-    if (sessionPending) {
-      // Shorter timeout for stuck state: 3s max before force redirect
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        toast.error("Session loading failed. Redirecting to login.");
-        router.push("/login?redirect=/avatar");
-      }, 3000);
-      return () => {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      };
-    }
+    if (!sessionPending) return;
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    const token = typeof window !== 'undefined' ? window.localStorage.getItem("bearer_token") : null;
-
-    if (!session?.user && token && !hasRefetchedRef.current) {
-      hasRefetchedRef.current = true;
-      if (typeof refetch === 'function') {
-        refetch();
-      } else {
+    const timeoutId = setTimeout(() => {
+      const token = typeof window !== 'undefined' ? window.localStorage.getItem("bearer_token") : null;
+      if (token && !session?.user) {
+        toast.error("Session verification failed. Redirecting to login.");
         router.push("/login?redirect=/avatar");
       }
-      return;
-    }
-  }, [sessionPending, session, router, refetch]);
+    }, 1000); // 1s max pending before fallback
 
-  // Improved loading: Show spinner only if mounted and sessionPending (with token present)
+    return () => clearTimeout(timeoutId);
+  }, [sessionPending, session, router]);
+
+  // Load existing avatar only if session ready
   useEffect(() => {
     if (!session?.user?.id || loadingExisting) return;
 
@@ -304,7 +286,6 @@ export default function AvatarCreation() {
         });
 
         if (response.status === 404) {
-          // No existing avatar, use defaults - no error
           console.log("No existing avatar found, using defaults");
           return;
         }
@@ -340,7 +321,7 @@ export default function AvatarCreation() {
     loadExistingAvatar();
   }, [session?.user?.id]);
 
-  // Improved loading: Show spinner only if mounted and sessionPending (with token present)
+  // Show loading only if mounted and (session pending or loading existing)
   if (!mounted || sessionPending || loadingExisting) {
     return (
       <div className="min-h-screen bg-background p-8">
