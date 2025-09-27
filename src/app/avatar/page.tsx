@@ -324,12 +324,10 @@ export default function AvatarCreation() {
   // Show loading only if mounted and (session pending or loading existing)
   if (!mounted || sessionPending || loadingExisting) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{loadingExisting ? "Loading your avatar..." : "Loading session..."}</p>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center py-32">
+        <div className="max-w-md mx-auto text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
+          <p className="text-xl text-muted-foreground font-medium">{loadingExisting ? "Loading Your Avatar..." : "Verifying Access..."}</p>
         </div>
       </div>
     );
@@ -337,20 +335,18 @@ export default function AvatarCreation() {
 
   if (error || !session?.user) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Access Denied</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-destructive">Please log in to create your avatar.</p>
-              <Button onClick={() => router.push("/login?redirect=/avatar")} className="w-full">
-                Go to Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center py-32">
+        <Card className="w-full max-w-md mx-auto border-0 shadow-2xl">
+          <CardHeader className="text-center pb-0">
+            <CardTitle className="text-2xl font-serif">Access Restricted</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-0">
+            <p className="text-muted-foreground text-lg leading-relaxed">For your privacy, avatar creation requires authentication.</p>
+            <Button onClick={() => router.push("/login?redirect=/avatar")} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full py-6 font-semibold shadow-lg">
+              Enter Your Atelier
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -529,179 +525,195 @@ export default function AvatarCreation() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">Create Your Avatar</h1>
-        <p className="text-center mb-12 text-muted-foreground">
-          Upload 4 directional photos and adjust your avatar.
-        </p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-8 py-16">
+        {/* Elegant Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-serif font-bold text-foreground mb-4 leading-tight">Craft Your Digital Silhouette</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">Elevate your vision with precise, personalized measurements derived from curated photographs. Indulge in the artistry of bespoke tailoring.</p>
+        </div>
 
-        {/* Pose Guide Section */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>Photo Pose Guide</CardTitle>
-            <p className="text-muted-foreground">Take clear, full-body photos in these 4 poses. Use the guides below to see the exact views needed: front, back, left side, right side. Stand straight with arms relaxed at your sides for accurate measurements.</p>
+        {/* Pose Guidance - Elegant */}
+        <Card className="mb-16 border-0 shadow-xl backdrop-blur-sm bg-background/60">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-serif font-bold text-foreground">Pose for Precision</CardTitle>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">Capture your form in four cardinal views. Stand poised, arms relaxed, in natural light for exquisite accuracy.</p>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="grid md:grid-cols-4 gap-4 p-4">
+          <CardContent>
+            <div className="grid md:grid-cols-4 gap-8 p-4">
               {[
-                { view: "Front", src: "/images/pose-guide/front.png" },
-                { view: "Back", src: "/images/pose-guide/back.png" },
-                { view: "Left Side", src: "/images/pose-guide/left.png" },
-                { view: "Right Side", src: "/images/pose-guide/right.png" }
-              ].map(({ view, src }) => (
-                <div key={view} className="text-center">
-                  <div className="w-24 h-48 bg-muted mx-auto rounded border-2 border-dashed border-muted mb-2 flex items-center justify-center">
-                    <NextImage
-                      src={src}
-                      alt={`${view.toLowerCase()} pose`}
-                      width={96}
-                      height={192}
-                      className="object-contain"
-                    />
+                { view: "Front", desc: "Full anterior view" },
+                { view: "Back", desc: "Posterior profile" },
+                { view: "Left", desc: "Sinistral aspect" },
+                { view: "Right", desc: "Dexter aspect" }
+              ].map(({ view, desc }) => (
+                <div key={view} className="text-center group hover:scale-105 transition-transform duration-300">
+                  <div className="w-32 h-64 mx-auto bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50 mb-4 flex items-center justify-center overflow-hidden shadow-md group-hover:border-primary/50 transition-colors">
+                    <div className="text-xs text-muted-foreground px-2 py-4">Pose Guide: {view}</div>
                   </div>
-                  <p className="text-sm font-medium">{view}</p>
-                  <p className="text-xs text-muted-foreground">Full-body view, arms at sides</p>
+                  <p className="font-medium text-foreground/80">{view} View</p>
+                  <p className="text-sm text-muted-foreground">{desc}</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Photo Upload Section */}
-        <Card className="mb-12">
+        {/* Upload Interface - Luxurious */}
+        <Card className="mb-16 border-0 shadow-xl backdrop-blur-sm bg-background/60">
           <CardHeader>
-            <CardTitle>Upload Directional Photos</CardTitle>
-            <p className="text-sm text-muted-foreground">Photos are stored securely and encrypted. You control access and can delete anytime.</p>
+            <CardTitle className="text-3xl font-serif font-bold text-foreground">Curate Your Images</CardTitle>
+            <p className="text-muted-foreground text-lg leading-relaxed">Select four exquisite photographs. Your images are safeguarded with the utmost discretion and encryption.</p>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-4">
-            {["front", "back", "left", "right"].map((direction) => (
-              <div key={direction} className="text-center">
-                <Label htmlFor={direction} className="block mb-2 capitalize">
-                  {direction} view
-                </Label>
-                <Input
-                  id={direction}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files && handlePhotoUpload(direction as keyof Photo, e.target.files![0])}
-                  className="mb-4"
-                />
-                {images[direction] && (
-                  <div className="w-32 h-32 mx-auto">
-                    <NextImage
-                      src={images[direction]}
-                      alt={`${direction} photo`}
-                      width={128}
-                      height={128}
-                      className="object-cover rounded"
-                    />
-                  </div>
+          <CardContent className="space-y-8">
+            <div className="grid md:grid-cols-4 gap-8">
+              {["front", "back", "left", "right"].map((direction) => (
+                <div key={direction} className="text-center group hover:shadow-lg transition-all duration-300 rounded-2xl p-4 bg-card/50 border border-border/20">
+                  <Label htmlFor={direction} className="block mb-4 capitalize font-medium text-foreground text-lg">
+                    {direction.replace('left', 'Left').replace('right', 'Right')} Perspective
+                  </Label>
+                  <Input
+                    id={direction}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files && handlePhotoUpload(direction as keyof Photo, e.target.files![0])}
+                    className="mb-6 file:bg-primary file:text-primary-foreground file:rounded-full file:px-4 file:py-2 file:font-medium hover:file:bg-primary/90"
+                  />
+                  {images[direction] && (
+                    <div className="w-40 h-40 mx-auto rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform">
+                      <NextImage
+                        src={images[direction]}
+                        alt={`${direction} perspective`}
+                        width={160}
+                        height={160}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Consent & Actions */}
+            <div className="pt-8 border-t border-border/20 space-y-6">
+              <div className="flex items-start space-x-3 p-4 bg-accent/10 rounded-xl">
+                <Checkbox id="consent" checked={consentGiven} onCheckedChange={handleConsentChange} className="mt-1" />
+                <label htmlFor="consent" className="text-base leading-relaxed text-foreground/90 flex-1">
+                  I affirm my consent for the secure, encrypted preservation of these images solely for avatar refinement. Full dominion and excision remain mine.
+                </label>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  onClick={handleExtractAndSave} 
+                  disabled={extracting || savingAvatar || !readyForExtract || !consentGiven} 
+                  className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full py-4 px-8 font-serif text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-h-[56px]"
+                >
+                  {(extracting || savingAvatar) ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                      Refining Your Form...
+                    </>
+                  ) : (
+                    "Extract & Eternalize Avatar"
+                  )}
+                </Button>
+                {readyForExtract && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDeletePhotos} 
+                    className="w-full sm:w-auto rounded-full py-4 px-8 font-serif text-lg border-accent hover:bg-accent/10 transition-all duration-300"
+                  >
+                    Obliterate Images
+                  </Button>
                 )}
               </div>
-            ))}
+            </div>
           </CardContent>
-          <div className="p-6 space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="consent" checked={consentGiven} onCheckedChange={handleConsentChange} />
-              <label htmlFor="consent" className="text-sm">
-                I consent to secure storage of my photos for avatar creation. I understand they are encrypted, private, and I can delete them anytime.
-              </label>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                onClick={handleExtractAndSave} 
-                disabled={extracting || savingAvatar || !readyForExtract || !consentGiven} 
-                className="w-full sm:w-auto"
-              >
-                {(extracting || savingAvatar) ? "Saving Avatar..." : "Extract Measurements & Save Avatar"}
-              </Button>
-              {readyForExtract && (
-                <Button variant="destructive" onClick={handleDeletePhotos} className="w-full sm:w-auto">
-                  Delete All Photos
-                </Button>
-              )}
-            </div>
-          </div>
         </Card>
 
-        {/* Measurements Display */}
+        {/* Measurements - Sophisticated */}
         {showPreview && (
-          <Card className="mb-12">
-            <CardHeader>
-              <CardTitle>Extracted Body Measurements (cm)</CardTitle>
+          <Card className="mb-16 border-0 shadow-xl backdrop-blur-sm bg-background/60">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-serif font-bold text-foreground">Your Refined Proportions</CardTitle>
+              <p className="text-muted-foreground text-lg">Measurements in centimeters, derived with artisanal precision.</p>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-4">
+            <CardContent className="grid md:grid-cols-3 gap-6 p-0">
               {Object.entries(measurements).map(([key, value]) => (
-                <div key={key} className="space-y-2">
-                  <Label className="capitalize">{key}</Label>
-                  <Input value={value.toFixed(0)} readOnly className="bg-muted/50" />
+                <div key={key} className="text-center p-6 bg-gradient-to-b from-primary/5 to-transparent rounded-2xl border border-primary/20">
+                  <Label className="block text-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">{key}</Label>
+                  <div className="text-3xl font-serif font-bold text-foreground">{value.toFixed(0)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">centimeters</p>
                 </div>
               ))}
             </CardContent>
           </Card>
         )}
 
-        {/* Interactive Body Adjustment & Preview */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>Avatar Preview</CardTitle>
-            <p className="text-muted-foreground">Adjust body type sliders and interact with your 3D avatar (rotate/zoom). Upload/extract for custom fit.</p>
+        {/* 3D Atelier - Premium */}
+        <Card className="mb-16 border-0 shadow-2xl backdrop-blur-sm bg-background/60">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-serif font-bold text-foreground">The Digital Atelier</CardTitle>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">Refine your silhouette through subtle adjustments. Witness the metamorphosis in three dimensions.</p>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <Label htmlFor="hourglass">Hourglass Shape (%)</Label>
+          <CardContent className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div className="space-y-4">
+                <Label className="text-lg font-medium text-foreground block">Hourglass Elegance</Label>
                 <Slider 
-                  id="hourglass"
                   value={[bodyType.hourglass]} 
                   onValueChange={(value) => setBodyType(prev => ({ ...prev, hourglass: value[0] }))} 
                   max={100} 
                   step={1} 
-                  className="mt-2"
+                  className="my-2"
                 />
-                <p className="text-sm text-muted-foreground mt-1">{bodyType.hourglass}%</p>
+                <p className="text-sm text-muted-foreground">{bodyType.hourglass}%</p>
               </div>
-              <div>
-                <Label htmlFor="athletic">Athletic Build (%)</Label>
+              <div className="space-y-4">
+                <Label className="text-lg font-medium text-foreground block">Athletic Poise</Label>
                 <Slider 
-                  id="athletic"
                   value={[bodyType.athletic]} 
                   onValueChange={(value) => setBodyType(prev => ({ ...prev, athletic: value[0] }))} 
                   max={100} 
                   step={1} 
-                  className="mt-2"
+                  className="my-2"
                 />
-                <p className="text-sm text-muted-foreground mt-1">{bodyType.athletic}%</p>
+                <p className="text-sm text-muted-foreground">{bodyType.athletic}%</p>
               </div>
             </div>
-            <div className="h-96 bg-muted/30 rounded-lg relative border-2 border-dashed border-muted overflow-hidden">
+            <div className="relative h-[500px] bg-gradient-to-br from-muted/20 to-accent/5 rounded-3xl border-2 border-primary/20 overflow-hidden shadow-inner">
               {mounted ? (
-                <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center">Loading 3D model...</div>}>
+                <Suspense fallback={
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                    <div className="text-center">
+                      <div className="animate-pulse rounded-full h-12 w-12 border-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground font-medium">Manifesting Your Avatar...</p>
+                    </div>
+                  </div>
+                }>
                   <CanvasWrapper measurements={measurements} bodyType={bodyType} skinTone={skinTone} />
                 </Suspense>
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted/30">Initializing 3D preview...</div>
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                  <p className="text-muted-foreground">Preparing the Canvas...</p>
+                </div>
               )}
             </div>
-            <div className="text-center text-foreground mt-4">
-              <p className="text-lg font-medium">Interactive 3D Avatar</p>
-              <p className="text-sm mt-2">Body Type: {bodyType.hourglass}% Hourglass / {bodyType.athletic}% Athletic</p>
-              <p className="text-sm">Height: {measurements.height}cm | Shoulders: {measurements.shoulders}cm</p>
-              <p className="text-xs mt-4">Rotate and zoom to view. Extraction updates measurements.</p>
+            <div className="text-center space-y-2 pt-4 border-t border-border/20">
+              <p className="text-xl font-serif font-bold text-foreground">Interactive Silhouette</p>
+              <p className="text-base text-muted-foreground">Hourglass: {bodyType.hourglass}% | Athletic: {bodyType.athletic}% | Height: {measurements.height}cm</p>
+              <p className="text-sm text-foreground/70 italic">Rotate and magnify to appreciate the craftsmanship.</p>
             </div>
           </CardContent>
         </Card>
 
-        <div className="text-center space-y-4">
-          <Button asChild variant="outline">
-            <Link href="/">Back to Home</Link>
+        {/* Navigation - Elegant */}
+        <div className="text-center space-y-4 pt-8 border-t border-border/20">
+          <Button asChild variant="outline" className="rounded-full px-8 py-4 font-serif text-lg border-foreground/20 hover:border-primary transition-all">
+            <Link href="/">Return to Sanctuary</Link>
           </Button>
-          <Button asChild disabled={!showPreview}>
-            <Link href="/catalog" onClick={(e) => {
-              e.preventDefault();
-              window.location.href = "/catalog";
-            }}>Proceed to Catalog</Link>
+          <Button asChild disabled={!showPreview} className="rounded-full px-12 py-4 bg-primary text-primary-foreground font-serif text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-h-[56px]">
+            <Link href="/catalog">Enter the Atelier</Link>
           </Button>
         </div>
       </div>

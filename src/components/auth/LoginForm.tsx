@@ -66,40 +66,78 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      {search.get("registered") === "true" && (
-        <div className="mb-4 text-sm text-green-600">Account created! Please log in.</div>
-      )}
-      <Card>
-        <CardHeader>
-          <CardTitle>Log in</CardTitle>
-          <CardDescription>Welcome back. Enter your credentials to continue.</CardDescription>
-        </CardHeader>
-        <form onSubmit={onSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="off" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
-              <Label htmlFor="remember" className="text-sm text-muted-foreground">Remember me</Label>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Log in"}
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Don't have an account? <Link className="underline" href="/register">Register</Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+    <div className="w-full max-w-lg mx-auto">
+      {/* Subtle background */}
+      <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-3xl p-8 border border-border/20 shadow-xl backdrop-blur-sm">
+        {search.get("registered") === "true" && (
+          <div className="mb-6 p-4 bg-accent/10 rounded-2xl text-sm text-accent-foreground">
+            Atelier access granted. Proceed with your credentials.
+          </div>
+        )}
+        <Card className="border-0 bg-transparent">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle className="text-4xl font-serif font-bold text-foreground">Enter the Sanctum</CardTitle>
+            <CardDescription className="text-lg text-muted-foreground leading-relaxed">
+              Return to your bespoke creations. Your legacy awaits.
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={onSubmit} className="space-y-6">
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-base font-medium text-foreground">Epistle</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  required 
+                  autoComplete="email" 
+                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
+                  placeholder="Your sacred address"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-base font-medium text-foreground">Cipher</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                  autoComplete="off" 
+                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
+                  placeholder="Unveil your passage"
+                />
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-muted/20 rounded-xl">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} className="border-foreground/30" />
+                <Label htmlFor="remember" className="text-sm text-muted-foreground font-medium leading-relaxed">
+                  Eternal remembrance
+                </Label>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4 pt-0">
+              <Button 
+                type="submit" 
+                className="w-full h-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-serif font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                    Unveiling...
+                  </>
+                ) : (
+                  "Cross the Threshold"
+                )}
+              </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                Uninitiated? <Link className="text-primary hover:underline font-medium transition-colors" href="/register">Initiate Your Legacy</Link>
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 };

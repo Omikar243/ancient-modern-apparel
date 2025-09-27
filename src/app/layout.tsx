@@ -31,12 +31,14 @@ export default function RootLayout({
           data-debug="true"
           data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
         />
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur border-b">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link href="/" className="font-semibold text-lg">
+        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/20 shadow-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-center">
+            <Link href="/" className="font-serif text-2xl font-bold text-primary hover:text-accent transition-colors">
               IndiFusion Wear
             </Link>
-            <NavBar />
+            <div className="ml-auto flex items-center space-x-8">
+              <NavBar className="text-foreground text-sm font-medium space-x-6" />
+            </div>
           </div>
         </header>
         <Toaster position="top-right" richColors />

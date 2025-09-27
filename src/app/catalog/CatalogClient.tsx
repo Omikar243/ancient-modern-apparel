@@ -187,176 +187,256 @@ export default function CatalogClient() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Garment Catalog</h1>
-          <p className="text-xl text-muted-foreground mb-6">
-            Browse traditional Indian garments and authentic materials. Select and customize your design.
-          </p>
+    <div className="min-h-screen bg-background py-20">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Luxurious Header */}
+        <div className="text-center mb-20">
+          <h1 className="text-5xl md:text-7xl font-serif font-bold text-foreground mb-6 leading-tight">The Heritage Atelier</h1>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">Discover timeless Indian silhouettes, where ancient weave marries contemporary form. Each garment, a narrative of tradition, awaits your discerning touch.</p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Garment Grid */}
+        {/* Auth & Avatar Prompt - Elegant */}
+        {/* @ts-expect-error session typing */}
+        {session?.user && !session?.isPending && avatarError && !avatarLoading && (
+          <Card className="mb-12 border-0 shadow-xl backdrop-blur-sm bg-background/60">
+            <CardContent className="p-8 text-center">
+              <p className="text-lg text-muted-foreground mb-4 italic">{avatarError}</p>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => router.push("/avatar")} 
+                className="rounded-full px-8 py-4 font-serif border-foreground/20 hover:border-primary hover:bg-transparent transition-all duration-300"
+              >
+                Forge Your Silhouette
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* @ts-expect-error session typing */}
+        {!session?.user && !session?.isPending && (
+          <Card className="mb-12 border-0 shadow-xl backdrop-blur-sm bg-background/60">
+            <CardContent className="p-8 text-center">
+              <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
+                Enter the atelier to compose bespoke creations. Your vision demands authentication.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={() => router.push('/login?redirect=/catalog')} 
+                  className="rounded-full px-8 py-4 font-serif border-foreground/20 hover:border-primary transition-all duration-300"
+                >
+                  Enter the Sanctum
+                </Button>
+                <Button 
+                  size="lg" 
+                  onClick={() => router.push('/register')} 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 py-4 font-serif text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                >
+                  Begin Your Journey
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Refined Filters - Sidebar Style */}
+          <Card className="lg:w-80 border-0 shadow-xl backdrop-blur-sm bg-background/60">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl font-serif font-bold text-foreground">
+                <Filter className="w-5 h-5" />
+                Refine Your Vision
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Curate from our eternal collection with discerning precision.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 p-0">
+              <div className="p-6 border-b border-border/20">
+                <label className="text-sm font-medium text-foreground block mb-3">Seek Elegance</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Whisper your desire..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-card/50 border-border/20 focus:border-primary rounded-xl"
+                  />
+                </div>
+              </div>
+              <div className="p-6 border-b border-border/20">
+                <label className="text-sm font-medium text-foreground block mb-3">Lineage</label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="bg-card/50 border-border/20 rounded-xl">
+                    <SelectValue placeholder="Eternal legacies" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Lineages</SelectItem>
+                    <SelectItem value="women">Feminine Grace</SelectItem>
+                    <SelectItem value="men">Masculine Form</SelectItem>
+                    <SelectItem value="kids">Youthful Essence</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="p-6">
+                <label className="text-sm font-medium text-foreground block mb-3">Value Spectrum</label>
+                <Slider 
+                  value={priceRange} 
+                  onValueChange={setPriceRange} 
+                  max={500} 
+                  step={10} 
+                  className="my-4" 
+                />
+                <div className="text-xs text-muted-foreground">${priceRange[0]} – ${priceRange[1]}</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Exquisite Garment Gallery */}
           <div className="flex-1">
-            {/* Filters */}
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-3 gap-4 p-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Search</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search garments..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="women">Women</SelectItem>
-                      <SelectItem value="men">Men</SelectItem>
-                      <SelectItem value="kids">Kids</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Price Range</label>
-                  <Slider value={priceRange} onValueChange={setPriceRange} max={500} step={10} className="w-full" />
-                  <div className="text-xs text-muted-foreground">${priceRange[0]} - ${priceRange[1]}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Avatar Loading/Warning - only show if logged in and no avatar */}
-            {/* @ts-expect-error session typing */}
-            {session?.user && !session.isPending && (
-              <>
-                {avatarLoading && (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-2 text-muted-foreground">Loading your avatar...</span>
-                  </div>
-                )}
-
-                {avatarError && !avatarLoading && (
-                  <Card className="mb-4 p-4 bg-destructive/5 border-destructive/20">
-                    <p className="text-sm text-destructive">{avatarError}</p>
-                    <Button variant="outline" size="sm" onClick={() => router.push("/avatar")}>Create Avatar</Button>
-                  </Card>
-                )}
-              </>
-            )}
-
-            {/* Public message if not logged in */}
-            {/* @ts-expect-error session typing */}
-            {!session?.user && !session?.isPending && (
-              <Card className="mb-4 p-4 bg-accent/10">
-                <p className="text-sm text-muted-foreground">
-                  Log in or sign up to create your avatar and customize garments.
-                  <Button variant="link" size="sm" onClick={() => router.push('/login?redirect=/catalog')} className="p-0 h-auto">
-                    Get started
-                  </Button>
-                </p>
-              </Card>
-            )}
-
-            {/* Garment Grid */}
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredGarments.length > 0 ? (
                 filteredGarments.map((garment) => (
-                  <Link href={`/catalog/${garment.id}`} key={garment.id} className="block hover:no-underline">
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                      <div className="relative h-48">
-                        <Image src={garment.imageUrl || "/placeholder.svg"} alt={garment.name} fill className="object-cover" />
+                  <Link 
+                    href={`/catalog/${garment.id}`} 
+                    key={garment.id} 
+                    className="block hover:no-underline group"
+                  >
+                    <Card 
+                      className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-2xl bg-background/60 backdrop-blur-sm hover:border-primary/30 hover:scale-105 h-full"
+                    >
+                      <div className="relative h-64 overflow-hidden rounded-t-2xl">
+                        <Image 
+                          src={garment.imageUrl || "/placeholder.svg"} 
+                          alt={garment.name} 
+                          fill 
+                          className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </div>
-                      <CardContent className="p-4">
-                        <CardTitle className="font-semibold mb-1">{garment.name}</CardTitle>
-                        <CardDescription className="mb-2">{garment.description.substring(0, 100)}...</CardDescription>
-                        <div className="flex justify-between items-center mb-2">
-                          <Badge variant="secondary">{garment.category}</Badge>
-                          <span className="text-lg font-bold">${garment.price}</span>
+                      <CardContent className="p-6">
+                        <CardTitle className="text-xl font-serif font-bold text-foreground mb-2 leading-tight">{garment.name}</CardTitle>
+                        <CardDescription className="text-muted-foreground mb-4 leading-relaxed text-base line-clamp-2">
+                          {garment.description}
+                        </CardDescription>
+                        <div className="flex justify-between items-center mb-4">
+                          <Badge 
+                            variant="secondary" 
+                            className="bg-accent/20 text-accent-foreground font-medium"
+                          >
+                            {garment.category.toUpperCase()}
+                          </Badge>
+                          <span className="text-2xl font-serif font-bold text-primary">${garment.price}</span>
                         </div>
                         {/* @ts-expect-error session typing */}
-                        <Button variant="outline" size="sm" className="w-full" onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleAddToCart(garment);
-                        }}>
-                          {session?.user ? "Quick Add to Cart" : "Log in to Customize"}
+                        <Button 
+                          variant="outline" 
+                          size="lg" 
+                          className="w-full rounded-full font-serif border-foreground/20 hover:border-primary hover:bg-transparent transition-all duration-300 group-hover:scale-105" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleAddToCart(garment);
+                          }}
+                        >
+                          {session?.user ? "Curate in Atelier" : "Reveal Your Form"}
                         </Button>
                       </CardContent>
                     </Card>
                   </Link>
                 ))
               ) : (
-                <p className="col-span-full text-center text-muted-foreground py-8">No garments found matching your filters.</p>
+                <Card className="col-span-full border-0 shadow-xl backdrop-blur-sm bg-background/60 text-center py-16 rounded-2xl">
+                  <CardContent>
+                    <p className="text-xl text-muted-foreground italic">No silhouettes align with your vision at present. Refine your quest.</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>
+        </div>
 
-          {/* Materials Sidebar */}
-          <Card className="w-full lg:w-80">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-4 h-4" />
-                Materials
-              </CardTitle>
-              <CardDescription>Click to learn about authentic Indian textiles</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {materials.map((material) => (
-                <Dialog key={material.id}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start space-x-2 p-2" onClick={() => setSelectedMaterial(material)}>
+        {/* Materials Codex - Sophisticated Sidebar */}
+        <Card className="mt-16 lg:float-right lg:w-96 border-0 shadow-xl backdrop-blur-sm bg-background/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl font-serif font-bold text-foreground">
+              <Palette className="w-5 h-5" />
+              Textile Codex
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Unveil the lore of ancestral fabrics, each thread a chronicle of artistry and provenance.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 p-0">
+            {materials.map((material) => (
+              <Dialog key={material.id}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start space-x-3 p-4 hover:bg-accent/10 transition-all duration-300 rounded-xl border border-border/20" 
+                    onClick={() => setSelectedMaterial(material)}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex-shrink-0"
+                      style={{ 
+                        backgroundColor: material.textureType.includes("silk") 
+                          ? "#D4AF37" 
+                          : material.textureType.includes("cotton") 
+                          ? "#F5F5DC" 
+                          : "#8B0000" 
+                      }}
+                    />
+                    <div className="flex-1 text-left">
+                      <span className="font-serif font-medium text-foreground">{material.name}</span>
+                      <p className="text-xs text-muted-foreground leading-tight">{material.origin}</p>
+                    </div>
+                    <Badge className="ml-auto bg-primary/20 text-primary font-medium">
+                      {material.authenticityRating}/10
+                    </Badge>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-2xl">{material.name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center gap-3 mb-4">
                       <div
-                        className="w-8 h-8 rounded"
-                        style={{ backgroundColor: material.textureType.includes("silk") ? "#D4AF37" : "#F5F5DC" }}
+                        className="w-16 h-16 rounded-xl"
+                        style={{ 
+                          backgroundColor: material.textureType.includes("silk") 
+                            ? "#D4AF37" 
+                            : material.textureType.includes("cotton") 
+                            ? "#F5F5DC" 
+                            : "#8B0000" 
+                        }}
                       />
-                      <span className="font-medium">{material.name}</span>
-                      <Badge className="ml-auto">{material.authenticityRating}/10</Badge>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{material.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-12 h-12 rounded"
-                          style={{ backgroundColor: material.textureType.includes("silk") ? "#D4AF37" : "#F5F5DC" }}
-                        />
-                        <Badge>{material.textureType}</Badge>
-                      </div>
+                      <Badge variant="secondary" className="font-medium uppercase tracking-wide">
+                        {material.textureType}
+                      </Badge>
+                    </div>
+                    <div>
                       <p className="text-sm text-muted-foreground">
-                        <strong>Origin:</strong> {material.origin}
+                        <strong>Provenance:</strong> {material.origin}, where master weavers have preserved arcane techniques through generations.
                       </p>
-                      <p className="text-sm">{material.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Authenticity:</strong> {material.authenticityRating}/10
+                      <p className="text-sm leading-relaxed mt-2 italic">
+                        {material.description} This fabric whispers of royal courts and sacred rituals, its tactile elegance a testament to enduring legacy.
                       </p>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+                    <p className="text-sm font-medium text-foreground/90 flex items-center justify-between">
+                      Purity of Craft
+                      <Badge className="bg-primary/30 text-primary">
+                        {material.authenticityRating}/10
+                      </Badge>
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

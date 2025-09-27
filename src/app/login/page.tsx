@@ -3,19 +3,15 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { RedirectIfAuthenticated } from "@/components/auth/RedirectIfAuthenticated";
 
 export const metadata: Metadata = {
-  title: "Login | IndiFusion Wear",
+  title: "Atelier Access | IndiFusion Wear",
 };
-
-// Add a small client-side redirect to avoid showing login when already authenticated
-// without turning the whole page into a client component.
 
 export default function LoginPage() {
   return (
-    <main className="min-h-[calc(100vh-64px)] px-4 py-12">
-      {/* client-side guard */}
+    <main className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/5 flex items-center justify-center py-12 px-4">
       <RedirectIfAuthenticated />
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-semibold text-center mb-8">Welcome back</h1>
+      <div className="w-full max-w-4xl mx-auto text-center mb-8">
+        <h1 className="text-5xl font-serif font-bold text-foreground mb-4 leading-tight">The Eternal Return</h1>
         <LoginForm />
       </div>
     </main>
