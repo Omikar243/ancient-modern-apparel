@@ -1,53 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { userAvatars } from '@/db/schema';
+import { avatars } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import * as THREE from 'three';
-import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
-import { supabaseAdmin } from '@/lib/supabase-admin';
 
-// Enhanced validation helper function
+// Validation helper functions
 function validateMeasurements(measurements: any) {
   const errors: string[] = [];
 
-  // Check if measurements object exists
   if (!measurements || typeof measurements !== 'object') {
     return { isValid: false, errors: ['Measurements object is required'] };
   }
 
-  // Required fields with their validation rules
   const requiredFields = {
     height: { min: 100, max: 250, unit: 'cm' },
     bust: { min: 60, max: 150, unit: 'cm' },
     waist: { min: 50, max: 120, unit: 'cm' },
-    hips: { min: 60, max: 150, unit: 'cm' },
-    shoulders: { min: 30, max: 70, unit: 'cm' }
+    hips: { min: 60, max: 150, unit: 'cm' }
   };
 
-  // Validate each required field
   for (const [field, rules] of Object.entries(requiredFields)) {
     const value = measurements[field];
 
-    // Check if field exists
     if (value === undefined || value === null) {
       errors.push(`${field} is required`);
       continue;
     }
 
-    // Check if field is numeric
     if (typeof value !== 'number' || isNaN(value)) {
       errors.push(`${field} must be a valid number`);
       continue;
     }
 
-    // Check if value is positive
     if (value <= 0) {
       errors.push(`${field} must be a positive number`);
       continue;
     }
 
-    // Check if value is within valid range
     if (value < rules.min || value > rules.max) {
       errors.push(`${field} must be between ${rules.min} and ${rules.max} ${rules.unit}`);
       continue;
@@ -60,96 +49,31 @@ function validateMeasurements(measurements: any) {
   };
 }
 
-// Helper function to generate GLB from measurements
-async function generateAvatarGLB(measurements: any): Promise<ArrayBuffer> {
-  try {
-    const scene = new THREE.Scene();
-    
-    // Create torso (cylinder scaled by measurements)
-    const torsoGeometry = new THREE.CylinderGeometry(
-      measurements.waist / 200, // top radius
-      measurements.hips / 200,  // bottom radius  
-      measurements.height / 100, // height
-      16 // segments
-    );
-    const torsoMaterial = new THREE.MeshBasicMaterial({ color: 0x8B7355 });
-    const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
-    torso.position.y = measurements.height / 200;
-    scene.add(torso);
-    
-    // Create head (sphere scaled by height)
-    const headRadius = measurements.height / 400;
-    const headGeometry = new THREE.SphereGeometry(headRadius, 16, 12);
-    const headMaterial = new THREE.MeshBasicMaterial({ color: 0xFFDBB6 });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = measurements.height / 100 + headRadius;
-    scene.add(head);
-    
-    // Create shoulders (box scaled by shoulder measurement)
-    const shoulderGeometry = new THREE.BoxGeometry(
-      measurements.shoulders / 100,
-      measurements.height / 200,
-      measurements.bust / 300
-    );
-    const shoulderMaterial = new THREE.MeshBasicMaterial({ color: 0x8B7355 });
-    const shoulders = new THREE.Mesh(shoulderGeometry, shoulderMaterial);
-    shoulders.position.y = measurements.height / 120;
-    scene.add(shoulders);
-    
-    // Export to GLB
-    const exporter = new GLTFExporter();
-    
-    return new Promise((resolve, reject) => {
-      exporter.parse(
-        scene,
-        (gltf) => {
-          if (gltf instanceof ArrayBuffer) {
-            resolve(gltf);
-          } else {
-            // Convert JSON to binary GLB
-            const jsonString = JSON.stringify(gltf);
-            const buffer = new TextEncoder().encode(jsonString);
-            resolve(buffer);
-          }
-        },
-        (error) => reject(error),
-        { binary: true }
-      );
-    });
-  } catch (error) {
-    throw new Error(`GLB generation failed: ${error}`);
+function validatePhotos(photos: any) {
+  if (!Array.isArray(photos)) {
+    return { isValid: false, errors: ['Photos must be an array'] };
   }
-}
 
-// Helper function to upload GLB to Supabase
-async function uploadGLBToSupabase(userId: string, avatarId: number, glbBuffer: ArrayBuffer): Promise<string> {
-  try {
-    const fileName = `users/${userId}/avatars/${avatarId}.glb`;
-    
-    const { data, error } = await supabaseAdmin.storage
-      .from('avatars')
-      .upload(fileName, glbBuffer, {
-        contentType: 'model/gltf-binary',
-        upsert: true
-      });
-
-    if (error) {
-      throw new Error(`Supabase upload failed: ${error.message}`);
-    }
-
-    // Generate signed URL (7 days expiry)
-    const { data: signedUrlData, error: urlError } = await supabaseAdmin.storage
-      .from('avatars')
-      .createSignedUrl(fileName, 7 * 24 * 60 * 60); // 7 days in seconds
-
-    if (urlError) {
-      throw new Error(`Signed URL generation failed: ${urlError.message}`);
-    }
-
-    return signedUrlData.signedUrl;
-  } catch (error) {
-    throw new Error(`File upload failed: ${error}`);
+  if (photos.length === 0) {
+    return { isValid: false, errors: ['At least one photo URL is required'] };
   }
+
+  if (photos.length > 10) {
+    return { isValid: false, errors: ['Maximum 10 photos allowed'] };
+  }
+
+  const errors: string[] = [];
+  for (let i = 0; i < photos.length; i++) {
+    const photo = photos[i];
+    if (typeof photo !== 'string' || photo.trim() === '') {
+      errors.push(`Photo ${i + 1} must be a valid URL string`);
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors: errors
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -163,21 +87,22 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Get avatars for authenticated user only - using existing userAvatars table
-    const userAvatarData = await db.select()
-      .from(userAvatars)
-      .where(eq(userAvatars.userId, session.user.id))
-      .orderBy(desc(userAvatars.updatedAt))
+    // Get avatars for authenticated user only
+    const userAvatars = await db.select()
+      .from(avatars)
+      .where(eq(avatars.userId, session.user.id))
+      .orderBy(desc(avatars.createdAt))
       .limit(limit)
       .offset(offset);
 
-    // Parse JSON fields for response and map to expected format
-    const parsedAvatars = userAvatarData.map(avatar => ({
+    // Parse JSON fields for response
+    const parsedAvatars = userAvatars.map(avatar => ({
       id: avatar.id,
       userId: avatar.userId,
       measurements: typeof avatar.measurements === 'string' ? JSON.parse(avatar.measurements) : avatar.measurements,
-      fittedModelUrl: null, // userAvatars doesn't have this field yet
-      createdAt: avatar.updatedAt // using updatedAt as createdAt
+      photos: typeof avatar.photos === 'string' ? JSON.parse(avatar.photos) : avatar.photos,
+      createdAt: avatar.createdAt,
+      updatedAt: avatar.updatedAt
     }));
 
     return NextResponse.json(parsedAvatars);
@@ -195,93 +120,51 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { measurements } = body;
+    const { measurements, photos } = body;
 
-    // Enhanced validation
-    const validation = validateMeasurements(measurements);
-    if (!validation.isValid) {
+    // Validate measurements
+    const measurementValidation = validateMeasurements(measurements);
+    if (!measurementValidation.isValid) {
       return NextResponse.json({ 
         error: 'Invalid measurements provided',
         code: 'INVALID_MEASUREMENTS',
-        validationErrors: validation.errors
+        validationErrors: measurementValidation.errors
+      }, { status: 400 });
+    }
+
+    // Validate photos
+    const photoValidation = validatePhotos(photos);
+    if (!photoValidation.isValid) {
+      return NextResponse.json({ 
+        error: 'Invalid photos provided',
+        code: 'INVALID_PHOTOS',
+        validationErrors: photoValidation.errors
       }, { status: 400 });
     }
 
     const now = new Date().toISOString();
 
-    // Check if user already has avatar data - update or create
-    const existingAvatar = await db.select()
-      .from(userAvatars)
-      .where(eq(userAvatars.userId, session.user.id))
-      .limit(1);
+    const newAvatar = await db.insert(avatars)
+      .values({
+        userId: session.user.id,
+        measurements: JSON.stringify(measurements),
+        photos: JSON.stringify(photos),
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning();
 
-    let avatarId: number;
-    let avatarResult: any[];
+    // Parse JSON fields for response
+    const responseAvatar = {
+      id: newAvatar[0].id,
+      userId: newAvatar[0].userId,
+      measurements: typeof newAvatar[0].measurements === 'string' ? JSON.parse(newAvatar[0].measurements) : newAvatar[0].measurements,
+      photos: typeof newAvatar[0].photos === 'string' ? JSON.parse(newAvatar[0].photos) : newAvatar[0].photos,
+      createdAt: newAvatar[0].createdAt,
+      updatedAt: newAvatar[0].updatedAt
+    };
 
-    if (existingAvatar.length > 0) {
-      // Update existing avatar
-      avatarResult = await db.update(userAvatars)
-        .set({
-          measurements: JSON.stringify(measurements),
-          photos: JSON.stringify([]), // Initialize empty photos array
-          updatedAt: now
-        })
-        .where(eq(userAvatars.userId, session.user.id))
-        .returning();
-      avatarId = avatarResult[0].id;
-    } else {
-      // Create new avatar
-      avatarResult = await db.insert(userAvatars)
-        .values({
-          userId: session.user.id,
-          measurements: JSON.stringify(measurements),
-          photos: JSON.stringify([]), // Initialize empty photos array
-          unitPreference: 'cm',
-          updatedAt: now
-        })
-        .returning();
-      avatarId = avatarResult[0].id;
-    }
-
-    try {
-      // Generate GLB model
-      console.log('Generating GLB for avatar:', avatarId);
-      const glbBuffer = await generateAvatarGLB(measurements);
-      
-      // Upload to Supabase
-      console.log('Uploading GLB to Supabase...');
-      const signedUrl = await uploadGLBToSupabase(session.user.id, avatarId, glbBuffer);
-      
-      // Return avatar data with GLB URL
-      const responseAvatar = {
-        id: avatarResult[0].id,
-        userId: avatarResult[0].userId,
-        measurements: typeof avatarResult[0].measurements === 'string' 
-          ? JSON.parse(avatarResult[0].measurements) 
-          : avatarResult[0].measurements,
-        fittedModelUrl: signedUrl,
-        createdAt: avatarResult[0].updatedAt
-      };
-
-      return NextResponse.json(responseAvatar, { status: 201 });
-
-    } catch (glbError) {
-      console.error('GLB generation/upload error:', glbError);
-      
-      // Return avatar data without GLB URL if generation failed
-      const responseAvatar = {
-        id: avatarResult[0].id,
-        userId: avatarResult[0].userId,
-        measurements: typeof avatarResult[0].measurements === 'string' 
-          ? JSON.parse(avatarResult[0].measurements) 
-          : avatarResult[0].measurements,
-        fittedModelUrl: null,
-        createdAt: avatarResult[0].updatedAt,
-        glbError: 'GLB generation failed but avatar data saved'
-      };
-
-      return NextResponse.json(responseAvatar, { status: 201 });
-    }
+    return NextResponse.json(responseAvatar, { status: 201 });
 
   } catch (error) {
     console.error('POST avatars error:', error);

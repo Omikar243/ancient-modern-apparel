@@ -1,10 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { NextRequest } from 'next/server';
-import { headers } from "next/headers"
 import { db } from "@/db";
 import { bearer } from "better-auth/plugins";
- 
+import { Headers } from 'next/server'
+
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "sqlite",
@@ -22,8 +22,7 @@ export const auth = betterAuth({
   plugins: [bearer()],
 });
 
-// Session validation helper
-export async function getCurrentUser(request: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+export async function getCurrentUser(headers: Headers) {
+  const session = await auth.api.getSession({ headers });
   return session?.user || null;
 }

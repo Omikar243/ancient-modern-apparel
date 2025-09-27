@@ -128,8 +128,9 @@ export const avatars = sqliteTable('avatars', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   measurements: text('measurements', { mode: 'json' }).notNull(),
-  fittedModelUrl: text('fitted_model_url'),
+  photos: text('photos', { mode: 'json' }).notNull(),
   createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
 });
 
 // Manually insert sample data directly into garments table during schema setup
