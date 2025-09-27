@@ -5,17 +5,14 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const setFrameHeaders = (res: NextResponse) => {
-    // Enable cross-origin isolation for MediaPipe WASM (SharedArrayBuffer)
-    res.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
-    res.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-    
-    // Ensure the app can be embedded inside Orchids iframe
+    // Always enable embedding in Orchids iframe for all pages
     res.headers.delete("X-Frame-Options");
     res.headers.set(
       "Content-Security-Policy",
       "frame-ancestors 'self' https://*.orchids.page https://orchids.page http://localhost:* http://127.0.0.1:*;"
     );
     res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    
     return res;
   };
 
@@ -29,6 +26,7 @@ export async function middleware(request: NextRequest) {
       );
       return setFrameHeaders(NextResponse.redirect(redirectUrl));
     }
+    return setFrameHeaders(NextResponse.next());
   }
 
   return setFrameHeaders(NextResponse.next());
