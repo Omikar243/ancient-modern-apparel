@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Script from "next/script";
-import Link from "next/link";
-import { Toaster } from "@/components/ui/sonner";
-import { NavBar } from "@/components/NavBar";
-import { Footer } from "@/components/Footer";
+import dynamic from "next/dynamic";
 
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
+
+const ClientLayout = dynamic(() => import("@/components/ClientLayout").then(mod => mod.ClientLayout));
+
 export const metadata: Metadata = {
   title: "IndiFusion Wear",
   description: "Blending ancient Indian heritage with modern elegance.",
@@ -32,9 +32,7 @@ export default function RootLayout({
           data-debug="true"
           data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
         />
-        <NavBar />
-        {children}
-        <Footer />
+        <ClientLayout>{children}</ClientLayout>
         <VisualEditsMessenger />
       </body>
     </html>
