@@ -525,62 +525,62 @@ export default function AvatarCreation() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-8 py-16">
-        {/* Elegant Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-serif font-bold text-foreground mb-4 leading-tight">Craft Your Digital Silhouette</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">Elevate your vision with precise, personalized measurements derived from curated photographs. Indulge in the artistry of bespoke tailoring.</p>
+    <div className="min-h-screen bg-background/95 pattern-dots">
+      <div className="max-w-5xl mx-auto px-4 py-12 md:py-20">
+        {/* Header - Match repo's elegant banner style */}
+        <div className="text-center mb-12 md:mb-20">
+          <h1 className="text-4xl md:text-6xl font-serif font-light text-foreground mb-4 leading-tight tracking-wide">Merlin Atelier: Your Silhouette</h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">Discover personalized elegance through precise form capture. Inspired by timeless craftsmanship.</p>
         </div>
 
-        {/* Pose Guidance - Elegant */}
-        <Card className="mb-16 border-0 shadow-xl backdrop-blur-sm bg-background/60">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-serif font-bold text-foreground">Pose for Precision</CardTitle>
-            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">Capture your form in four cardinal views. Stand poised, arms relaxed, in natural light for exquisite accuracy.</p>
+        {/* Pose Guidance - Gallery-card style like repo's image sections */}
+        <Card className="mb-12 md:mb-20 border-0 shadow-lg bg-white/70 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl md:text-3xl font-serif font-medium text-foreground">Guided Poses for Accuracy</CardTitle>
+            <p className="text-muted-foreground text-base leading-relaxed max-w-2xl mx-auto">Four views, natural stance—echoing Merlin's fusion of ancient and modern.</p>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-4 gap-8 p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 md:p-6">
               {[
-                { view: "Front", desc: "Full anterior view" },
-                { view: "Back", desc: "Posterior profile" },
-                { view: "Left", desc: "Sinistral aspect" },
-                { view: "Right", desc: "Dexter aspect" }
+                { view: "Front", desc: "Anterior Grace" },
+                { view: "Back", desc: "Posterior Poise" },
+                { view: "Left", desc: "Lateral Flow" },
+                { view: "Right", desc: "Contralateral Charm" }
               ].map(({ view, desc }) => (
-                <div key={view} className="text-center group hover:scale-105 transition-transform duration-300">
-                  <div className="w-32 h-64 mx-auto bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50 mb-4 flex items-center justify-center overflow-hidden shadow-md group-hover:border-primary/50 transition-colors">
-                    <div className="text-xs text-muted-foreground px-2 py-4">Pose Guide: {view}</div>
+                <div key={view} className="text-center group hover:scale-105 transition-all duration-300 ease-in-out">
+                  <div className="w-24 h-48 md:w-32 md:h-64 mx-auto bg-muted/30 rounded-lg border-2 border-dashed border-muted/40 mb-3 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-accent/60 group-hover:bg-accent/10">
+                    <span className="text-xs md:text-sm text-muted-foreground px-2 py-3 font-light">Merlin Pose: {view}</span>
                   </div>
-                  <p className="font-medium text-foreground/80">{view} View</p>
-                  <p className="text-sm text-muted-foreground">{desc}</p>
+                  <p className="font-medium text-foreground/90 text-sm md:text-base">{view} View</p>
+                  <p className="text-xs text-muted-foreground">{desc}</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Upload Interface - Luxurious */}
-        <Card className="mb-16 border-0 shadow-xl backdrop-blur-sm bg-background/60">
-          <CardHeader>
-            <CardTitle className="text-3xl font-serif font-bold text-foreground">Curate Your Images</CardTitle>
-            <p className="text-muted-foreground text-lg leading-relaxed">Select four exquisite photographs. Your images are safeguarded with the utmost discretion and encryption.</p>
+        {/* Upload - Product upload cards like repo's shop sections */}
+        <Card className="mb-12 md:mb-20 border-0 shadow-lg bg-white/70 backdrop-blur-sm">
+          <CardHeader className="text-left md:text-center">
+            <CardTitle className="text-2xl md:text-3xl font-serif font-medium text-foreground">Upload Your Visions</CardTitle>
+            <p className="text-muted-foreground text-base leading-relaxed">Secure your images—Merlin safeguards with ancient-inspired encryption.</p>
           </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="grid md:grid-cols-4 gap-8">
+          <CardContent className="space-y-6 md:space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
               {["front", "back", "left", "right"].map((direction) => (
-                <div key={direction} className="text-center group hover:shadow-lg transition-all duration-300 rounded-2xl p-4 bg-card/50 border border-border/20">
-                  <Label htmlFor={direction} className="block mb-4 capitalize font-medium text-foreground text-lg">
-                    {direction.replace('left', 'Left').replace('right', 'Right')} Perspective
+                <div key={direction} className="text-center group hover:shadow-md transition-all duration-300 rounded-xl p-4 md:p-6 bg-card/60 border border-border/30">
+                  <Label htmlFor={direction} className="block mb-3 capitalize font-medium text-foreground text-base md:text-lg">
+                    {direction.replace('left', 'Left').replace('right', 'Right')} View
                   </Label>
                   <Input
                     id={direction}
                     type="file"
                     accept="image/*"
                     onChange={(e) => e.target.files && handlePhotoUpload(direction as keyof Photo, e.target.files![0])}
-                    className="mb-6 file:bg-primary file:text-primary-foreground file:rounded-full file:px-4 file:py-2 file:font-medium hover:file:bg-primary/90"
+                    className="mb-4 file:bg-accent file:text-accent-foreground file:rounded-lg file:px-3 file:py-2 file:font-medium hover:file:bg-accent/90"
                   />
                   {images[direction] && (
-                    <div className="w-40 h-40 mx-auto rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform">
+                    <div className="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-lg overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-300">
                       <NextImage
                         src={images[direction]}
                         alt={`${direction} perspective`}
@@ -594,36 +594,36 @@ export default function AvatarCreation() {
               ))}
             </div>
 
-            {/* Consent & Actions */}
-            <div className="pt-8 border-t border-border/20 space-y-6">
-              <div className="flex items-start space-x-3 p-4 bg-accent/10 rounded-xl">
-                <Checkbox id="consent" checked={consentGiven} onCheckedChange={handleConsentChange} className="mt-1" />
-                <label htmlFor="consent" className="text-base leading-relaxed text-foreground/90 flex-1">
-                  I affirm my consent for the secure, encrypted preservation of these images solely for avatar refinement. Full dominion and excision remain mine.
+            {/* Consent & Actions - Footer CTA like repo */}
+            <div className="pt-6 border-t border-border/30 space-y-4">
+              <div className="flex items-start space-x-3 p-3 md:p-4 bg-accent/5 rounded-lg border border-accent/20">
+                <Checkbox id="consent" checked={consentGiven} onCheckedChange={handleConsentChange} className="mt-0.5 flex-shrink-0" />
+                <label htmlFor="consent" className="text-sm md:text-base leading-relaxed text-foreground/80 flex-1">
+                  I consent to secure image processing for Merlin's avatar fusion. Privacy paramount.
                 </label>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center pt-2">
                 <Button 
                   onClick={handleExtractAndSave} 
                   disabled={extracting || savingAvatar || !readyForExtract || !consentGiven} 
-                  className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full py-4 px-8 font-serif text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-h-[56px]"
+                  className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg py-3 px-6 md:px-8 font-serif text-base md:text-lg shadow-md hover:shadow-lg transition-all duration-300 min-h-[48px]"
                 >
                   {(extracting || savingAvatar) ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                      Refining Your Form...
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-foreground mr-2"></div>
+                      Crafting Avatar...
                     </>
                   ) : (
-                    "Extract & Eternalize Avatar"
+                    "Extract & Create"
                   )}
                 </Button>
                 {readyForExtract && (
                   <Button 
-                    variant="destructive" 
+                    variant="outline" 
                     onClick={handleDeletePhotos} 
-                    className="w-full sm:w-auto rounded-full py-4 px-8 font-serif text-lg border-accent hover:bg-accent/10 transition-all duration-300"
+                    className="w-full sm:w-auto rounded-lg py-3 px-6 font-serif text-base border-muted-foreground/50 hover:bg-muted/20 transition-all duration-300"
                   >
-                    Obliterate Images
+                    Clear All
                   </Button>
                 )}
               </div>
@@ -631,89 +631,89 @@ export default function AvatarCreation() {
           </CardContent>
         </Card>
 
-        {/* Measurements - Sophisticated */}
+        {/* Measurements - Feature cards like repo's product specs */}
         {showPreview && (
-          <Card className="mb-16 border-0 shadow-xl backdrop-blur-sm bg-background/60">
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-serif font-bold text-foreground">Your Refined Proportions</CardTitle>
-              <p className="text-muted-foreground text-lg">Measurements in centimeters, derived with artisanal precision.</p>
+          <Card className="mb-12 md:mb-20 border-0 shadow-lg bg-white/70 backdrop-blur-sm">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-2xl md:text-3xl font-serif font-medium text-foreground">Your Merlin Measurements</CardTitle>
+              <p className="text-muted-foreground text-base">Tailored proportions in cm, ready for fusion.</p>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-3 gap-6 p-0">
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 p-0">
               {Object.entries(measurements).map(([key, value]) => (
-                <div key={key} className="text-center p-6 bg-gradient-to-b from-primary/5 to-transparent rounded-2xl border border-primary/20">
-                  <Label className="block text-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">{key}</Label>
-                  <div className="text-3xl font-serif font-bold text-foreground">{value.toFixed(0)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">centimeters</p>
+                <div key={key} className="text-center p-4 md:p-6 bg-gradient-to-br from-accent/5 to-background rounded-lg border border-accent/20 shadow-sm">
+                  <Label className="block text-xs md:text-sm text-muted-foreground uppercase tracking-wider mb-1 font-light">{key}</Label>
+                  <div className="text-2xl md:text-3xl font-serif font-semibold text-foreground">{value.toFixed(0)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">cm</p>
                 </div>
               ))}
             </CardContent>
           </Card>
         )}
 
-        {/* 3D Atelier - Premium */}
-        <Card className="mb-16 border-0 shadow-2xl backdrop-blur-sm bg-background/60">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-serif font-bold text-foreground">The Digital Atelier</CardTitle>
-            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">Refine your silhouette through subtle adjustments. Witness the metamorphosis in three dimensions.</p>
+        {/* 3D - Main preview like repo's hero image viewer */}
+        <Card className="mb-12 md:mb-20 border-0 shadow-xl bg-white/70 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl md:text-3xl font-serif font-medium text-foreground">Atelier Preview</CardTitle>
+            <p className="text-muted-foreground text-base leading-relaxed max-w-xl mx-auto">Adjust and visualize your form in Merlin's ancient-modern blend.</p>
           </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div className="space-y-4">
-                <Label className="text-lg font-medium text-foreground block">Hourglass Elegance</Label>
+          <CardContent className="space-y-6 md:space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-6">
+              <div className="space-y-3">
+                <Label className="text-base md:text-lg font-medium text-foreground block">Hourglass Fusion</Label>
                 <Slider 
                   value={[bodyType.hourglass]} 
                   onValueChange={(value) => setBodyType(prev => ({ ...prev, hourglass: value[0] }))} 
                   max={100} 
                   step={1} 
-                  className="my-2"
+                  className="my-1"
                 />
                 <p className="text-sm text-muted-foreground">{bodyType.hourglass}%</p>
               </div>
-              <div className="space-y-4">
-                <Label className="text-lg font-medium text-foreground block">Athletic Poise</Label>
+              <div className="space-y-3">
+                <Label className="text-base md:text-lg font-medium text-foreground block">Athletic Heritage</Label>
                 <Slider 
                   value={[bodyType.athletic]} 
                   onValueChange={(value) => setBodyType(prev => ({ ...prev, athletic: value[0] }))} 
                   max={100} 
                   step={1} 
-                  className="my-2"
+                  className="my-1"
                 />
                 <p className="text-sm text-muted-foreground">{bodyType.athletic}%</p>
               </div>
             </div>
-            <div className="relative h-[500px] bg-gradient-to-br from-muted/20 to-accent/5 rounded-3xl border-2 border-primary/20 overflow-hidden shadow-inner">
+            <div className="relative h-[400px] md:h-[500px] bg-gradient-to-br from-muted/10 to-accent/10 rounded-2xl border border-accent/30 overflow-hidden shadow-lg">
               {mounted ? (
                 <Suspense fallback={
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/90">
                     <div className="text-center">
-                      <div className="animate-pulse rounded-full h-12 w-12 border-2 border-primary mx-auto mb-4"></div>
-                      <p className="text-muted-foreground font-medium">Manifesting Your Avatar...</p>
+                      <div className="animate-pulse rounded-full h-10 w-10 border-2 border-accent mx-auto mb-3"></div>
+                      <p className="text-muted-foreground font-medium">Rendering Fusion...</p>
                     </div>
                   </div>
                 }>
                   <CanvasWrapper measurements={measurements} bodyType={bodyType} skinTone={skinTone} />
                 </Suspense>
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-                  <p className="text-muted-foreground">Preparing the Canvas...</p>
+                <div className="absolute inset-0 flex items-center justify-center bg-background/90">
+                  <p className="text-muted-foreground">Initializing Atelier...</p>
                 </div>
               )}
             </div>
-            <div className="text-center space-y-2 pt-4 border-t border-border/20">
-              <p className="text-xl font-serif font-bold text-foreground">Interactive Silhouette</p>
-              <p className="text-base text-muted-foreground">Hourglass: {bodyType.hourglass}% | Athletic: {bodyType.athletic}% | Height: {measurements.height}cm</p>
-              <p className="text-sm text-foreground/70 italic">Rotate and magnify to appreciate the craftsmanship.</p>
+            <div className="text-center space-y-1 pt-3 border-t border-border/30">
+              <p className="text-lg md:text-xl font-serif font-medium text-foreground">Live Silhouette View</p>
+              <p className="text-sm md:text-base text-muted-foreground">Hourglass: {bodyType.hourglass}% | Athletic: {bodyType.athletic}% | Height: {measurements.height}cm</p>
+              <p className="text-xs text-foreground/60 italic">Interactive—rotate to explore.</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Navigation - Elegant */}
-        <div className="text-center space-y-4 pt-8 border-t border-border/20">
-          <Button asChild variant="outline" className="rounded-full px-8 py-4 font-serif text-lg border-foreground/20 hover:border-primary transition-all">
-            <Link href="/">Return to Sanctuary</Link>
+        {/* Navigation - Footer links like repo's nav */}
+        <div className="text-center space-y-3 pt-6 border-t border-border/30">
+          <Button asChild variant="outline" className="rounded-lg px-6 md:px-8 py-3 font-serif text-base border-accent/50 hover:border-accent transition-all">
+            <Link href="/">Home</Link>
           </Button>
-          <Button asChild disabled={!showPreview} className="rounded-full px-12 py-4 bg-primary text-primary-foreground font-serif text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-h-[56px]">
-            <Link href="/catalog">Enter the Atelier</Link>
+          <Button asChild disabled={!showPreview} className="rounded-lg px-8 md:px-10 py-3 bg-accent text-accent-foreground font-serif text-base shadow-md hover:shadow-lg transition-all duration-300 min-h-[48px]">
+            <Link href="/catalog">To Catalog</Link>
           </Button>
         </div>
       </div>
