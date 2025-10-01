@@ -29,7 +29,7 @@ export const LoginForm = () => {
     }
     setLoading(true);
     try {
-      const callbackURL = search.get("redirect") || "/catalog";
+      const callbackURL = search.get("redirect") || "/"; // Changed from "/catalog" to "/"
       const { data, error } = await authClient.signIn.email({
         email,
         password,
@@ -65,6 +65,7 @@ export const LoginForm = () => {
     }
   };
 
+// The rest of the component remains unchanged.
   return (
     <div className="w-full max-w-lg mx-auto">
       {/* Subtle background */}

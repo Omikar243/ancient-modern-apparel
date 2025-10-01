@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 export function NavBar({ className }: { className?: string }) {
+  const pathname = usePathname();
+  
   return (
     <nav className={cn("flex items-center space-x-6", className)}>
       <Link href="/avatar" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
@@ -24,7 +26,7 @@ export function NavBar({ className }: { className?: string }) {
         Profile
       </Link>
       <Button variant="ghost" size="sm" asChild className="text-foreground hover:text-primary hover:bg-transparent border-none">
-        <Link href="/login">Login</Link>
+        <Link href={`/login?redirect=${encodeURIComponent(pathname)}`}>Login</Link>
       </Button>
     </nav>
   );
