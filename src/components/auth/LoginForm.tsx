@@ -54,10 +54,12 @@ export const LoginForm = () => {
         return;
       }
       
-      // Refetch session - RedirectIfAuthenticated will handle the redirect
+      // Refetch session to ensure updates propagate
       await refetch();
       toast.success("Logged in successfully!");
-      // Don't set loading to false here - let the redirect happen
+      router.push(callbackURL);
+      setLoading(false);
+      
     } catch (err) {
       console.error("Detailed login error:", err);
       toast.error("Login failed - check console for details");
