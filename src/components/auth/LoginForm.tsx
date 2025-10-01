@@ -29,7 +29,7 @@ export const LoginForm = () => {
     }
     setLoading(true);
     try {
-      const callbackURL = search.get("redirect") || "/"; // Changed from "/catalog" to "/"
+      const callbackURL = search.get("redirect") || "/";
       const { data, error } = await authClient.signIn.email({
         email,
         password,
@@ -50,17 +50,17 @@ export const LoginForm = () => {
           errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
         }
         toast.error(errorMessage);
+        setLoading(false);
         return;
       }
       
-      // On success, refetch session and redirect
+      // Refetch session - RedirectIfAuthenticated will handle the redirect
       await refetch();
       toast.success("Logged in successfully!");
-      router.push(callbackURL);
+      // Don't set loading to false here - let the redirect happen
     } catch (err) {
       console.error("Detailed login error:", err);
       toast.error("Login failed - check console for details");
-    } finally {
       setLoading(false);
     }
   };
