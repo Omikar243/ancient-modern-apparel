@@ -19,7 +19,8 @@ export const authClient = createAuthClient({
     }
     headers.set("Content-Type", "application/json");
     
-    if (token && (!isAuthEndpoint || fullUrl.endsWith('/api/auth/session'))) {
+    // Only add bearer for non-auth endpoints (rely on cookies for /api/auth/*)
+    if (token && !isAuthEndpoint) {
       headers.set("Authorization", `Bearer ${token}`);
     }
     
