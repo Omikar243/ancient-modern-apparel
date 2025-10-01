@@ -17,6 +17,12 @@ export function NavBar({ className }: { className?: string }) {
       <Link href="/preview" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
         Preview
       </Link>
+      <Link href="/cart" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+        Cart
+      </Link>
+      <Link href="/profile" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+        Profile
+      </Link>
       <Button variant="ghost" size="sm" asChild className="text-foreground hover:text-primary hover:bg-transparent border-none">
         <Link href="/login">Login</Link>
       </Button>
