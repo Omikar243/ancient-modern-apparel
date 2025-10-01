@@ -19,7 +19,7 @@ export const authClient = createAuthClient({
     }
     headers.set("Content-Type", "application/json");
     
-    if (!isAuthEndpoint && token) {
+    if (token && (!isAuthEndpoint || fullUrl.endsWith('/api/auth/session'))) {
       headers.set("Authorization", `Bearer ${token}`);
     }
     
