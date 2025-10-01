@@ -87,12 +87,12 @@ export default function Home() {
               </div>
             </div>
             <div className="relative">
-              <NextImage
-                src={heroImages[0]}
-                alt="IndiFusion model in saree-modern fusion"
+              <img
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg"
+                alt="Woman in saree with modern twist"
                 width={600}
-                height={600}
-                className="w-full h-96 md:h-[500px] object-cover rounded-2xl shadow-2xl"
+                height={800}
+                className="rounded-lg shadow-xl object-cover"
               />
               <div className="absolute top-4 left-4 bg-accent/90 text-accent-foreground px-3 py-1 rounded-full text-sm font-medium">
                 New: Heritage Drop
