@@ -276,7 +276,7 @@ export default function AvatarCreation() {
     const loadExistingAvatar = async () => {
       setLoadingExisting(true);
       try {
-        const token = window.localStorage.getItem('bearer_token');
+        const token = typeof window !== 'undefined' ? window.localStorage.getItem('bearer_token') : null;
         if (!token) return;
 
         const response = await fetch(`/api/avatars/by-user/${session.user.id}`, {
@@ -581,7 +581,8 @@ export default function AvatarCreation() {
                   />
                   {images[direction] && (
                     <div className="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-lg overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-300">
-                      <NextImage
+                      {/* Replace img element as per modification */}
+                      <img
                         src={images[direction]}
                         alt={`${direction} perspective`}
                         width={160}

@@ -114,7 +114,7 @@ export default function Home() {
           {featuredProducts.slice(0, 4).map((product) => (
             <Link key={product.id} href={`/catalog/${product.id}`} className="group block">
               <div className="bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow group-hover:scale-105">
-                <NextImage
+                <img
                   src={product.image}
                   alt={product.name}
                   width={200}
@@ -162,7 +162,7 @@ export default function Home() {
               {featuredProducts.map((product) => (
                 <Card key={product.id} className="border-primary/10 hover:border-primary/20 transition-colors">
                   <CardHeader className="p-4">
-                    <NextImage
+                    <img
                       src={product.image}
                       alt={product.name}
                       width={300}
