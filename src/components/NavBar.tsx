@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
+import { useAuthSession } from "@/lib/useAuthSession";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 export function NavBar({ className }: { className?: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending } = useAuthSession();
 
   const handleSignOut = async () => {
     try {
@@ -30,6 +30,8 @@ export function NavBar({ className }: { className?: string }) {
     }
   };
 
+  const isActive = (path: string) => pathname === path ? "text-primary font-semibold underline underline-offset-4" : "text-foreground hover:text-primary transition-colors hover:underline underline-offset-4";
+
   if (isPending) {
     return (
       <nav className={cn("flex items-center space-x-6", className)}>
@@ -41,16 +43,16 @@ export function NavBar({ className }: { className?: string }) {
 
   return (
     <nav className={cn("flex items-center space-x-6", className)}>
-      <Link href="/avatar" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+      <Link href="/avatar" className={isActive("/avatar")}>
         Avatar
       </Link>
-      <Link href="/catalog" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+      <Link href="/catalog" className={isActive("/catalog")}>
         Catalog
       </Link>
-      <Link href="/preview" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+      <Link href="/preview" className={isActive("/preview")}>
         Preview
       </Link>
-      <Link href="/cart" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+      <Link href="/cart" className={isActive("/cart")}>
         Cart
       </Link>
 
@@ -58,7 +60,7 @@ export function NavBar({ className }: { className?: string }) {
       {session?.user ? (
         // Authenticated user
         <>
-          <Link href="/profile" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
+          <Link href="/profile" className={isActive("/profile")}>
             Profile
           </Link>
           <Button 
@@ -73,9 +75,6 @@ export function NavBar({ className }: { className?: string }) {
       ) : (
         // Unauthenticated
         <>
-          <Link href="/profile" className="text-foreground hover:text-primary transition-colors hover:underline underline-offset-4">
-            Profile
-          </Link>
           <Button variant="ghost" size="sm" asChild className="text-foreground hover:text-primary hover:bg-transparent border-none">
             <Link href={`/login?redirect=${encodeURIComponent(pathname)}`}>Login</Link>
           </Button>
