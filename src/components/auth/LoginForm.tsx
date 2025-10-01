@@ -71,20 +71,20 @@ export const LoginForm = () => {
       <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-3xl p-8 border border-border/20 shadow-xl backdrop-blur-sm">
         {search.get("registered") === "true" && (
           <div className="mb-6 p-4 bg-accent/10 rounded-2xl text-sm text-accent-foreground">
-            Atelier access granted. Proceed with your credentials.
+            Account created successfully! Please log in to continue.
           </div>
         )}
         <Card className="border-0 bg-transparent">
           <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-4xl font-serif font-bold text-foreground">Enter the Sanctum</CardTitle>
+            <CardTitle className="text-4xl font-serif font-bold text-foreground">Welcome Back</CardTitle>
             <CardDescription className="text-lg text-muted-foreground leading-relaxed">
-              Return to your bespoke creations. Your legacy awaits.
+              Sign in to your account to continue
             </CardDescription>
           </CardHeader>
           <form onSubmit={onSubmit} className="space-y-6">
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium text-foreground">Epistle</Label>
+                <Label htmlFor="email" className="text-base font-medium text-foreground">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -93,11 +93,11 @@ export const LoginForm = () => {
                   required 
                   autoComplete="email" 
                   className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Your sacred address"
+                  placeholder="Enter your email"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium text-foreground">Cipher</Label>
+                <Label htmlFor="password" className="text-base font-medium text-foreground">Password</Label>
                 <Input 
                   id="password" 
                   type="password" 
@@ -106,13 +106,13 @@ export const LoginForm = () => {
                   required 
                   autoComplete="off" 
                   className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Unveil your passage"
+                  placeholder="Enter your password"
                 />
               </div>
               <div className="flex items-center gap-3 p-4 bg-muted/20 rounded-xl">
                 <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} className="border-foreground/30" />
                 <Label htmlFor="remember" className="text-sm text-muted-foreground font-medium leading-relaxed">
-                  Eternal remembrance
+                  Remember me
                 </Label>
               </div>
             </CardContent>
@@ -125,14 +125,14 @@ export const LoginForm = () => {
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                    Unveiling...
+                    Signing in...
                   </>
                 ) : (
-                  "Cross the Threshold"
+                  "Sign In"
                 )}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
-                Uninitiated? <Link className="text-primary hover:underline font-medium transition-colors" href="/register">Initiate Your Legacy</Link>
+                Don't have an account? <Link className="text-primary hover:underline font-medium transition-colors" href="/register">Sign up</Link>
               </p>
             </CardFooter>
           </form>
