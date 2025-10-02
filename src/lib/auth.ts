@@ -5,21 +5,34 @@ import { db } from "@/db";
 import { bearer } from "better-auth/plugins";
 import { Headers } from 'next/server'
 
-export const auth = betterAuth({
-	database: drizzleAdapter(db, {
-		provider: "sqlite",
-	}),
-	emailAndPassword: {    
-		enabled: true,
-    requireEmailVerification: false
-	},
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // Update every 24 hours
-  },
-  baseURL: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-  trustedOrigins: ["http://localhost:3000"],
-  plugins: [bearer()],
+let _auth: ReturnType<typeof betterAuth> | null = null;
+
+function getAuth() {
+  if (!_auth) {
+    _auth = betterAuth({
+      database: drizzleAdapter(db, {
+        provider: "sqlite",
+      }),
+      emailAndPassword: {    
+        enabled: true,
+        requireEmailVerification: false
+      },
+      session: {
+        expiresIn: 60 * 60 * 24 * 7, // 7 days
+        updateAge: 60 * 60 * 24, // Update every 24 hours
+      },
+      baseURL: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      trustedOrigins: ["http://localhost:3000"],
+      plugins: [bearer()],
+    });
+  }
+  return _auth;
+}
+
+export const auth = new Proxy({} as ReturnType<typeof betterAuth>, {
+  get(_, prop) {
+    return getAuth()[prop as keyof ReturnType<typeof betterAuth>];
+  }
 });
 
 export async function getCurrentUser(headers: Headers) {
