@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { useRef, useMemo } from "react";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -13,9 +13,10 @@ interface Avatar3DPreviewProps {
 function MaleAvatar({ progress }: { progress: number }) {
   const groupRef = useRef<THREE.Group>(null);
 
-  // Progressive building of the avatar based on upload progress
-  const opacity = Math.min(progress / 4, 1);
-  const heightScale = 0.6 + (progress / 4) * 0.4;
+  // Always visible with minimum 0.4 opacity, fully opaque at 4 photos
+  const opacity = 0.4 + (progress / 4) * 0.6;
+  // Always at full height
+  const heightScale = 1;
 
   const material = useMemo(
     () => (
@@ -36,10 +37,10 @@ function MaleAvatar({ progress }: { progress: number }) {
         color="#10b981"
         wireframe={true}
         transparent={true}
-        opacity={0.3 + opacity * 0.4}
+        opacity={0.15 + (progress / 4) * 0.35}
       />
     ),
-    [opacity]
+    [progress]
   );
 
   return (
@@ -140,8 +141,10 @@ function MaleAvatar({ progress }: { progress: number }) {
 function FemaleAvatar({ progress }: { progress: number }) {
   const groupRef = useRef<THREE.Group>(null);
 
-  const opacity = Math.min(progress / 4, 1);
-  const heightScale = 0.6 + (progress / 4) * 0.4;
+  // Always visible with minimum 0.4 opacity, fully opaque at 4 photos
+  const opacity = 0.4 + (progress / 4) * 0.6;
+  // Always at full height
+  const heightScale = 1;
 
   const material = useMemo(
     () => (
@@ -162,10 +165,10 @@ function FemaleAvatar({ progress }: { progress: number }) {
         color="#ec4899"
         wireframe={true}
         transparent={true}
-        opacity={0.3 + opacity * 0.4}
+        opacity={0.15 + (progress / 4) * 0.35}
       />
     ),
-    [opacity]
+    [progress]
   );
 
   return (
@@ -301,6 +304,8 @@ export default function Avatar3DPreview({ uploadProgress, gender }: Avatar3DPrev
           maxDistance={4}
           minPolarAngle={Math.PI / 4}
           maxPolarAngle={Math.PI / 1.5}
+          autoRotate={uploadProgress === 0}
+          autoRotateSpeed={2}
         />
       </Canvas>
     </div>
