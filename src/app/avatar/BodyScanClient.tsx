@@ -16,6 +16,7 @@ const Avatar3DPreview = dynamic(() => import("./Avatar3DPreview"), {
 });
 
 type Direction = "front" | "back" | "left" | "right";
+type Gender = "male" | "female";
 
 interface ScanImages {
   front: string | null;
@@ -27,6 +28,7 @@ interface ScanImages {
 export const BodyScanClient = () => {
   const router = useRouter();
   const [images, setImages] = useState<ScanImages>({ front: null, back: null, left: null, right: null });
+  const [gender, setGender] = useState<Gender>("male");
 
   const allSet = useMemo(() => Object.values(images).every(Boolean), [images]);
 
@@ -51,6 +53,7 @@ export const BodyScanClient = () => {
     if (!allSet) return;
     try {
       sessionStorage.setItem("body_scan_images", JSON.stringify(images));
+      sessionStorage.setItem("avatar_gender", gender);
     } catch {}
     router.push("/avatar/studio");
   };
@@ -111,7 +114,34 @@ export const BodyScanClient = () => {
 
       {/* Content */}
       <main className="mx-auto max-w-md px-4 pb-28 pt-4">
-        <p className="text-sm text-zinc-400 mb-4">Upload 4 directional photos to generate your 3D avatar.</p>
+        <p className="text-sm text-zinc-400 mb-4">Select your gender and upload 4 directional photos to generate your 3D avatar.</p>
+
+        {/* Gender Selection */}
+        <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+          <div className="text-xs text-zinc-400 mb-2 font-medium tracking-wide">SELECT GENDER</div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setGender("male")}
+              className={`flex-1 py-3 px-4 rounded-lg border transition-all font-medium text-sm ${
+                gender === "male"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                  : "border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:border-zinc-600"
+              }`}
+            >
+              Male
+            </button>
+            <button
+              onClick={() => setGender("female")}
+              className={`flex-1 py-3 px-4 rounded-lg border transition-all font-medium text-sm ${
+                gender === "female"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                  : "border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:border-zinc-600"
+              }`}
+            >
+              Female
+            </button>
+          </div>
+        </div>
 
         {/* 3D Preview Section */}
         <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
@@ -121,12 +151,12 @@ export const BodyScanClient = () => {
                 <div className="text-zinc-500 text-sm">Loading 3D preview...</div>
               </div>
             }>
-              <Avatar3DPreview uploadProgress={Object.values(images).filter(Boolean).length} />
+              <Avatar3DPreview uploadProgress={Object.values(images).filter(Boolean).length} gender={gender} />
             </Suspense>
           </div>
           <div className="px-4 py-3 border-t border-zinc-800">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-400">3D Avatar Preview</span>
+              <span className="text-zinc-400">3D Avatar Preview - Drag to rotate</span>
               <span className="text-emerald-500 font-medium">
                 {Object.values(images).filter(Boolean).length}/4 photos uploaded
               </span>
