@@ -2,11 +2,13 @@ import { db } from '@/db';
 import { garments } from '@/db/schema';
 
 async function main() {
-    // Clear existing data first
+    // Delete all existing records first
     await db.delete(garments);
+    console.log('🗑️  Cleared existing garments data');
+
+    const currentTimestamp = new Date().toISOString();
 
     const sampleGarments = [
-        // Women's Products (7 items)
         {
             name: 'Banarasi Silk Saree',
             type: 'saree',
@@ -17,8 +19,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Anarkali Suit',
@@ -30,8 +32,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Traditional Lehenga Choli',
@@ -43,8 +45,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Chanderi Silk Dupatta',
@@ -56,8 +58,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Designer Sharara Set',
@@ -69,8 +71,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Bandhani Print Saree',
@@ -82,8 +84,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Embroidered Palazzo Suit',
@@ -95,10 +97,9 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
-        // Men's Products (5 items)
         {
             name: 'Hand-embroidered Kurta Set',
             type: 'kurta-set',
@@ -109,8 +110,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Royal Sherwani',
@@ -122,8 +123,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Cotton Kurta Pajama',
@@ -135,8 +136,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Velvet Nehru Jacket',
@@ -148,8 +149,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Silk Blend Bandhgala',
@@ -161,10 +162,9 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
-        // Kids Products (3 items)
         {
             name: 'Kids Ethnic Ensemble',
             type: 'ethnic-ensemble',
@@ -175,8 +175,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Kids Sherwani Set',
@@ -188,8 +188,8 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
         {
             name: 'Kids Lehenga Choli',
@@ -201,14 +201,14 @@ async function main() {
             measurements: null,
             qualityRating: null,
             history: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
         },
     ];
 
     await db.insert(garments).values(sampleGarments);
-    
-    console.log('✅ Garments seeder completed successfully');
+
+    console.log('✅ Garments seeder completed successfully - 15 Indian heritage products added');
 }
 
 main().catch((error) => {

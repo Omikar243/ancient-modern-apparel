@@ -27,23 +27,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Garment not found' }, { status: 404 });
       }
 
-      // Return garment with existing structure - no measurements parsing needed for now
-      const responseGarment = {
-        id: garment[0].id,
-        name: garment[0].name,
-        type: garment[0].type,
-        description: garment[0].description,
-        imageUrl: garment[0].imageUrl,
-        price: garment[0].price,
-        category: garment[0].category,
-        measurements: null, // Field doesn't exist in current schema
-        qualityRating: null, // Field doesn't exist in current schema  
-        history: null, // Field doesn't exist in current schema
-        createdAt: garment[0].createdAt,
-        updatedAt: garment[0].updatedAt
-      };
-
-      return NextResponse.json(responseGarment);
+      return NextResponse.json(garment[0]);
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
@@ -71,23 +55,7 @@ export async function GET(request: NextRequest) {
 
     const results = await query.limit(limit).offset(offset);
 
-    // Parse results with safe structure mapping
-    const parsedResults = results.map(garment => ({
-      id: garment.id,
-      name: garment.name,
-      type: garment.type,
-      description: garment.description,
-      imageUrl: garment.imageUrl,
-      price: garment.price,
-      category: garment.category,
-      measurements: null, // Field doesn't exist in current schema
-      qualityRating: null, // Field doesn't exist in current schema
-      history: null, // Field doesn't exist in current schema
-      createdAt: garment.createdAt,
-      updatedAt: garment.updatedAt
-    }));
-
-    return NextResponse.json(parsedResults);
+    return NextResponse.json(results);
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json({ 
@@ -104,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     const requestBody = await request.json();
-    const { name, type, description, imageUrl, price, category, measurements, qualityRating, history } = requestBody;
+    const { name, type, description, imageUrl, price, category } = requestBody;
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json({ 
@@ -134,26 +102,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate measurements if provided
-    if (measurements !== undefined && measurements !== null) {
-      if (typeof measurements !== 'object' || Array.isArray(measurements)) {
-        return NextResponse.json({ 
-          error: 'Measurements must be an object',
-          code: 'INVALID_MEASUREMENTS' 
-        }, { status: 400 });
-      }
-    }
-
-    // Validate quality rating if provided
-    if (qualityRating !== undefined && qualityRating !== null) {
-      if (!Number.isInteger(qualityRating) || qualityRating < 1 || qualityRating > 10) {
-        return NextResponse.json({ 
-          error: 'Quality rating must be an integer between 1 and 10',
-          code: 'INVALID_QUALITY_RATING' 
-        }, { status: 400 });
-      }
-    }
-
     const insertData = {
       name: name.trim(),
       type: type.trim(),
@@ -161,9 +109,6 @@ export async function POST(request: NextRequest) {
       imageUrl: imageUrl ? imageUrl.trim() : null,
       price,
       category: category.trim(),
-      measurements: measurements || null,
-      qualityRating: qualityRating || null,
-      history: history ? history.trim() : null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -172,15 +117,7 @@ export async function POST(request: NextRequest) {
       .values(insertData)
       .returning();
 
-    // Parse JSON fields for response
-    const responseGarment = {
-      ...newGarment[0],
-      measurements: typeof newGarment[0].measurements === 'string' 
-        ? JSON.parse(newGarment[0].measurements) 
-        : newGarment[0].measurements
-    };
-
-    return NextResponse.json(responseGarment, { status: 201 });
+    return NextResponse.json(newGarment[0], { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json({ 
@@ -207,7 +144,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const requestBody = await request.json();
-    const { name, type, description, imageUrl, price, category, measurements, qualityRating, history } = requestBody;
+    const { name, type, description, imageUrl, price, category } = requestBody;
 
     const existingGarment = await db.select()
       .from(garments)
@@ -262,26 +199,6 @@ export async function PUT(request: NextRequest) {
       updates.category = category.trim();
     }
 
-    if (measurements !== undefined) {
-      if (measurements !== null && (typeof measurements !== 'object' || Array.isArray(measurements))) {
-        return NextResponse.json({ 
-          error: 'Measurements must be an object',
-          code: 'INVALID_MEASUREMENTS' 
-        }, { status: 400 });
-      }
-      updates.measurements = measurements;
-    }
-
-    if (qualityRating !== undefined) {
-      if (qualityRating !== null && (!Number.isInteger(qualityRating) || qualityRating < 1 || qualityRating > 10)) {
-        return NextResponse.json({ 
-          error: 'Quality rating must be an integer between 1 and 10',
-          code: 'INVALID_QUALITY_RATING' 
-        }, { status: 400 });
-      }
-      updates.qualityRating = qualityRating;
-    }
-
     if (description !== undefined) {
       updates.description = description ? description.trim() : null;
     }
@@ -290,24 +207,12 @@ export async function PUT(request: NextRequest) {
       updates.imageUrl = imageUrl ? imageUrl.trim() : null;
     }
 
-    if (history !== undefined) {
-      updates.history = history ? history.trim() : null;
-    }
-
     const updated = await db.update(garments)
       .set(updates)
       .where(eq(garments.id, parseInt(id)))
       .returning();
 
-    // Parse JSON fields for response
-    const responseGarment = {
-      ...updated[0],
-      measurements: typeof updated[0].measurements === 'string' 
-        ? JSON.parse(updated[0].measurements) 
-        : updated[0].measurements
-    };
-
-    return NextResponse.json(responseGarment);
+    return NextResponse.json(updated[0]);
   } catch (error) {
     console.error('PUT error:', error);
     return NextResponse.json({ 
@@ -346,17 +251,9 @@ export async function DELETE(request: NextRequest) {
       .where(eq(garments.id, parseInt(id)))
       .returning();
 
-    // Parse JSON fields for response
-    const responseGarment = {
-      ...deleted[0],
-      measurements: typeof deleted[0].measurements === 'string' 
-        ? JSON.parse(deleted[0].measurements) 
-        : deleted[0].measurements
-    };
-
     return NextResponse.json({
       message: 'Garment deleted successfully',
-      deletedGarment: responseGarment
+      deletedGarment: deleted[0]
     });
   } catch (error) {
     console.error('DELETE error:', error);
