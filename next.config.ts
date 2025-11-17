@@ -10,8 +10,16 @@ const nextConfig: NextConfig = {
         loaders: [LOADER]
       }
     }
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      }
+    ]
   }
 };
 
 export default nextConfig;
-// Orchids restart: 1759335131792
+// Orchids restart: 1763384409363
