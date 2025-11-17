@@ -1,13 +1,108 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { useRef, useMemo } from "react";
-import { OrbitControls } from "@react-three/drei";
+import { useRef, useMemo, useState, useEffect } from "react";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import { FBXLoader } from "three-stdlib";
 
 interface Avatar3DPreviewProps {
   uploadProgress: number; // 0-4
   gender: "male" | "female";
+}
+
+function MaleAvatarFBX({ progress }: { progress: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [model, setModel] = useState<THREE.Group | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    const loader = new FBXLoader();
+    loader.load(
+      '/models/male.fbx',
+      (fbx) => {
+        // Center and scale the model
+        const box = new THREE.Box3().setFromObject(fbx);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        
+        // Scale to fit within our scene (height of ~1.8 units)
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 1.8 / maxDim;
+        fbx.scale.setScalar(scale);
+        
+        // Center the model
+        fbx.position.sub(center.multiplyScalar(scale));
+        fbx.position.y = 0; // Align to ground
+        
+        setModel(fbx);
+      },
+      undefined,
+      (error) => {
+        console.log('FBX model not found, using fallback geometry');
+        setLoadError(true);
+      }
+    );
+  }, []);
+
+  const opacity = 0.4 + (progress / 4) * 0.6;
+
+  if (loadError) {
+    // Fallback to procedural geometry
+    return <MaleAvatar progress={progress} />;
+  }
+
+  if (!model) {
+    // Loading state
+    return (
+      <mesh>
+        <boxGeometry args={[0.3, 1.8, 0.3]} />
+        <meshStandardMaterial color="#d4b5a0" transparent opacity={0.3} />
+      </mesh>
+    );
+  }
+
+  return (
+    <group ref={groupRef}>
+      <primitive object={model} />
+      {/* Adjust material opacity based on upload progress */}
+      {model && model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          if (mesh.material) {
+            const mat = mesh.material as THREE.MeshStandardMaterial;
+            mat.transparent = true;
+            mat.opacity = opacity;
+          }
+        }
+      })}
+      
+      {/* Wireframe overlay */}
+      {progress >= 1 && (
+        <primitive object={model.clone()}>
+          {model.clone().traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              mesh.material = new THREE.MeshBasicMaterial({
+                color: "#10b981",
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15 + (progress / 4) * 0.35
+              });
+            }
+          })}
+        </primitive>
+      )}
+      
+      {/* Accent lighting when complete */}
+      {progress === 4 && (
+        <>
+          <pointLight position={[0, 1.5, 0.5]} intensity={0.5} color="#10b981" />
+          <pointLight position={[0, 0.5, 0.5]} intensity={0.3} color="#22d3ee" />
+        </>
+      )}
+    </group>
+  );
 }
 
 function MaleAvatar({ progress }: { progress: number }) {
@@ -290,12 +385,11 @@ export default function Avatar3DPreview({ uploadProgress, gender }: Avatar3DPrev
         <spotLight position={[0, 5, 0]} angle={0.3} penumbra={1} intensity={0.5} color={gender === "male" ? "#22d3ee" : "#a855f7"} />
         
         {gender === "male" ? (
-          <MaleAvatar progress={uploadProgress} />
+          <MaleAvatarFBX progress={uploadProgress} />
         ) : (
           <FemaleAvatar progress={uploadProgress} />
         )}
 
-        {/* Interactive Controls - drag to rotate, scroll to zoom, right-click to pan */}
         <OrbitControls
           enableZoom={true}
           enablePan={true}
