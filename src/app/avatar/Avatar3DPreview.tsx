@@ -283,7 +283,7 @@ export default function Avatar3DPreview({ uploadProgress, gender }: Avatar3DPrev
         camera={{ position: [0, 1, 2.5], fov: 50 }}
         gl={{ alpha: true, antialias: true }}
       >
-        <color attach="background" args={["#0a0a0a"]} />
+        <color attach="background" args={["#F0F0F0"]} />
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
         <directionalLight position={[-5, 3, -5]} intensity={0.4} color={gender === "male" ? "#10b981" : "#ec4899"} />
