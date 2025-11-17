@@ -9,8 +9,8 @@ import dynamic from "next/dynamic";
 const Avatar3DPreview = dynamic(() => import("./Avatar3DPreview"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-zinc-900/60 rounded-2xl">
-      <div className="text-zinc-500 text-sm">Loading 3D preview...</div>
+    <div className="w-full h-full flex items-center justify-center bg-muted rounded-2xl">
+      <div className="text-muted-foreground text-sm">Loading 3D preview...</div>
     </div>
   ),
 });
@@ -61,14 +61,14 @@ export const BodyScanClient = () => {
   const UploadCell = ({ dir, label }: { dir: Direction; label: string }) => (
     <button
       onClick={() => onPick(dir)}
-      className="relative aspect-[3/4] rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden flex items-center justify-center group"
+      className="relative aspect-[3/4] rounded-2xl border border-border bg-muted overflow-hidden flex items-center justify-center group"
       aria-label={`Upload ${label} photo`}
     >
       {/* Silhouette placeholder */}
       {!images[dir] && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-16 h-24 rounded-full border border-zinc-700/70" />
-          <div className="absolute -bottom-1 w-20 h-8 rounded-full border border-zinc-700/70" />
+          <div className="w-16 h-24 rounded-full border border-border opacity-70" />
+          <div className="absolute -bottom-1 w-20 h-8 rounded-full border border-border opacity-70" />
         </div>
       )}
 
@@ -79,7 +79,7 @@ export const BodyScanClient = () => {
 
       {/* Plus target */}
       {!images[dir] && (
-        <div className="relative z-10 flex items-center gap-2 rounded-full bg-zinc-800/70 px-3 py-1.5 text-zinc-200 text-sm">
+        <div className="relative z-10 flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-foreground text-sm">
           <Plus className="w-4 h-4" />
           {label}
         </div>
@@ -95,18 +95,18 @@ export const BodyScanClient = () => {
   );
 
   return (
-    <div className="min-h-dvh bg-black text-zinc-100">
+    <div className="min-h-dvh bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-zinc-900 bg-black/90 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-zinc-900" aria-label="Back">
+          <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-accent" aria-label="Back">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <div className="text-xs text-zinc-400 tracking-wider">STEP 1/3</div>
+            <div className="text-xs text-muted-foreground tracking-wider">STEP 1/3</div>
             <div className="text-sm font-medium">Body Scan</div>
           </div>
-          <button onClick={() => {}} className="p-2 rounded-full hover:bg-zinc-900" aria-label="Upload tips">
+          <button onClick={() => {}} className="p-2 rounded-full hover:bg-accent" aria-label="Upload tips">
             <Upload className="w-5 h-5" />
           </button>
         </div>
@@ -114,18 +114,18 @@ export const BodyScanClient = () => {
 
       {/* Content */}
       <main className="mx-auto max-w-md px-4 pb-28 pt-4">
-        <p className="text-sm text-zinc-400 mb-4">Select your gender and upload 4 directional photos to generate your 3D avatar.</p>
+        <p className="text-sm text-muted-foreground mb-4">Select your gender and upload 4 directional photos to generate your 3D avatar.</p>
 
         {/* Gender Selection */}
-        <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
-          <div className="text-xs text-zinc-400 mb-2 font-medium tracking-wide">SELECT GENDER</div>
+        <div className="mb-4 rounded-xl border border-border bg-card p-4">
+          <div className="text-xs text-muted-foreground mb-2 font-medium tracking-wide">SELECT GENDER</div>
           <div className="flex gap-3">
             <button
               onClick={() => setGender("male")}
               className={`flex-1 py-3 px-4 rounded-lg border transition-all font-medium text-sm ${
                 gender === "male"
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
-                  : "border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:border-zinc-600"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "border-border bg-secondary text-foreground hover:bg-accent"
               }`}
             >
               Male
@@ -134,8 +134,8 @@ export const BodyScanClient = () => {
               onClick={() => setGender("female")}
               className={`flex-1 py-3 px-4 rounded-lg border transition-all font-medium text-sm ${
                 gender === "female"
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
-                  : "border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:border-zinc-600"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "border-border bg-secondary text-foreground hover:bg-accent"
               }`}
             >
               Female
@@ -144,20 +144,20 @@ export const BodyScanClient = () => {
         </div>
 
         {/* 3D Preview Section */}
-        <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
+        <div className="mb-6 rounded-2xl border border-border bg-card overflow-hidden">
           <div className="h-64 relative">
             <Suspense fallback={
-              <div className="w-full h-full flex items-center justify-center bg-zinc-900/60">
-                <div className="text-zinc-500 text-sm">Loading 3D preview...</div>
+              <div className="w-full h-full flex items-center justify-center bg-muted">
+                <div className="text-muted-foreground text-sm">Loading 3D preview...</div>
               </div>
             }>
               <Avatar3DPreview uploadProgress={Object.values(images).filter(Boolean).length} gender={gender} />
             </Suspense>
           </div>
-          <div className="px-4 py-3 border-t border-zinc-800">
+          <div className="px-4 py-3 border-t border-border">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-400">3D Avatar Preview - Drag to rotate</span>
-              <span className="text-emerald-500 font-medium">
+              <span className="text-muted-foreground">3D Avatar Preview - Drag to rotate</span>
+              <span className="text-emerald-600 dark:text-emerald-500 font-medium">
                 {Object.values(images).filter(Boolean).length}/4 photos uploaded
               </span>
             </div>
@@ -171,7 +171,7 @@ export const BodyScanClient = () => {
           <UploadCell dir="right" label="Right" />
         </div>
 
-        <div className="mt-4 rounded-xl border border-zinc-900 bg-zinc-950 p-3 text-xs text-zinc-400">
+        <div className="mt-4 rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">
           Tip: Stand straight, arms relaxed, neutral lighting. Keep full body in frame.
         </div>
       </main>
@@ -181,8 +181,8 @@ export const BodyScanClient = () => {
         <button
           onClick={handleContinue}
           disabled={!allSet}
-          className="relative inline-flex h-16 w-16 items-center justify-center rounded-full shadow-xl ring-1 ring-white/10 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:ring-zinc-700"
-          style={{ background: allSet ? "linear-gradient(135deg,#10b981,#22d3ee)" : "#0a0a0a" }}
+          className="relative inline-flex h-16 w-16 items-center justify-center rounded-full shadow-xl ring-1 ring-border transition disabled:opacity-40 disabled:cursor-not-allowed disabled:ring-muted"
+          style={{ background: allSet ? "linear-gradient(135deg,#10b981,#22d3ee)" : "hsl(var(--muted))" }}
           aria-label="Continue to Avatar Studio"
         >
           <Camera className="w-7 h-7 text-white" />
