@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Shirt, Eye, Users, Sparkles, ArrowRight, Play } from "lucide-react";
 import { Hero3D } from "@/components/home/Hero3D";
 import { HeroBackground } from "@/components/home/HeroBackground";
-import { GlobalBackground } from "@/components/layout/GlobalBackground";
+import { FashionFusionBackground } from "@/components/layout/FashionFusionBackground";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
@@ -48,14 +48,14 @@ const featuredProducts = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20">
-      <GlobalBackground />
+      <FashionFusionBackground />
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative min-h-screen pt-20 flex items-center justify-center overflow-hidden">
         {/* Background Decoration - 3D Interactive */}
         {/* <HeroBackground /> */}
-        
+
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
           <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-3xl" />
@@ -71,17 +71,17 @@ export default function Home() {
                 </span>
                 <span>New Collection: The Royal Heritage</span>
               </div>
-              
+
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold tracking-tight leading-[1.1] text-foreground">
-                Blend Ancient <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Grace</span> with <br/>
+                Blend Ancient <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Grace</span> with <br />
                 Modern Edge
               </h1>
-              
+
               <p className="text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
                 Experience the future of fashion. Craft your perfect silhouette with our 3D fusion studio, combining timeless Indian textiles with contemporary innovation.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/avatar">
                   <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300">
@@ -94,7 +94,7 @@ export default function Home() {
                   </Button>
                 </Link>
               </div>
-              
+
               <div className="flex items-center justify-center lg:justify-start gap-6 text-sm text-muted-foreground pt-4">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
@@ -115,7 +115,7 @@ export default function Home() {
             <div className="relative h-[500px] lg:h-[700px] w-full bg-gradient-to-b from-transparent via-secondary/20 to-transparent rounded-[2.5rem] border border-white/10 backdrop-blur-sm overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 to-transparent opacity-50" />
               <Hero3D />
-              
+
               {/* Floating Elements */}
               <div className="absolute top-8 left-8 bg-background/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-border/50 max-w-[180px]">
                 <div className="flex items-center gap-3 mb-2">
@@ -237,7 +237,7 @@ export default function Home() {
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
               <div className="absolute top-[-50%] left-[-20%] w-[800px] h-[800px] rounded-full bg-primary blur-[100px]" />
             </div>
-            
+
             <h2 className="text-4xl md:text-6xl font-serif font-bold text-background mb-8 relative z-10">
               Ready to Wear Your Legacy?
             </h2>
