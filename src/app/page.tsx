@@ -1,242 +1,259 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { User, Shirt, Eye, Search, ShoppingCart, User as UserIcon } from "lucide-react";
-import NextImage from "next/image";
+import { Shirt, Eye, Users, Sparkles, ArrowRight, Play } from "lucide-react";
+import { Hero3D } from "@/components/home/Hero3D";
+import { HeroBackground } from "@/components/home/HeroBackground";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { motion } from "framer-motion";
 
-// Hero section images from Unsplash (fusion of ancient Indian and modern)
-const heroImages = [
-  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg",
-  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg",
-  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/ethnic-wear-fusion%2c-blending-ancient-i-ec0d520f-20250925192112.jpg",
+// Remove old heroImages and featuredProducts definition as we'll redefine them or use dynamic components
+
+const features = [
+  {
+    icon: Users,
+    title: "Personal Avatars",
+    description: "Upload photos for precise 3D measurements and interactive customization.",
+    color: "bg-blue-500/10 text-blue-500"
+  },
+  {
+    icon: Shirt,
+    title: "Garment Fusion",
+    description: "Mix ancient templates with modern fits and authentic local materials.",
+    color: "bg-amber-500/10 text-amber-500"
+  },
+  {
+    icon: Eye,
+    title: "Realistic Previews",
+    description: "Visualize designs on your avatar with lifelike rendering and secure exports.",
+    color: "bg-emerald-500/10 text-emerald-500"
+  },
+  {
+    icon: Sparkles,
+    title: "Heritage Materials",
+    description: "Access a vast library of traditional Indian fabrics and patterns.",
+    color: "bg-purple-500/10 text-purple-500"
+  }
 ];
 
-// Featured products mock (adapt from catalog later)
 const featuredProducts = [
-  { id: 1, name: "Saree Modern", price: "$89", image: heroImages[0], category: "Women" },
-  { id: 2, name: "Kurta Blend", price: "$65", image: heroImages[1], category: "Men" },
-  { id: 3, name: "Anarkali Fusion", price: "$120", image: heroImages[2], category: "Women" },
-  // Add more as needed
+  { id: 1, name: "Saree Modern", price: "$89", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg", category: "Women" },
+  { id: 2, name: "Kurta Blend", price: "$65", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg", category: "Men" },
+  { id: 3, name: "Anarkali Fusion", price: "$120", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/ethnic-wear-fusion%2c-blending-ancient-i-ec0d520f-20250925192112.jpg", category: "Women" },
+  { id: 4, name: "Royal Sherwani", price: "$150", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg", category: "Men" },
 ];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      {/* Promo Banner - SHEIN-style top alert */}
-      <div className="bg-accent/20 border-b border-border text-center py-3">
-        <p className="text-sm text-accent-foreground font-medium">
-          Hey there, newbie! Get free shipping on your first fusion order ✨
-        </p>
-      </div>
+    <main className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20">
+      <Navbar />
 
-      {/* Header Nav - Logo, Search, Categories like SHEIN */}
-      <header className="bg-card border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-serif font-bold text-primary">
-            IndiFusion
-          </Link>
-          <div className="hidden md:flex items-center space-x-1 text-sm font-medium text-muted-foreground">
-            {["Women Fusion", "Men Heritage", "Kids Ethnic", "Tops", "Dresses", "Bottoms", "Materials"].map((cat) => (
-              <Link key={cat} href={`/catalog?cat=${cat.toLowerCase().replace(' ', '-')}`} className="hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-accent/20">
-                {cat}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                placeholder="Search fusion styles..."
-                className="pl-10 pr-4 py-2 border border-border rounded-lg bg-background w-64 focus:ring-primary focus:border-primary"
-              />
-            </div>
-            <Link href="/cart" className="p-2 hover:bg-accent/20 rounded-lg">
-              <ShoppingCart className="w-5 h-5" />
-            </Link>
-            <Link href="/profile" className="p-2 hover:bg-accent/20 rounded-lg flex items-center space-x-1">
-              <UserIcon className="w-5 h-5" />
-              <span className="hidden sm:inline text-sm">Account</span>
-            </Link>
-          </div>
+      {/* Hero Section */}
+      <section className="relative min-h-screen pt-20 flex items-center justify-center overflow-hidden">
+        {/* Background Decoration - 3D Interactive */}
+        <HeroBackground />
+        
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-3xl" />
         </div>
-      </header>
 
-      {/* Hero Banner - Large model showcase like SHEIN autumn banner */}
-      <section className="relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden">
-        <div className="container mx-auto px-4 py-16 md:py-24">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-6xl font-serif font-light text-foreground leading-tight">
-                Blend Ancient Grace<br />with Modern Edge
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="space-y-8 text-center lg:text-left">
+              <div className="inline-flex items-center space-x-2 bg-secondary/50 border border-border px-3 py-1 rounded-full text-xs font-medium text-muted-foreground backdrop-blur-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span>New Collection: The Royal Heritage</span>
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold tracking-tight leading-[1.1] text-foreground">
+                Blend Ancient <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Grace</span> with <br/>
+                Modern Edge
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-lg">
-                Discover timeless Indian textiles reimagined. Craft your silhouette with heritage and innovation.
+              
+              <p className="text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                Experience the future of fashion. Craft your perfect silhouette with our 3D fusion studio, combining timeless Indian textiles with contemporary innovation.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/avatar">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 text-lg">
-                    Create Your Avatar
+                  <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300">
+                    Start Designing <Sparkles className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
                 <Link href="/catalog">
-                  <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/10 px-8 py-3 text-lg">
-                    Shop Fusion
+                  <Button variant="outline" size="lg" className="h-14 px-8 text-lg rounded-full bg-background/50 backdrop-blur hover:bg-background/80">
+                    View Collection <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
               </div>
+              
+              <div className="flex items-center justify-center lg:justify-start gap-6 text-sm text-muted-foreground pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <span>10k+ Designers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                    <Shirt className="w-4 h-4" />
+                  </div>
+                  <span>500+ Fabrics</span>
+                </div>
+              </div>
             </div>
-            <div className="relative">
-              <img
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg"
-                alt="Woman in saree with modern twist"
-                width={600}
-                height={800}
-                className="rounded-lg shadow-xl object-cover"
-              />
-              <div className="absolute top-4 left-4 bg-accent/90 text-accent-foreground px-3 py-1 rounded-full text-sm font-medium">
-                New: Heritage Drop
+
+            {/* 3D Hero Element */}
+            <div className="relative h-[500px] lg:h-[700px] w-full bg-gradient-to-b from-transparent via-secondary/20 to-transparent rounded-[2.5rem] border border-white/10 backdrop-blur-sm overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 to-transparent opacity-50" />
+              <Hero3D />
+              
+              {/* Floating Elements */}
+              <div className="absolute top-8 left-8 bg-background/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-border/50 max-w-[180px]">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                    <Shirt className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-bold">Fabric Match</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Analysis complete. 98% compatibility with Silk Georgette.</p>
+              </div>
+
+              <div className="absolute bottom-8 right-8 bg-background/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-border/50 max-w-[180px]">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center text-accent-foreground">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-bold">Live Preview</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Real-time physics enabled. Drape simulation active.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Styles Section - Like SHEIN's autumn style grid */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-serif font-medium text-foreground mb-4">
-            Fresh Fusion Styles
-          </h2>
-          <p className="text-lg text-muted-foreground">Explore our latest ancient-modern blends</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {featuredProducts.slice(0, 4).map((product) => (
-            <Link key={product.id} href={`/catalog/${product.id}`} className="group block">
-              <div className="bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow group-hover:scale-105">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  width={200}
-                  height={250}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-3">
-                  <h3 className="font-medium text-foreground text-sm mb-1">{product.name}</h3>
-                  <p className="text-primary font-semibold">{product.price}</p>
-                  <p className="text-xs text-muted-foreground">{product.category}</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Promo Banner - SHEIN free shipping style */}
-      <section className="bg-primary/10 py-8 text-center">
+      {/* Marquee / Brand Strip */}
+      <div className="border-y border-border bg-secondary/30 py-8 overflow-hidden">
         <div className="container mx-auto px-4">
-          <h3 className="text-2xl font-serif font-medium text-foreground mb-2">Get Free Shipping</h3>
-          <p className="text-muted-foreground mb-4">On orders over $50 – Your first fusion awaits!</p>
-          <Link href="/catalog">
-            <Button className="bg-primary text-primary-foreground px-8 py-3">
-              Shop Now
-            </Button>
-          </Link>
+          <p className="text-center text-sm font-medium text-muted-foreground tracking-[0.2em] uppercase mb-6">Trusted by heritage artisans across India</p>
+          <div className="flex justify-between items-center opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+            {/* Logos placeholders - using text for now */}
+            <span className="text-2xl font-serif font-bold">VOGUE</span>
+            <span className="text-2xl font-serif font-bold">BAZAAR</span>
+            <span className="text-2xl font-serif font-bold">ELLE</span>
+            <span className="text-2xl font-serif font-bold">GQ</span>
+            <span className="text-2xl font-serif font-bold">GRAZIA</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <section className="py-24 lg:py-32 bg-background relative">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-5xl font-serif font-medium mb-6">Designed for the Modern Creator</h2>
+            <p className="text-lg text-muted-foreground">
+              IndiFusion brings professional fashion design tools to your fingertips, powered by AI and 3D technology.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="group relative p-8 rounded-3xl bg-card hover:bg-secondary/40 border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-6 transition-transform group-hover:scale-110`}>
+                  <feature.icon className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Side Categories - Vertical nav like SHEIN sidebar */}
-      <section className="container mx-auto px-4 py-16 hidden lg:block">
-        <div className="flex gap-8">
-          <div className="w-1/4 space-y-2">
-            <h3 className="text-lg font-medium text-foreground mb-4">Categories</h3>
-            {["Women Fusion", "Men Heritage", "Kids Ethnic", "Fabrics", "Accessories"].map((cat) => (
-              <Link key={cat} href={`/catalog?cat=${cat.toLowerCase().replace(' ', '-')}`} className="block py-2 text-muted-foreground hover:text-primary transition-colors">
-                {cat}
+      {/* Featured Collection */}
+      <section className="py-24 lg:py-32 bg-secondary/20">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-serif font-medium mb-4">Trending Fusions</h2>
+              <p className="text-lg text-muted-foreground">Curated pieces blending past and present.</p>
+            </div>
+            <Link href="/catalog">
+              <Button variant="ghost" className="group">
+                View Full Catalog <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {featuredProducts.map((product) => (
+              <Link key={product.id} href={`/catalog/${product.id}`} className="group">
+                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-card border border-border/50 mb-4 shadow-sm group-hover:shadow-md transition-all">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute top-3 right-3 bg-background/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium">
+                    {product.category}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between text-white">
+                    <span className="font-medium">Quick View</span>
+                    <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
+                      <Play className="w-3 h-3 fill-current" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium text-lg group-hover:text-primary transition-colors">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground">Limited Edition</p>
+                  </div>
+                  <span className="font-semibold text-lg">{product.price}</span>
+                </div>
               </Link>
             ))}
           </div>
-          <div className="w-3/4">
-            {/* Reuse featured grid or add more content */}
-            <div className="grid md:grid-cols-3 gap-6">
-              {featuredProducts.map((product) => (
-                <Card key={product.id} className="border-primary/10 hover:border-primary/20 transition-colors">
-                  <CardHeader className="p-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      width={300}
-                      height={300}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardTitle className="text-sm font-medium">{product.name}</CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground mb-2">{product.category}</CardDescription>
-                    <p className="text-primary font-semibold">{product.price}</p>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <Button variant="outline" size="sm" className="w-full">Add to Cart</Button>
-                  </CardFooter>
-                </Card>
-              ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5" />
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
+          <div className="bg-foreground rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+              <div className="absolute top-[-50%] left-[-20%] w-[800px] h-[800px] rounded-full bg-primary blur-[100px]" />
+            </div>
+            
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-background mb-8 relative z-10">
+              Ready to Wear Your Legacy?
+            </h2>
+            <p className="text-xl text-background/80 max-w-2xl mx-auto mb-12 relative z-10">
+              Join thousands of creators redefining Indian fashion. Start designing your custom fusion wear today.
+            </p>
+            <div className="relative z-10">
+              <Link href="/register">
+                <Button size="lg" className="h-16 px-10 text-lg rounded-full bg-background text-foreground hover:bg-background/90 shadow-2xl shadow-white/10">
+                  Get Started Free
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features - Simplified from original, integrated as cards */}
-      <section className="bg-secondary/50 py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">Discover IndiFusion</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-primary/20">
-              <CardHeader className="pb-4 text-center">
-                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <User className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <CardTitle>Personal Avatars</CardTitle>
-                <CardDescription>Upload photos for precise 3D measurements and interactive customization.</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="border-primary/20">
-              <CardHeader className="pb-4 text-center">
-                <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Shirt className="w-6 h-6 text-accent-foreground" />
-                </div>
-                <CardTitle>Garment Fusion</CardTitle>
-                <CardDescription>Mix ancient templates with modern fits and authentic local materials.</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="border-primary/20">
-              <CardHeader className="pb-4 text-center">
-                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Eye className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <CardTitle>Realistic Previews</CardTitle>
-                <CardDescription>Visualize designs on your avatar with lifelike rendering and secure exports.</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter - Bottom CTA like SHEIN footer */}
-      <section className="bg-card py-16 border-t border-border">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-serif font-medium text-foreground mb-4">Join the Fusion</h2>
-          <p className="text-muted-foreground mb-8 max-w-lg mx-auto">Get exclusive drops, heritage stories, and 10% off your first order.</p>
-          <div className="max-w-md mx-auto space-y-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-primary focus:border-primary"
-            />
-            <Button className="w-full bg-primary text-primary-foreground py-3">Subscribe Now</Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-4">No spam, ever. Unsubscribe anytime.</p>
-        </div>
-      </section>
+      <Footer />
     </main>
   );
 }
