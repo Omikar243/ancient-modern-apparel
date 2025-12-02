@@ -5,6 +5,7 @@ import { Shirt, Eye, Users, Sparkles, ArrowRight, Play } from "lucide-react";
 import { Hero3D } from "@/components/home/Hero3D";
 import { HeroBackground } from "@/components/home/HeroBackground";
 import { FashionFusionBackground } from "@/components/layout/FashionFusionBackground";
+import { GlobalBackground } from "@/components/layout/GlobalBackground";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
@@ -48,11 +49,12 @@ const featuredProducts = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20">
+      <GlobalBackground />
       <FashionFusionBackground />
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen pt-20 flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen pt-24 pb-40 flex items-center justify-center overflow-hidden">
         {/* Background Decoration - 3D Interactive */}
         {/* <HeroBackground /> */}
 

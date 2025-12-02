@@ -48,7 +48,7 @@ function FashionThreads({ scrollY }: { scrollY: React.MutableRefObject<number> }
       
       dummy.position.set(
         xFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 1) * factor) / 10,
-        yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10 - (scroll * 0.02), // Move up/down with scroll
+        yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10 - (scroll * 0.02) + 35,
         zFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 3) * factor) / 10
       );
       
