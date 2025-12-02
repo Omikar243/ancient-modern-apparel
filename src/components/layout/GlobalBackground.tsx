@@ -48,7 +48,7 @@ function FashionThreads({ scrollY }: { scrollY: React.MutableRefObject<number> }
       
       dummy.position.set(
         xFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 1) * factor) / 10,
-        yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10 - (scroll * 0.02) + 35,
+        yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10 - (scroll * 0.02),
         zFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 3) * factor) / 10
       );
       
@@ -61,7 +61,7 @@ function FashionThreads({ scrollY }: { scrollY: React.MutableRefObject<number> }
       
       // Scale pulsates slightly
       const scale = Math.max(0.5, Math.abs(s) * 1.5);
-      dummy.scale.set(scale * 0.05, scale * 3, scale * 0.05); // Long thin threads
+      dummy.scale.set(scale * 0.1, scale * 4, scale * 0.1); // Long thin threads
 
       dummy.updateMatrix();
       mesh.current!.setMatrixAt(i, dummy.matrix);
@@ -79,13 +79,13 @@ function FashionThreads({ scrollY }: { scrollY: React.MutableRefObject<number> }
       {/* Cylinder geometry for thread-like appearance */}
       <cylinderGeometry args={[0.1, 0.1, 1, 8]} />
       <meshPhysicalMaterial 
-        color="#A89F91" 
-        emissive="#C9B8B0"
-        emissiveIntensity={0.2}
+        color="#FFF5E1" 
+        emissive="#D4AF37"
+        emissiveIntensity={0.3}
         transparent 
-        opacity={0.6} 
-        roughness={0.4}
-        metalness={0.6}
+        opacity={0.8} 
+        roughness={0.2}
+        metalness={0.8}
       />
     </instancedMesh>
   );
@@ -117,7 +117,7 @@ export function GlobalBackground() {
   return (
     <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none bg-background transition-colors duration-700">
       {/* Gradient Overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-transparent to-background/80 z-0" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-transparent to-background/5 z-0" />
       
       <Canvas 
         camera={{ position: [0, 0, 20], fov: 50 }} 
