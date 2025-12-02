@@ -48,7 +48,7 @@ const featuredProducts = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20">
+    <main className="min-h-screen text-foreground overflow-x-hidden selection:bg-primary/20">
       <GlobalBackground />
       {/* <FashionFusionBackground /> */}
       <Navbar />
@@ -144,7 +144,7 @@ export default function Home() {
       </section>
 
       {/* Marquee / Brand Strip */}
-      <div className="border-y border-border bg-secondary/30 py-8 overflow-hidden">
+      <div className="border-y border-border bg-secondary/30 py-8 overflow-hidden backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <p className="text-center text-sm font-medium text-muted-foreground tracking-[0.2em] uppercase mb-6">Trusted by heritage artisans across India</p>
           <div className="flex justify-between items-center opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
@@ -159,7 +159,7 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <section className="py-24 lg:py-32 bg-background relative">
+      <section className="py-24 lg:py-32 relative">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-4xl md:text-5xl font-serif font-medium mb-6">Designed for the Modern Creator</h2>
@@ -170,7 +170,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="group relative p-8 rounded-3xl bg-card hover:bg-secondary/40 border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div key={index} className="group relative p-8 rounded-3xl bg-card/80 backdrop-blur-md hover:bg-secondary/60 border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                 <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-6 transition-transform group-hover:scale-110`}>
                   <feature.icon className="w-7 h-7" />
                 </div>
@@ -185,7 +185,7 @@ export default function Home() {
       </section>
 
       {/* Featured Collection */}
-      <section className="py-24 lg:py-32 bg-secondary/20">
+      <section className="py-24 lg:py-32 bg-secondary/20 backdrop-blur-sm">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <div>

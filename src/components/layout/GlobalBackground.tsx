@@ -79,13 +79,15 @@ function FashionThreads({ scrollY }: { scrollY: React.MutableRefObject<number> }
       {/* Cylinder geometry for thread-like appearance */}
       <cylinderGeometry args={[0.1, 0.1, 1, 8]} />
       <meshPhysicalMaterial 
-        color="#FFF5E1" 
+        color="#FFECE1" 
         emissive="#D4AF37"
-        emissiveIntensity={0.3}
+        emissiveIntensity={0.4}
         transparent 
-        opacity={0.8} 
-        roughness={0.2}
-        metalness={0.8}
+        opacity={0.9} 
+        roughness={0.15}
+        metalness={0.9}
+        clearcoat={1}
+        clearcoatRoughness={0.1}
       />
     </instancedMesh>
   );
