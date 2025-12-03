@@ -22,7 +22,9 @@ function getAuth() {
         updateAge: 60 * 60 * 24, // Update every 24 hours
       },
       baseURL: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-      trustedOrigins: ["http://localhost:3000"],
+      trustedOrigins: process.env.NODE_ENV === "development" 
+        ? ["*"] 
+        : [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"],
       plugins: [bearer()],
     });
   }
