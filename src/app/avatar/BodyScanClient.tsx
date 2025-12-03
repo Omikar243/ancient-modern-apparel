@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Plus, Upload, ArrowLeft } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSession } from "@/lib/auth-client";
 
 // Lazy load the 3D preview component
 const Avatar3DPreview = dynamic(() => import("./Avatar3DPreview"), {
@@ -27,8 +28,16 @@ interface ScanImages {
 
 export const BodyScanClient = () => {
   const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [images, setImages] = useState<ScanImages>({ front: null, back: null, left: null, right: null });
   const [gender, setGender] = useState<Gender>("male");
+
+  // Client-side auth protection
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.push("/login?redirect=/avatar");
+    }
+  }, [session, isPending, router]);
 
   const allSet = useMemo(() => Object.values(images).every(Boolean), [images]);
 
@@ -57,6 +66,30 @@ export const BodyScanClient = () => {
     } catch {}
     router.push("/avatar/studio");
   };
+
+  // Show loading while checking auth
+  if (isPending) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render content if not authenticated (will redirect)
+  if (!session?.user) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   const UploadCell = ({ dir, label }: { dir: Direction; label: string }) => (
     <button

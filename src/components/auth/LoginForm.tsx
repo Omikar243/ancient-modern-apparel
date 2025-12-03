@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,18 @@ export const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { refetch } = useSession();
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const { data: session, refetch } = useSession();
+  
+  const redirectTo = search.get("redirect") || "/";
+
+  // Watch for session to become available after login
+  useEffect(() => {
+    if (loginSuccess && session?.user) {
+      toast.success("Logged in successfully!");
+      router.push(redirectTo);
+    }
+  }, [loginSuccess, session, redirectTo, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,10 +40,7 @@ export const LoginForm = () => {
     }
     setLoading(true);
     try {
-      // Get the intended redirect destination
-      const redirectTo = search.get("redirect") || "/";
-      
-      // Sign in WITHOUT callbackURL to avoid better-auth's internal redirect
+      // Sign in
       const { data, error } = await authClient.signIn.email({
         email,
         password,
@@ -49,42 +57,32 @@ export const LoginForm = () => {
         return;
       }
       
-      // After successful login, fetch the bearer token using better-auth's bearer plugin
-      try {
-        const tokenResponse = await fetch("/api/auth/get-bearer", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+      // Extract session token from response
+      const sessionToken = data?.session?.token || data?.token || (data as any)?.sessionToken;
+      
+      if (sessionToken) {
+        // Store token for API requests
+        localStorage.setItem("bearer_token", sessionToken);
         
-        if (tokenResponse.ok) {
-          const tokenData = await tokenResponse.json();
-          const token = tokenData.token;
-          
-          if (token) {
-            // Store token in both localStorage and cookie
-            localStorage.setItem("bearer_token", token);
-            document.cookie = `bearer_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-          }
-        }
-      } catch (tokenError) {
-        console.error("Failed to fetch bearer token:", tokenError);
-        // Continue anyway - session cookie might still work
+        // Also set as cookie for any server-side needs
+        document.cookie = `bearer_token=${sessionToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
       }
       
-      // Refresh session state
+      // Mark login as successful and trigger session refresh
+      setLoginSuccess(true);
       await refetch();
       
-      toast.success("Logged in successfully!");
-      
-      // Force a full page reload to ensure middleware processes the authentication
-      window.location.href = redirectTo;
+      // If session is already available, the useEffect will handle redirect
+      // Otherwise fall back to direct navigation after a delay
+      setTimeout(() => {
+        if (!session?.user) {
+          router.push(redirectTo);
+        }
+      }, 500);
       
     } catch (err) {
-      console.error("Detailed login error:", err);
-      toast.error("Login failed - check console for details");
+      console.error("Login error:", err);
+      toast.error("Login failed. Please try again.");
       setLoading(false);
     }
   };
@@ -144,12 +142,12 @@ export const LoginForm = () => {
               <Button 
                 type="submit" 
                 className="w-full h-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-serif font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" 
-                disabled={loading}
+                disabled={loading || loginSuccess}
               >
-                {loading ? (
+                {loading || loginSuccess ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                    Signing in...
+                    {loginSuccess ? "Redirecting..." : "Signing in..."}
                   </>
                 ) : (
                   "Sign In"
