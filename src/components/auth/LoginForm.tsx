@@ -49,17 +49,38 @@ export const LoginForm = () => {
         return;
       }
       
-      // Refresh session state to ensure it's available
-      await refetch();
+      // After successful login, fetch the bearer token using better-auth's bearer plugin
+      try {
+        const tokenResponse = await fetch("/api/auth/get-bearer", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        
+        if (tokenResponse.ok) {
+          const tokenData = await tokenResponse.json();
+          const token = tokenData.token;
+          
+          if (token) {
+            // Store token in both localStorage and cookie
+            localStorage.setItem("bearer_token", token);
+            document.cookie = `bearer_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+          }
+        }
+      } catch (tokenError) {
+        console.error("Failed to fetch bearer token:", tokenError);
+        // Continue anyway - session cookie might still work
+      }
       
-      // Wait longer to ensure session cookies are fully set and propagated
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Refresh session state
+      await refetch();
       
       toast.success("Logged in successfully!");
       
-      // Use replace instead of push to avoid back button issues
-      // Also add timestamp to force fresh navigation
-      router.replace(redirectTo + (redirectTo.includes('?') ? '&' : '?') + '_t=' + Date.now());
+      // Force a full page reload to ensure middleware processes the authentication
+      window.location.href = redirectTo;
       
     } catch (err) {
       console.error("Detailed login error:", err);

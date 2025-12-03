@@ -29,11 +29,8 @@ function getAuth() {
   return _auth;
 }
 
-export const auth = new Proxy({} as ReturnType<typeof betterAuth>, {
-  get(_, prop) {
-    return getAuth()[prop as keyof ReturnType<typeof betterAuth>];
-  }
-});
+// Export the auth instance directly - no proxy needed
+export const auth = getAuth();
 
 export async function getCurrentUser(headers: Headers) {
   const session = await auth.api.getSession({ headers });
