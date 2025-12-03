@@ -29,19 +29,14 @@ export const LoginForm = () => {
     }
     setLoading(true);
     try {
-      const callbackURL = search.get("redirect") || "/";
+      // Get the intended redirect destination
+      const redirectTo = search.get("redirect") || "/";
+      
+      // Sign in WITHOUT callbackURL to avoid better-auth's internal redirect
       const { data, error } = await authClient.signIn.email({
         email,
         password,
         rememberMe,
-        callbackURL,
-      }, {
-        onSuccess: (ctx) => {
-          const authToken = ctx.response.headers.get("set-auth-token");
-          if (authToken) {
-            localStorage.setItem("bearer_token", authToken);
-          }
-        }
       });
       
       if (error?.code) {
@@ -54,11 +49,17 @@ export const LoginForm = () => {
         return;
       }
       
-      // Refetch session to ensure updates propagate
+      // Refresh session state to ensure it's available
       await refetch();
+      
+      // Wait longer to ensure session cookies are fully set and propagated
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       toast.success("Logged in successfully!");
-      router.push(callbackURL);
-      setLoading(false);
+      
+      // Use replace instead of push to avoid back button issues
+      // Also add timestamp to force fresh navigation
+      router.replace(redirectTo + (redirectTo.includes('?') ? '&' : '?') + '_t=' + Date.now());
       
     } catch (err) {
       console.error("Detailed login error:", err);
@@ -67,7 +68,6 @@ export const LoginForm = () => {
     }
   };
 
-// The rest of the component remains unchanged.
   return (
     <div className="w-full max-w-lg mx-auto">
       {/* Subtle background */}
