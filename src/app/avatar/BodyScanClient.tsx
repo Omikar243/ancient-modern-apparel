@@ -2,16 +2,18 @@
 
 import { useState, useMemo, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Check, Plus, Upload, ArrowLeft } from "lucide-react";
+import { Check, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // Lazy load the 3D preview component
 const Avatar3DPreview = dynamic(() => import("./Avatar3DPreview"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-muted rounded-2xl">
-      <div className="text-muted-foreground text-sm">Loading 3D preview...</div>
+    <div className="w-full h-full flex items-center justify-center bg-white">
+      <div className="text-muted-foreground text-sm animate-pulse">Initializing Studio...</div>
     </div>
   ),
 });
@@ -40,6 +42,7 @@ export const BodyScanClient = () => {
   }, [session, isPending, router]);
 
   const allSet = useMemo(() => Object.values(images).every(Boolean), [images]);
+  const uploadedCount = Object.values(images).filter(Boolean).length;
 
   const onPick = (dir: Direction) => {
     const input = document.createElement("input");
@@ -71,155 +74,151 @@ export const BodyScanClient = () => {
   if (isPending) {
     return (
       <div className="min-h-dvh bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Don't render content if not authenticated (will redirect)
-  if (!session?.user) {
-    return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
-        </div>
-      </div>
-    );
-  }
+  if (!session?.user) return null;
 
   const UploadCell = ({ dir, label }: { dir: Direction; label: string }) => (
     <button
       onClick={() => onPick(dir)}
-      className="relative aspect-[3/4] rounded-2xl border border-border bg-muted overflow-hidden flex items-center justify-center group"
+      className={cn(
+        "relative w-full aspect-square rounded-xl border overflow-hidden group transition-all duration-300",
+        "hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:border-emerald-500/50", // Brand glow effect
+        "bg-white/60 backdrop-blur-md border-white/20 shadow-sm", // Translucent glassmorphism
+        images[dir] ? "border-emerald-500/50 ring-1 ring-emerald-500/20" : "border-black/5"
+      )}
       aria-label={`Upload ${label} photo`}
     >
-      {/* Silhouette placeholder */}
-      {!images[dir] && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-16 h-24 rounded-full border border-border opacity-70" />
-          <div className="absolute -bottom-1 w-20 h-8 rounded-full border border-border opacity-70" />
-        </div>
-      )}
+      {/* Content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-2 transition-opacity duration-300">
+        {!images[dir] ? (
+          <>
+            <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center mb-2 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 transition-colors">
+              <Plus className="w-4 h-4 text-muted-foreground group-hover:text-emerald-600" />
+            </div>
+            <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">{label}</span>
+          </>
+        ) : (
+          <img src={images[dir]!} alt={`${label} preview`} className="absolute inset-0 w-full h-full object-cover" />
+        )}
+      </div>
 
-      {/* Uploaded preview */}
+      {/* Success Overlay */}
       {images[dir] && (
-        <img src={images[dir]!} alt={`${label} preview`} className="absolute inset-0 w-full h-full object-cover" />
-      )}
-
-      {/* Plus target */}
-      {!images[dir] && (
-        <div className="relative z-10 flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-foreground text-sm">
-          <Plus className="w-4 h-4" />
-          {label}
-        </div>
-      )}
-
-      {/* Check mark when uploaded */}
-      {images[dir] && (
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 rounded-full bg-emerald-600 text-white px-2 py-1 text-xs font-medium shadow">
-          <Check className="w-3.5 h-3.5" /> Done
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+          <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
+            <Check className="w-3 h-3" />
+          </div>
         </div>
       )}
     </button>
   );
 
   return (
-    <div className="min-h-dvh bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-accent" aria-label="Back">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <div className="text-xs text-muted-foreground tracking-wider">STEP 1/3</div>
-            <div className="text-sm font-medium">Body Scan</div>
-          </div>
-          <button onClick={() => {}} className="p-2 rounded-full hover:bg-accent" aria-label="Upload tips">
-            <Upload className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
+    <div className="h-screen w-full overflow-hidden flex flex-col bg-white relative">
+      {/* Elegant Top Progress Bar (1px height) */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gray-100 z-50">
+        <div 
+          className="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_10px_rgba(0,0,0,0.1)]" 
+          style={{ width: `${((uploadedCount + 1) / 5) * 33 + 33}%` }} // Simulated step progress 
+        />
+      </div>
 
-      {/* Content */}
-      <main className="mx-auto max-w-md px-4 pb-28 pt-4">
-        <p className="text-sm text-muted-foreground mb-4">Select your gender and upload 4 directional photos to generate your 3D avatar.</p>
-
-        {/* Gender Selection */}
-        <div className="mb-4 rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground mb-2 font-medium tracking-wide">SELECT GENDER</div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setGender("male")}
-              className={`flex-1 py-3 px-4 rounded-lg border transition-all font-medium text-sm ${
-                gender === "male"
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "border-border bg-secondary text-foreground hover:bg-accent"
-              }`}
-            >
-              Male
-            </button>
-            <button
-              onClick={() => setGender("female")}
-              className={`flex-1 py-3 px-4 rounded-lg border transition-all font-medium text-sm ${
-                gender === "female"
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "border-border bg-secondary text-foreground hover:bg-accent"
-              }`}
-            >
-              Female
-            </button>
-          </div>
-        </div>
-
-        {/* 3D Preview Section */}
-        <div className="mb-6 rounded-2xl border border-border bg-card overflow-hidden">
-          <div className="h-64 relative">
-            <Suspense fallback={
-              <div className="w-full h-full flex items-center justify-center bg-muted">
-                <div className="text-muted-foreground text-sm">Loading 3D preview...</div>
-              </div>
-            }>
-              <Avatar3DPreview uploadProgress={Object.values(images).filter(Boolean).length} gender={gender} />
-            </Suspense>
-          </div>
-          <div className="px-4 py-3 border-t border-border">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">3D Avatar Preview - Drag to rotate</span>
-              <span className="text-emerald-600 dark:text-emerald-500 font-medium">
-                {Object.values(images).filter(Boolean).length}/4 photos uploaded
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <UploadCell dir="front" label="Front" />
-          <UploadCell dir="back" label="Back" />
-          <UploadCell dir="left" label="Left" />
-          <UploadCell dir="right" label="Right" />
-        </div>
-
-        <div className="mt-4 rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">
-          Tip: Stand straight, arms relaxed, neutral lighting. Keep full body in frame.
-        </div>
-      </main>
-
-      {/* Footer action */}
-      <div className="fixed inset-x-0 bottom-5 flex items-center justify-center">
-        <button
-          onClick={handleContinue}
-          disabled={!allSet}
-          className="relative inline-flex h-16 w-16 items-center justify-center rounded-full shadow-xl ring-1 ring-border transition disabled:opacity-40 disabled:cursor-not-allowed disabled:ring-muted"
-          style={{ background: allSet ? "linear-gradient(135deg,#10b981,#22d3ee)" : "hsl(var(--muted))" }}
-          aria-label="Continue to Avatar Studio"
+      {/* Navigation Overlay */}
+      <div className="absolute top-6 left-6 z-40">
+        <button 
+          onClick={() => router.back()} 
+          className="p-3 rounded-full bg-white/80 backdrop-blur-md shadow-sm hover:bg-white transition-all border border-black/5 group"
         >
-          <Camera className="w-7 h-7 text-white" />
+          <ArrowLeft className="w-5 h-5 text-foreground/80 group-hover:-translate-x-0.5 transition-transform" />
         </button>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col lg:flex-row h-full relative">
+        
+        {/* 3D Viewer Area - Full Screen feel */}
+        <div className="absolute inset-0 lg:static lg:flex-1 bg-white">
+          <Suspense fallback={<div className="w-full h-full bg-gray-50" />}>
+            <Avatar3DPreview uploadProgress={uploadedCount} gender={gender} />
+          </Suspense>
+        </div>
+
+        {/* Sidebar / Overlay for Controls */}
+        <div className="absolute bottom-0 left-0 right-0 lg:static lg:w-[400px] lg:h-full bg-gradient-to-t from-white via-white/90 to-transparent lg:bg-white lg:border-l border-black/5 p-6 flex flex-col justify-end lg:justify-center z-30 backdrop-blur-sm lg:backdrop-blur-none">
+          
+          <div className="max-w-sm mx-auto w-full space-y-8 mb-8 lg:mb-0">
+            <div className="space-y-2 text-center lg:text-left">
+              <h1 className="text-3xl font-serif font-medium tracking-tight">Digital Twin</h1>
+              <p className="text-muted-foreground text-sm">Create your high-fidelity avatar. Upload directional photos for precise measurement.</p>
+            </div>
+
+            {/* Gender Toggle */}
+            <div className="bg-secondary/50 p-1 rounded-xl flex relative">
+              <div 
+                className="absolute inset-y-1 rounded-lg bg-white shadow-sm transition-all duration-300 ease-out"
+                style={{ 
+                  left: '4px', 
+                  width: 'calc(50% - 4px)',
+                  transform: gender === 'female' ? 'translateX(100%)' : 'translateX(0)'
+                }}
+              />
+              <button
+                onClick={() => setGender("male")}
+                className={cn(
+                  "flex-1 py-2.5 text-sm font-medium relative z-10 transition-colors text-center",
+                  gender === "male" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Male
+              </button>
+              <button
+                onClick={() => setGender("female")}
+                className={cn(
+                  "flex-1 py-2.5 text-sm font-medium relative z-10 transition-colors text-center",
+                  gender === "female" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Female
+              </button>
+            </div>
+
+            {/* Upload Grid */}
+            <div className="space-y-3">
+               <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <span>Required Photos</span>
+                  <span className={uploadedCount === 4 ? "text-emerald-600" : ""}>{uploadedCount}/4 Ready</span>
+               </div>
+               <div className="grid grid-cols-4 gap-3">
+                  <UploadCell dir="front" label="Front" />
+                  <UploadCell dir="back" label="Back" />
+                  <UploadCell dir="left" label="Left" />
+                  <UploadCell dir="right" label="Right" />
+               </div>
+            </div>
+
+            {/* Action Button */}
+            <Button 
+              onClick={handleContinue}
+              disabled={!allSet}
+              className={cn(
+                "w-full h-14 text-lg rounded-full shadow-lg transition-all duration-300",
+                allSet 
+                  ? "bg-foreground text-background hover:bg-foreground/90 shadow-emerald-500/20" 
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              {allSet ? (
+                <span className="flex items-center gap-2">Generate Avatar <ArrowRight className="w-5 h-5" /></span>
+              ) : (
+                "Complete All Uploads"
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
