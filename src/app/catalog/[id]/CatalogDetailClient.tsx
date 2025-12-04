@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
   const [garment, setGarment] = useState<GarmentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const session = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
   const id = params.id;
 
@@ -77,7 +77,10 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-lg">Loading details...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading details...</p>
+        </div>
       </div>
     );
   }

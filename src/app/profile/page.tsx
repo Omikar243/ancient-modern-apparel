@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthSession } from "@/lib/useAuthSession";
+import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function ProfilePage() {
-  const { data: session, isPending } = useAuthSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
+
+  // Auth check effect
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.push("/login?redirect=/profile");
+    }
+  }, [isPending, session?.user, router]);
 
   if (isPending) {
     return (
@@ -23,7 +30,14 @@ export default function ProfilePage() {
   }
 
   if (!session?.user) {
-    return null; // Middleware handles redirect
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/5 flex items-center justify-center py-32">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
+          <p className="text-xl text-muted-foreground font-serif">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   const user = session.user;
@@ -67,9 +81,6 @@ export default function ProfilePage() {
                   </Button>
                   <Button asChild variant="ghost" className="w-full h-14 hover:bg-accent/10 font-serif text-lg transition-all duration-300">
                     <Link href="/preview">Preview</Link>
-                  </Button>
-                  <Button asChild variant="destructive" className="w-full h-14 rounded-full font-serif text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                    <Link href="/logout">Logout</Link>
                   </Button>
                 </div>
               </div>

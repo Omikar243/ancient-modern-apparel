@@ -54,7 +54,7 @@ export default function CatalogClient() {
   // Material modal
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
 
-  const session = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -94,7 +94,6 @@ export default function CatalogClient() {
   // Load user avatar only if logged in
   useEffect(() => {
     const fetchUserAvatar = async () => {
-      // @ts-expect-error session typing comes from better-auth client hook
       if (!session?.user?.id) {
         setUserAvatar(null);
         setAvatarLoading(false);
@@ -102,7 +101,6 @@ export default function CatalogClient() {
       }
       try {
         setAvatarLoading(true);
-        // @ts-expect-error session typing
         const response = await fetch("/api/avatars/by-user/" + session.user.id);
         if (response.ok) {
           const avatarsData = await response.json();
@@ -118,9 +116,11 @@ export default function CatalogClient() {
         setAvatarLoading(false);
       }
     };
-    fetchUserAvatar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [/* session changes trigger internally */]);
+    
+    if (!isPending) {
+      fetchUserAvatar();
+    }
+  }, [session?.user?.id, isPending]);
 
   useEffect(() => {
     const filtered = garments.filter((garment) => {
@@ -136,7 +136,6 @@ export default function CatalogClient() {
   }, [garments, searchTerm, selectedCategory, priceRange]);
 
   const handleAddToCart = (garment: Garment) => {
-    // @ts-expect-error session typing
     if (!session?.user) {
       toast.error("Please log in to customize and add garments to your cart.");
       router.push("/login?redirect=/catalog");
@@ -169,7 +168,10 @@ export default function CatalogClient() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-lg">Loading catalog...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading catalog...</p>
+        </div>
       </div>
     );
   }
@@ -196,8 +198,7 @@ export default function CatalogClient() {
         </div>
 
         {/* Auth & Avatar Prompt - Elegant */}
-        {/* @ts-expect-error session typing */}
-        {session?.user && !session?.isPending && avatarError && !avatarLoading && (
+        {session?.user && !isPending && avatarError && !avatarLoading && (
           <Card className="mb-12 border-0 shadow-xl backdrop-blur-sm bg-background/60">
             <CardContent className="p-8 text-center">
               <p className="text-lg text-muted-foreground mb-4 italic">{avatarError}</p>
@@ -213,8 +214,7 @@ export default function CatalogClient() {
           </Card>
         )}
 
-        {/* @ts-expect-error session typing */}
-        {!session?.user && !session?.isPending && (
+        {!session?.user && !isPending && (
           <Card className="mb-12 border-0 shadow-xl backdrop-blur-sm bg-background/60">
             <CardContent className="p-8 text-center">
               <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
@@ -284,7 +284,7 @@ export default function CatalogClient() {
                 <label className="text-sm font-medium text-foreground block mb-3">Value Spectrum</label>
                 <Slider 
                   value={priceRange} 
-                  onValueChange={setPriceRange} 
+                  onValueChange={(value) => setPriceRange(value as [number, number])} 
                   max={500} 
                   step={10} 
                   className="my-4" 
@@ -330,7 +330,6 @@ export default function CatalogClient() {
                           </Badge>
                           <span className="text-2xl font-serif font-bold text-primary">${garment.price}</span>
                         </div>
-                        {/* @ts-expect-error session typing */}
                         <Button 
                           variant="outline" 
                           size="lg" 

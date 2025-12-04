@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ShoppingCart, Trash2 } from "lucide-react";
 
@@ -17,26 +16,29 @@ interface CartItem {
   imageUrl: string;
 }
 
-// Simple cart stub - in production, use localStorage/session or database
 export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const session = useSession();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { data: session, isPending } = useSession();
   const router = useRouter();
 
+  // Auth check effect - separate from cart loading
   useEffect(() => {
-    if (!session?.user && !session?.isPending) {
+    if (!isPending && !session?.user) {
       router.push("/login?redirect=/cart");
-      return;
     }
+  }, [isPending, session?.user, router]);
 
-    // Stub: Load from localStorage (simulate adding from catalog)
+  // Cart loading effect - only runs once on mount
+  useEffect(() => {
     const storedCart = localStorage.getItem("cart") || "[]";
-    setCartItems(JSON.parse(storedCart));
-
-    if (session?.isPending) {
-      router.push("/login?redirect=/cart");
+    try {
+      setCartItems(JSON.parse(storedCart));
+    } catch {
+      setCartItems([]);
     }
-  }, [session, router]);
+    setIsLoaded(true);
+  }, []);
 
   const removeFromCart = (id: number) => {
     const updated = cartItems.filter(item => item.id !== id);
@@ -47,12 +49,25 @@ export default function Cart() {
 
   const total = cartItems.reduce((sum, item) => sum + item.price, 0);
 
-  if (session?.isPending) {
+  // Show loading while checking auth
+  if (isPending || !isLoaded) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/5 flex items-center justify-center py-32">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
           <p className="text-xl text-muted-foreground font-serif">Gathering Your Selections...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/5 flex items-center justify-center py-32">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
+          <p className="text-xl text-muted-foreground font-serif">Redirecting to login...</p>
         </div>
       </div>
     );
