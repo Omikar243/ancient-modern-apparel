@@ -1,8 +1,16 @@
 "use client"
 import { createAuthClient } from "better-auth/react"
+import { useState, useEffect, useCallback } from "react"
+
+const getBaseURL = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'http://localhost:3000';
+};
 
 export const authClient = createAuthClient({
-  baseURL: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+  baseURL: getBaseURL(),
   fetchOptions: {
     credentials: 'include' as RequestCredentials,
     onRequest: (ctx) => {
@@ -15,7 +23,6 @@ export const authClient = createAuthClient({
       }
     },
     onSuccess: async (ctx) => {
-      // Store bearer token from response if available
       try {
         const data = ctx.data as any;
         const token = data?.session?.token || data?.token;
@@ -30,5 +37,54 @@ export const authClient = createAuthClient({
   }
 });
 
-// Export the built-in useSession from better-auth
-export const { useSession } = authClient;
+// Custom session hook that properly handles bearer tokens in iframe environments
+export const useSession = () => {
+  const [session, setSession] = useState<any>(null);
+  const [isPending, setIsPending] = useState(true);
+
+  const fetchSession = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("bearer_token");
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${getBaseURL()}/api/auth/get-session`, {
+        method: 'GET',
+        headers,
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSession(data);
+      } else {
+        setSession(null);
+      }
+    } catch (error) {
+      console.error("Session fetch error:", error);
+      setSession(null);
+    } finally {
+      setIsPending(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
+
+  const refetch = useCallback(() => {
+    setIsPending(true);
+    return fetchSession();
+  }, [fetchSession]);
+
+  return {
+    data: session,
+    isPending,
+    refetch,
+  };
+};
