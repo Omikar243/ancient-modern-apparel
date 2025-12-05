@@ -3,19 +3,9 @@
 import { Canvas, useFrame, useThree, extend } from "@react-three/fiber";
 import { useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
-import { Environment, Float, shaderMaterial } from "@react-three/drei";
+import { Environment, Float } from "@react-three/drei";
 
-// --- Ribbon Shader Material ---
-const RibbonMaterial = shaderMaterial(
-  {
-    uTime: 0,
-    uColor: new THREE.Color("#C41E3A"), // Matte Red
-    uMouse: new THREE.Vector2(0, 0),
-    uHoverState: 0,
-    uClickTime: -1000,
-  },
-  // Vertex Shader
-  `
+const RIBBON_VERTEX_SHADER = `
     varying vec2 vUv;
     varying float vElevation;
     uniform float uTime;
@@ -110,9 +100,9 @@ const RibbonMaterial = shaderMaterial(
 
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
-  `,
-  // Fragment Shader
-  `
+`;
+
+const RIBBON_FRAGMENT_SHADER = `
     uniform vec3 uColor;
     varying float vElevation;
 
@@ -128,26 +118,35 @@ const RibbonMaterial = shaderMaterial(
       
       gl_FragColor = vec4(finalColor, 1.0);
     }
-  `
-);
-
-extend({ RibbonMaterial });
+`;
 
 // --- Ribbon Component ---
 function Ribbon({ mouseRef, hoverStateRef, clickTimeRef }: any) {
-  const materialRef = useRef<any>();
+  const material = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uColor: { value: new THREE.Color("#C41E3A") },
+      uMouse: { value: new THREE.Vector2(0, 0) },
+      uHoverState: { value: 0 },
+      uClickTime: { value: -1000 },
+    },
+    vertexShader: RIBBON_VERTEX_SHADER,
+    fragmentShader: RIBBON_FRAGMENT_SHADER,
+    side: THREE.DoubleSide,
+    transparent: true,
+  }), []);
 
   useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uTime = clock.getElapsedTime();
-      materialRef.current.uMouse = mouseRef.current;
+    if (material) {
+      material.uniforms.uTime.value = clock.getElapsedTime();
+      material.uniforms.uMouse.value = mouseRef.current;
       // Smooth transition for hover state
-      materialRef.current.uHoverState = THREE.MathUtils.lerp(
-        materialRef.current.uHoverState, 
+      material.uniforms.uHoverState.value = THREE.MathUtils.lerp(
+        material.uniforms.uHoverState.value, 
         hoverStateRef.current, 
         0.1
       );
-      materialRef.current.uClickTime = clickTimeRef.current;
+      material.uniforms.uClickTime.value = clickTimeRef.current;
     }
   });
 
@@ -155,8 +154,7 @@ function Ribbon({ mouseRef, hoverStateRef, clickTimeRef }: any) {
     <mesh position={[0, 0, -2]} rotation={[0, 0, Math.PI / 12]}>
       {/* Long strip geometry with enough segments for smooth deformation */}
       <planeGeometry args={[30, 3, 120, 30]} />
-      {/* @ts-ignore */}
-      <ribbonMaterial ref={materialRef} transparent side={THREE.DoubleSide} />
+      <primitive object={material} attach="material" />
     </mesh>
   );
 }
