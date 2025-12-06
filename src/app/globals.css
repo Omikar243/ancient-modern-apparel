@@ -46,71 +46,86 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #FAFAFA; /* Soft off-white */
-  --foreground: #2A2A2A; /* Soft black */
+  /* Strict Editorial Palette */
+  --background: #FFFFFF; /* Pure White */
+  --foreground: #333333; /* Dark Charcoal */
+  
   --card: #FFFFFF;
-  --card-foreground: #2A2A2A;
+  --card-foreground: #333333;
+  
   --popover: #FFFFFF;
-  --popover-foreground: #2A2A2A;
-  --primary: #A89F91; /* Soft taupe/beige - muted and gentle */
-  --primary-foreground: #2A2A2A;
-  --secondary: #F5F5F5; /* Very light grey */
-  --secondary-foreground: #2A2A2A;
-  --muted: #F0F0F0;
-  --muted-foreground: #6B6B6B; /* Soft grey */
-  --accent: #C9B8B0; /* Soft dusty rose/beige */
-  --accent-foreground: #2A2A2A;
-  --destructive: #D4A5A5; /* Soft muted red */
-  --border: #E8E8E8; /* Very subtle border */
-  --input: #F5F5F5;
-  --ring: #A89F91; /* Soft taupe ring */
-  --chart-1: #B8AEB8;
-  --chart-2: #A8B8B8;
-  --chart-3: #B8A8A8;
-  --chart-4: #C8B8A8;
-  --chart-5: #A8B8C8;
-  --sidebar: #FAFAFA;
-  --sidebar-foreground: #2A2A2A;
-  --sidebar-primary: #A89F91;
-  --sidebar-primary-foreground: #2A2A2A;
-  --sidebar-accent: #F5F5F5;
-  --sidebar-accent-foreground: #2A2A2A;
+  --popover-foreground: #333333;
+  
+  --primary: #A09588; /* Muted Taupe/Beige */
+  --primary-foreground: #FFFFFF;
+  
+  --secondary: #F9F9F9; /* Very subtle off-white for contrasts */
+  --secondary-foreground: #333333;
+  
+  --muted: #F2F2F2;
+  --muted-foreground: #888888; /* Soft grey for secondary text */
+  
+  --accent: #A09588;
+  --accent-foreground: #FFFFFF;
+  
+  --destructive: #D4A5A5;
+  --destructive-foreground: #FFFFFF;
+  
+  --border: #E8E8E8; /* Subtle border */
+  --input: #F2F2F2;
+  --ring: #A09588;
+  
+  --chart-1: #A09588;
+  --chart-2: #80766B;
+  --chart-3: #605850;
+  --chart-4: #C0B5A8;
+  --chart-5: #E0D5C8;
+  
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #333333;
+  --sidebar-primary: #A09588;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F9F9F9;
+  --sidebar-accent-foreground: #333333;
   --sidebar-border: #E8E8E8;
-  --sidebar-ring: #A89F91;
+  --sidebar-ring: #A09588;
 }
 
 .dark {
-  --background: #1A1A1A; /* Soft dark instead of pure black */
-  --foreground: #E8E8E8; /* Soft white */
+  /* Retaining high-end feel even in dark mode, though prompt specified white background strictly. 
+     We will keep dark mode variables but align them to the charcoal aesthetic just in case. */
+  --background: #1A1A1A; 
+  --foreground: #E8E8E8; 
   --card: #242424;
   --card-foreground: #E8E8E8;
   --popover: #242424;
   --popover-foreground: #E8E8E8;
-  --primary: #B8AFA0; /* Slightly lighter taupe for dark mode */
-  --primary-foreground: #1A1A1A;
+  --primary: #A09588;
+  --primary-foreground: #FFFFFF;
   --secondary: #2A2A2A;
   --secondary-foreground: #E8E8E8;
   --muted: #2A2A2A;
-  --muted-foreground: #A0A0A0; /* Soft grey */
-  --accent: #C9B8B0; /* Same soft dusty rose */
-  --accent-foreground: #1A1A1A;
+  --muted-foreground: #A0A0A0;
+  --accent: #A09588;
+  --accent-foreground: #FFFFFF;
   --destructive: #D4A5A5;
+  --destructive-foreground: #FFFFFF;
   --border: #333333;
   --input: #2A2A2A;
-  --ring: #B8AFA0;
-  --chart-1: #B8AEB8;
-  --chart-2: #A8B8B8;
-  --chart-3: #B8A8A8;
-  --chart-4: #C8B8A8;
-  --chart-5: #A8B8C8;
+  --ring: #A09588;
+  --chart-1: #A09588;
+  --chart-2: #80766B;
+  --chart-3: #605850;
+  --chart-4: #C0B5A8;
+  --chart-5: #E0D5C8;
   --sidebar: #1A1A1A;
   --sidebar-foreground: #E8E8E8;
-  --sidebar-primary: #B8AFA0;
-  --sidebar-primary-foreground: #1A1A1A;
+  --sidebar-primary: #A09588;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #2A2A2A;
   --sidebar-accent-foreground: #E8E8E8;
   --sidebar-border: #333333;
-  --sidebar-ring: #B8AFA0;
+  --sidebar-ring: #A09588;
 }
 
 @layer base {

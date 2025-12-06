@@ -184,7 +184,7 @@ function Ribbon({ mouseRef, hoverStateRef, clickTimeRef }: any) {
       material.uniforms.uHoverState.value = THREE.MathUtils.lerp(
         material.uniforms.uHoverState.value,
         hoverStateRef.current,
-        1
+        0.1
       );
       material.uniforms.uClickTime.value = clickTimeRef.current;
     }
