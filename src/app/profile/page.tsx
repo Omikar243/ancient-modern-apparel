@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { ArrowUpRight, Clock, Heart, ShoppingBag, Plus, ShoppingCart } from "lucide-react";
 
 export default function ProfilePage() {
@@ -30,7 +30,7 @@ export default function ProfilePage() {
   const user = session.user;
 
   // Staggered Entrance Animation Variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -41,7 +41,7 @@ export default function ProfilePage() {
     },
   };
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
