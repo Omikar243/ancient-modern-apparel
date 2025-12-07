@@ -35,14 +35,14 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
         const box = new THREE.Box3().setFromObject(fbx);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-
+        
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 1.8 / maxDim;
         fbx.scale.setScalar(scale);
-
+        
         fbx.position.sub(center.multiplyScalar(scale));
         fbx.position.y = 0;
-
+        
         setModel(fbx);
       },
       undefined,
@@ -54,29 +54,6 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
   }, []);
 
   const opacity = 0.5 + (progress / 4) * 0.5; // Start at 0.5 visibility
-
-  useEffect(() => {
-    if (model) {
-      model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          // Apply ceramic material override
-          if (!mesh.userData.originalMat) {
-            mesh.userData.originalMat = mesh.material;
-          }
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: "#E0E0E0", // Neutral ceramic
-            roughness: 0.8,
-            metalness: 0.0,
-            transparent: true,
-            opacity: opacity
-          });
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-        }
-      });
-    }
-  }, [model, opacity]);
 
   if (loadError) {
     return <MaleAvatar progress={progress} />;
@@ -94,7 +71,24 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
   return (
     <group ref={groupRef}>
       <primitive object={model} />
-
+      {model && model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          // Apply ceramic material override
+          if (!mesh.userData.originalMat) {
+             mesh.userData.originalMat = mesh.material;
+          }
+          mesh.material = new THREE.MeshStandardMaterial({
+            color: "#E0E0E0", // Neutral ceramic
+            roughness: 0.8,
+            metalness: 0.0,
+            transparent: true,
+            opacity: opacity
+          });
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+      })}
     </group>
   );
 }
@@ -112,14 +106,14 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
         const box = new THREE.Box3().setFromObject(fbx);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-
+        
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 1.8 / maxDim;
         fbx.scale.setScalar(scale);
-
+        
         fbx.position.sub(center.multiplyScalar(scale));
         fbx.position.y = 0;
-
+        
         setModel(fbx);
       },
       undefined,
@@ -131,25 +125,6 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
   }, []);
 
   const opacity = 0.5 + (progress / 4) * 0.5;
-
-  useEffect(() => {
-    if (model) {
-      model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: "#E0E0E0", // Neutral ceramic
-            roughness: 0.8,
-            metalness: 0.0,
-            transparent: true,
-            opacity: opacity
-          });
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-        }
-      });
-    }
-  }, [model, opacity]);
 
   if (loadError) {
     return <FemaleAvatar progress={progress} />;
@@ -167,7 +142,20 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
   return (
     <group ref={groupRef}>
       <primitive object={model} />
-
+      {model && model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          mesh.material = new THREE.MeshStandardMaterial({
+            color: "#E0E0E0", // Neutral ceramic
+            roughness: 0.8,
+            metalness: 0.0,
+            transparent: true,
+            opacity: opacity
+          });
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+      })}
     </group>
   );
 }
@@ -184,7 +172,7 @@ function MaleAvatar({ progress }: { progress: number }) {
         <sphereGeometry args={[0.13, 32, 32]} />
         <CeramicMaterial {...ceramicProps} />
       </mesh>
-
+      
       {/* Neck */}
       <mesh position={[0, 1.38, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.06, 0.07, 0.15, 32]} />
@@ -205,27 +193,27 @@ function MaleAvatar({ progress }: { progress: number }) {
 
       {/* Shoulders/Arms (A-Pose) */}
       <group position={[0, 1.25, 0]}>
-        {/* Left Shoulder */}
-        <mesh position={[-0.22, -0.05, 0]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.06, 0.15, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
-        {/* Right Shoulder */}
-        <mesh position={[0.22, -0.05, 0]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.06, 0.15, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
-
-        {/* Left Arm */}
-        <mesh position={[-0.35, -0.4, 0]} rotation={[0, 0, 0.2]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.05, 0.5, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
-        {/* Right Arm */}
-        <mesh position={[0.35, -0.4, 0]} rotation={[0, 0, -0.2]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.05, 0.5, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
+         {/* Left Shoulder */}
+         <mesh position={[-0.22, -0.05, 0]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.06, 0.15, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
+         {/* Right Shoulder */}
+         <mesh position={[0.22, -0.05, 0]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.06, 0.15, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
+         
+         {/* Left Arm */}
+         <mesh position={[-0.35, -0.4, 0]} rotation={[0, 0, 0.2]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.05, 0.5, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
+         {/* Right Arm */}
+         <mesh position={[0.35, -0.4, 0]} rotation={[0, 0, -0.2]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.05, 0.5, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
       </group>
 
       {/* Legs */}
@@ -257,7 +245,7 @@ function FemaleAvatar({ progress }: { progress: number }) {
         <sphereGeometry args={[0.12, 32, 32]} />
         <CeramicMaterial {...ceramicProps} />
       </mesh>
-
+      
       {/* Neck */}
       <mesh position={[0, 1.38, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.045, 0.055, 0.15, 32]} />
@@ -278,27 +266,27 @@ function FemaleAvatar({ progress }: { progress: number }) {
 
       {/* Shoulders/Arms (A-Pose) */}
       <group position={[0, 1.28, 0]}>
-        {/* Left Shoulder */}
-        <mesh position={[-0.18, -0.05, 0]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.05, 0.12, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
-        {/* Right Shoulder */}
-        <mesh position={[0.18, -0.05, 0]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.05, 0.12, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
-
-        {/* Left Arm */}
-        <mesh position={[-0.3, -0.4, 0]} rotation={[0, 0, 0.2]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.04, 0.5, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
-        {/* Right Arm */}
-        <mesh position={[0.3, -0.4, 0]} rotation={[0, 0, -0.2]} castShadow receiveShadow>
-          <capsuleGeometry args={[0.04, 0.5, 4, 16]} />
-          <CeramicMaterial {...ceramicProps} />
-        </mesh>
+         {/* Left Shoulder */}
+         <mesh position={[-0.18, -0.05, 0]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.05, 0.12, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
+         {/* Right Shoulder */}
+         <mesh position={[0.18, -0.05, 0]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.05, 0.12, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
+         
+         {/* Left Arm */}
+         <mesh position={[-0.3, -0.4, 0]} rotation={[0, 0, 0.2]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.04, 0.5, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
+         {/* Right Arm */}
+         <mesh position={[0.3, -0.4, 0]} rotation={[0, 0, -0.2]} castShadow receiveShadow>
+            <capsuleGeometry args={[0.04, 0.5, 4, 16]} />
+            <CeramicMaterial {...ceramicProps} />
+         </mesh>
       </group>
 
       {/* Legs */}
@@ -323,8 +311,8 @@ export default function Avatar3DPreview({ uploadProgress, gender }: Avatar3DPrev
     <div className="w-full h-full bg-white">
       <Canvas
         camera={{ position: [0, 1.2, 3.5], fov: 45 }}
-        gl={{
-          alpha: true,
+        gl={{ 
+          alpha: true, 
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.2
@@ -332,22 +320,22 @@ export default function Avatar3DPreview({ uploadProgress, gender }: Avatar3DPrev
         shadows
       >
         <color attach="background" args={["#FFFFFF"]} />
-
+        
         {/* 3-Point Lighting Setup */}
         {/* Key Light - Main source, strong, casting shadows */}
-        <spotLight
-          position={[4, 4, 4]}
-          angle={0.5}
-          penumbra={1}
-          intensity={1.5}
-          color="#ffffff"
-          castShadow
+        <spotLight 
+          position={[4, 4, 4]} 
+          angle={0.5} 
+          penumbra={1} 
+          intensity={1.5} 
+          color="#ffffff" 
+          castShadow 
           shadow-bias={-0.0001}
         />
-
+        
         {/* Fill Light - Softer, opposite side, blueish tint for cool fill */}
         <pointLight position={[-4, 2, 4]} intensity={0.5} color="#e0f2fe" />
-
+        
         {/* Rim Light - Back light, creates separation */}
         <spotLight position={[0, 4, -4]} intensity={1.5} color="#ffffff" />
 
@@ -355,11 +343,11 @@ export default function Avatar3DPreview({ uploadProgress, gender }: Avatar3DPrev
         <ambientLight intensity={0.2} />
 
         {/* Floor shadows */}
-        <ContactShadows
-          resolution={1024}
-          scale={10}
-          blur={2.5}
-          opacity={0.4}
+        <ContactShadows 
+          resolution={1024} 
+          scale={10} 
+          blur={2.5} 
+          opacity={0.4} 
           far={1}
           color="#000000"
         />

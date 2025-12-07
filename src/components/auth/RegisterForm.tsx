@@ -67,7 +67,7 @@ export const RegisterForm = () => {
       <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-3xl p-8 border border-border/20 shadow-xl backdrop-blur-sm">
         <Card className="border-0 bg-transparent">
           <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-4xl font-serif font-bold text-foreground">Create Account</CardTitle>
+            <CardTitle className="text-4xl font-serif font-bold text-foreground">Initiate the Legacy</CardTitle>
             <CardDescription className="text-lg text-muted-foreground leading-relaxed">
               Forge your place among the artisans. Begin the eternal weave.
             </CardDescription>
@@ -75,61 +75,61 @@ export const RegisterForm = () => {
           <form onSubmit={onSubmit} className="space-y-6">
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-base font-medium text-foreground">Full Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  autoComplete="name"
+                <Label htmlFor="name" className="text-base font-medium text-foreground">Moniker</Label>
+                <Input 
+                  id="name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  required 
+                  autoComplete="name" 
                   className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Full Name"
+                  placeholder="Your timeless name"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium text-foreground">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
+                <Label htmlFor="email" className="text-base font-medium text-foreground">Epistle</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  required 
+                  autoComplete="email" 
                   className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Email Address"
+                  placeholder="Your sacred address"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium text-foreground">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="off"
+                <Label htmlFor="password" className="text-base font-medium text-foreground">Cipher</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                  autoComplete="off" 
                   className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Password"
+                  placeholder="Craft your passage (min 8)"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm" className="text-base font-medium text-foreground">Confirm Password</Label>
-                <Input
-                  id="confirm"
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  required
-                  autoComplete="off"
+                <Label htmlFor="confirm" className="text-base font-medium text-foreground">Affirmation</Label>
+                <Input 
+                  id="confirm" 
+                  type="password" 
+                  value={confirm} 
+                  onChange={(e) => setConfirm(e.target.value)} 
+                  required 
+                  autoComplete="off" 
                   className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Confirm Password"
+                  placeholder="Echo the cipher"
                 />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 pt-0">
-              <Button
-                type="submit"
-                className="w-full h-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-serif font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+              <Button 
+                type="submit" 
+                className="w-full h-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-serif font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" 
                 disabled={loading}
               >
                 {loading ? (
@@ -138,7 +138,7 @@ export const RegisterForm = () => {
                     Weaving Your Essence...
                   </>
                 ) : (
-                  "Register"
+                  "Eternalize Your Form"
                 )}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
