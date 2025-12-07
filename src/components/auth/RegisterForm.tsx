@@ -6,7 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -62,92 +62,101 @@ export const RegisterForm = () => {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto">
-      {/* Subtle background */}
-      <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-3xl p-8 border border-border/20 shadow-xl backdrop-blur-sm">
-        <Card className="border-0 bg-transparent">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-4xl font-serif font-bold text-foreground">Initiate the Legacy</CardTitle>
-            <CardDescription className="text-lg text-muted-foreground leading-relaxed">
-              Forge your place among the artisans. Begin the eternal weave.
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={onSubmit} className="space-y-6">
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-base font-medium text-foreground">Moniker</Label>
-                <Input 
-                  id="name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  required 
-                  autoComplete="name" 
-                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Your timeless name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium text-foreground">Epistle</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
-                  autoComplete="email" 
-                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Your sacred address"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium text-foreground">Cipher</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                  autoComplete="off" 
-                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Craft your passage (min 8)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm" className="text-base font-medium text-foreground">Affirmation</Label>
-                <Input 
-                  id="confirm" 
-                  type="password" 
-                  value={confirm} 
-                  onChange={(e) => setConfirm(e.target.value)} 
-                  required 
-                  autoComplete="off" 
-                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Echo the cipher"
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4 pt-0">
-              <Button 
-                type="submit" 
-                className="w-full h-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-serif font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" 
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                    Weaving Your Essence...
-                  </>
-                ) : (
-                  "Eternalize Your Form"
-                )}
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                Acolyte already? <Link className="text-primary hover:underline font-medium transition-colors" href="/login">Cross the Threshold</Link>
-              </p>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
+    <div className="w-full max-w-md mx-auto font-serif">
+      {/* OPAQUE/TRANSPARENT CARD: Merriweather Font Applied with Bold 700 Weight */}
+      <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-md rounded-2xl relative overflow-hidden">
+        {/* Decorative top gold strip */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gold-muted" />
+
+        <CardHeader className="text-center space-y-3 pt-12 pb-6">
+          <h1 className="text-3xl font-bold text-neutral-900">
+            Create Account
+          </h1>
+          <p className="text-neutral-700 text-sm italic font-bold">
+            Join the exclusive circle
+          </p>
+        </CardHeader>
+
+        <form onSubmit={onSubmit}>
+          <CardContent className="space-y-5 px-8 sm:px-12">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-sm font-medium text-neutral-800">
+                Full Name
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoComplete="name"
+                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-neutral-800">
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
+                placeholder="Enter your email address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-neutral-800">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
+                placeholder="Create a password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm" className="text-sm font-medium text-neutral-800">
+                Confirm Password
+              </Label>
+              <Input
+                id="confirm"
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+                autoComplete="new-password"
+                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
+                placeholder="Confirm your password"
+              />
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col gap-6 pt-6 pb-12 px-8 sm:px-12">
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-full bg-gold-muted text-white hover:bg-gold-hover text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 font-serif"
+              disabled={loading}
+            >
+              {loading ? "Registering..." : "Register"}
+            </Button>
+            <p className="text-center text-xs text-neutral-600 font-bold">
+              Already a member?{" "}
+              <Link className="text-gold-muted hover:text-gold-hover hover:underline transition-colors ml-1" href="/login">
+                Sign In
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
 };

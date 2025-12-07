@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Merriweather } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import dynamic from "next/dynamic";
@@ -7,6 +8,12 @@ import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
 
 const ClientLayout = dynamic(() => import("@/components/ClientLayout").then(mod => mod.ClientLayout));
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["300", "400", "700", "900"],
+  variable: "--font-merriweather",
+});
 
 export const metadata: Metadata = {
   title: "IndiFusion Wear",
@@ -20,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={`antialiased ${merriweather.variable} font-serif`}>
         <ErrorReporter />
         <Script
           src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"

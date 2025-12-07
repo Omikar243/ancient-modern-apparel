@@ -9,6 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-merriweather);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -42,28 +43,39 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-gold-muted: #C5A059;
+  --color-gold-hover: #9E7D3E;
 }
 
 :root {
   --radius: 0.625rem;
-  --background: #FAFAFA; /* Soft off-white */
-  --foreground: #2A2A2A; /* Soft black */
+  --background: #FAFAFA;
+  /* Soft off-white */
+  --foreground: #2A2A2A;
+  /* Soft black */
   --card: #FFFFFF;
   --card-foreground: #2A2A2A;
   --popover: #FFFFFF;
   --popover-foreground: #2A2A2A;
-  --primary: #A89F91; /* Soft taupe/beige - muted and gentle */
+  --primary: #A89F91;
+  /* Soft taupe/beige - muted and gentle */
   --primary-foreground: #2A2A2A;
-  --secondary: #F5F5F5; /* Very light grey */
+  --secondary: #F5F5F5;
+  /* Very light grey */
   --secondary-foreground: #2A2A2A;
   --muted: #F0F0F0;
-  --muted-foreground: #6B6B6B; /* Soft grey */
-  --accent: #C9B8B0; /* Soft dusty rose/beige */
+  --muted-foreground: #6B6B6B;
+  /* Soft grey */
+  --accent: #C9B8B0;
+  /* Soft dusty rose/beige */
   --accent-foreground: #2A2A2A;
-  --destructive: #D4A5A5; /* Soft muted red */
-  --border: #E8E8E8; /* Very subtle border */
+  --destructive: #D4A5A5;
+  /* Soft muted red */
+  --border: #E8E8E8;
+  /* Very subtle border */
   --input: #F5F5F5;
-  --ring: #A89F91; /* Soft taupe ring */
+  --ring: #A89F91;
+  /* Soft taupe ring */
   --chart-1: #B8AEB8;
   --chart-2: #A8B8B8;
   --chart-3: #B8A8A8;
@@ -80,19 +92,24 @@
 }
 
 .dark {
-  --background: #1A1A1A; /* Soft dark instead of pure black */
-  --foreground: #E8E8E8; /* Soft white */
+  --background: #1A1A1A;
+  /* Soft dark instead of pure black */
+  --foreground: #E8E8E8;
+  /* Soft white */
   --card: #242424;
   --card-foreground: #E8E8E8;
   --popover: #242424;
   --popover-foreground: #E8E8E8;
-  --primary: #B8AFA0; /* Slightly lighter taupe for dark mode */
+  --primary: #B8AFA0;
+  /* Slightly lighter taupe for dark mode */
   --primary-foreground: #1A1A1A;
   --secondary: #2A2A2A;
   --secondary-foreground: #E8E8E8;
   --muted: #2A2A2A;
-  --muted-foreground: #A0A0A0; /* Soft grey */
-  --accent: #C9B8B0; /* Same soft dusty rose */
+  --muted-foreground: #A0A0A0;
+  /* Soft grey */
+  --accent: #C9B8B0;
+  /* Same soft dusty rose */
   --accent-foreground: #1A1A1A;
   --destructive: #D4A5A5;
   --border: #333333;
@@ -117,6 +134,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
