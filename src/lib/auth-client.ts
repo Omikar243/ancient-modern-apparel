@@ -17,7 +17,7 @@ export const authClient = createAuthClient({
       const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
       if (token) {
         ctx.options.headers = {
-          ...ctx.options.headers,
+          ...(ctx.options.headers || {}),
           Authorization: `Bearer ${token}`,
         };
       }
