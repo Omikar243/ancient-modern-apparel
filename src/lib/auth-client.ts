@@ -15,7 +15,7 @@ export const authClient = createAuthClient({
     credentials: 'include' as RequestCredentials,
     onRequest: (ctx) => {
       const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
-      if (token) {
+      if (token && ctx.options) {
         ctx.options.headers = {
           ...(ctx.options.headers || {}),
           Authorization: `Bearer ${token}`,
