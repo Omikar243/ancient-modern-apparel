@@ -6,9 +6,10 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const RegisterForm = () => {
   const router = useRouter();
@@ -62,41 +63,32 @@ export const RegisterForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto font-serif">
-      {/* OPAQUE/TRANSPARENT CARD: Merriweather Font Applied with Bold 700 Weight */}
-      <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-md rounded-2xl relative overflow-hidden">
-        {/* Decorative top gold strip */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gold-muted" />
-
-        <CardHeader className="text-center space-y-3 pt-12 pb-6">
-          <h1 className="text-3xl font-bold text-neutral-900">
+    <div className="w-full max-w-[480px] mx-auto z-10 relative">
+      <Card className="border-0 bg-white/10 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] rounded-2xl overflow-hidden">
+        <CardHeader className="text-center space-y-4 pt-10 pb-2">
+          <CardTitle className="text-4xl font-serif font-light text-[#1a1a1a] tracking-wide">
             Create Account
-          </h1>
-          <p className="text-neutral-700 text-sm italic font-bold">
-            Join the exclusive circle
-          </p>
+          </CardTitle>
+          <CardDescription className="text-base text-[#666666] font-light tracking-wider uppercase text-xs">
+            Join the exclusive circle.
+          </CardDescription>
         </CardHeader>
-
-        <form onSubmit={onSubmit}>
-          <CardContent className="space-y-5 px-8 sm:px-12">
+        <form onSubmit={onSubmit} className="space-y-6 p-8 pt-4">
+          <CardContent className="space-y-5 p-0">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-neutral-800">
-                Full Name
-              </Label>
+              <Label htmlFor="name" className="sr-only">Full Name</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoComplete="name"
-                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
-                placeholder="Enter your full name"
+                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                placeholder="Full Name"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-neutral-800">
-                Email Address
-              </Label>
+              <Label htmlFor="email" className="sr-only">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -104,14 +96,12 @@ export const RegisterForm = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
-                placeholder="Enter your email address"
+                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                placeholder="Email Address"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-neutral-800">
-                Password
-              </Label>
+              <Label htmlFor="password" className="sr-only">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -119,14 +109,12 @@ export const RegisterForm = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
-                placeholder="Create a password"
+                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                placeholder="Password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm" className="text-sm font-medium text-neutral-800">
-                Confirm Password
-              </Label>
+              <Label htmlFor="confirm" className="sr-only">Confirm Password</Label>
               <Input
                 id="confirm"
                 type="password"
@@ -134,23 +122,25 @@ export const RegisterForm = () => {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="h-11 rounded-lg border-neutral-300/50 bg-white/50 px-3 text-neutral-900 placeholder:text-neutral-500/70 focus:border-gold-muted focus-visible:ring-0 transition-all font-serif font-medium"
-                placeholder="Confirm your password"
+                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                placeholder="Confirm Password"
               />
             </div>
           </CardContent>
-
-          <CardFooter className="flex flex-col gap-6 pt-6 pb-12 px-8 sm:px-12">
+          <CardFooter className="flex flex-col gap-6 p-0 pt-4">
             <Button
               type="submit"
-              className="w-full h-12 rounded-full bg-gold-muted text-white hover:bg-gold-hover text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 font-serif"
+              className={cn(
+                "w-full h-12 rounded-none bg-[#C5A059] text-white text-sm font-medium tracking-widest uppercase hover:bg-[#B08D4C] transition-all duration-300 shadow-sm",
+                loading && "opacity-80 cursor-not-allowed"
+              )}
               disabled={loading}
             >
               {loading ? "Registering..." : "Register"}
             </Button>
-            <p className="text-center text-xs text-neutral-600 font-bold">
+            <p className="text-center text-xs text-[#888888] font-light">
               Already a member?{" "}
-              <Link className="text-gold-muted hover:text-gold-hover hover:underline transition-colors ml-1" href="/login">
+              <Link className="text-[#1a1a1a] border-b border-[#1a1a1a] pb-0.5 hover:text-[#C5A059] hover:border-[#C5A059] transition-colors" href="/login">
                 Sign In
               </Link>
             </p>
