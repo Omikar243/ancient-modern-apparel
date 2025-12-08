@@ -15,11 +15,8 @@ export const authClient = createAuthClient({
     credentials: 'include' as RequestCredentials,
     onRequest: (ctx) => {
       const token = typeof window !== 'undefined' ? localStorage.getItem("bearer_token") : null;
-      if (token && ctx.options) {
-        ctx.options.headers = {
-          ...(ctx.options.headers || {}),
-          Authorization: `Bearer ${token}`,
-        };
+      if (token) {
+        ctx.headers.set("Authorization", `Bearer ${token}`);
       }
     },
     onSuccess: async (ctx) => {
@@ -48,7 +45,7 @@ export const useSession = () => {
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-      
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
