@@ -3,6 +3,7 @@ import { Merriweather } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import dynamic from "next/dynamic";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
@@ -41,6 +42,7 @@ export default function RootLayout({
         />
         <ClientLayout>{children}</ClientLayout>
         <VisualEditsMessenger />
+        <SpeedInsights />
       </body>
     </html>
   );
