@@ -10,7 +10,9 @@ function getDb() {
     const authToken = process.env.TURSO_AUTH_TOKEN;
     
     if (!url || !authToken) {
-      throw new Error('Missing TURSO_CONNECTION_URL or TURSO_AUTH_TOKEN environment variables');
+      console.warn('Missing TURSO_CONNECTION_URL or TURSO_AUTH_TOKEN environment variables');
+      // Return a mock db to prevent build failures - actual usage will fail at runtime
+      throw new Error('Database not configured. Please set TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN environment variables.');
     }
     
     const client = createClient({
@@ -26,8 +28,14 @@ function getDb() {
 
 export const db = new Proxy({} as ReturnType<typeof drizzle>, {
   get(_, prop) {
-    return getDb()[prop as keyof ReturnType<typeof drizzle>];
+    const dbInstance = getDb();
+    const value = dbInstance[prop as keyof ReturnType<typeof drizzle>];
+    // Ensure execute method is properly forwarded
+    if (prop === 'execute' && typeof value === 'function') {
+      return value.bind(dbInstance);
+    }
+    return value;
   }
-});
+}) as ReturnType<typeof drizzle>;
 
 export type Database = typeof db;

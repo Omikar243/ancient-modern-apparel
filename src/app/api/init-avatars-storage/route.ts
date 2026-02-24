@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Handle 'already_exists' error gracefully (not an error)
-    if (error && error.code === 'already_exists') {
+    if (error && (error as any).code === 'already_exists') {
       console.log('Avatars bucket already exists, proceeding...');
       return NextResponse.json({
         success: true,
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Failed to create avatars bucket:', error);
       return NextResponse.json({
-        error: 'Failed to initialize avatars storage: ' + error.message
+        error: 'Failed to initialize avatars storage: ' + ((error as any).message || String(error))
       }, { status: 500 });
     }
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json({
-      error: 'Failed to initialize avatars storage: ' + error
+      error: 'Failed to initialize avatars storage: ' + String(error)
     }, { status: 500 });
   }
 }

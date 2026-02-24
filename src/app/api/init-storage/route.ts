@@ -7,9 +7,9 @@ export async function POST() {
       public: false
     });
 
-    if (error && error.code !== 'already_exists') {
+    if (error && (error as any).code !== 'already_exists') {
       console.error('Error creating bucket:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as any).message || String(error) }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, bucket: 'photos' });

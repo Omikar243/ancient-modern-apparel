@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { materials } from '@/db/schema';
 import { eq, like, or, desc } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,16 +49,17 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     const search = searchParams.get('search');
 
-    let query = db.select().from(materials);
+    const baseQuery = db.select().from(materials);
 
-    if (search) {
-      const searchCondition = or(
-        like(materials.name, `%${search}%`),
-        like(materials.origin, `%${search}%`),
-        like(materials.artisanOrigin, `%${search}%`)
-      );
-      query = query.where(searchCondition);
-    }
+    const query = search
+      ? baseQuery.where(
+          or(
+            like(materials.name, `%${search}%`),
+            like(materials.origin, `%${search}%`),
+            like(materials.artisanOrigin, `%${search}%`)
+          )
+        )
+      : baseQuery;
 
     const results = await query
       .orderBy(desc(materials.createdAt))

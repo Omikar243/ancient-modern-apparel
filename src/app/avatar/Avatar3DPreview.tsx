@@ -43,6 +43,21 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
         fbx.position.sub(center.multiplyScalar(scale));
         fbx.position.y = 0;
         
+        // Apply ceramic material to all meshes
+        fbx.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            if (!mesh.userData.originalMat) {
+              mesh.userData.originalMat = mesh.material;
+            }
+            mesh.material = new THREE.MeshStandardMaterial({
+              color: "#E0E0E0",
+              roughness: 0.8,
+              metalness: 0.0,
+            });
+          }
+        });
+        
         setModel(fbx);
       },
       undefined,
@@ -68,27 +83,24 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
     );
   }
 
+  // Apply opacity via useEffect when model or progress changes
+  useEffect(() => {
+    if (model) {
+      model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          if (mesh.material instanceof THREE.MeshStandardMaterial) {
+            mesh.material.opacity = opacity;
+            mesh.material.transparent = opacity < 1;
+          }
+        }
+      });
+    }
+  }, [model, opacity]);
+
   return (
     <group ref={groupRef}>
       <primitive object={model} />
-      {model && model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          // Apply ceramic material override
-          if (!mesh.userData.originalMat) {
-             mesh.userData.originalMat = mesh.material;
-          }
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: "#E0E0E0", // Neutral ceramic
-            roughness: 0.8,
-            metalness: 0.0,
-            transparent: true,
-            opacity: opacity
-          });
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-        }
-      })}
     </group>
   );
 }
@@ -113,6 +125,23 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
         
         fbx.position.sub(center.multiplyScalar(scale));
         fbx.position.y = 0;
+        
+        // Apply ceramic material to all meshes
+        fbx.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            if (!mesh.userData.originalMat) {
+              mesh.userData.originalMat = mesh.material;
+            }
+            mesh.material = new THREE.MeshStandardMaterial({
+              color: "#E0E0E0",
+              roughness: 0.8,
+              metalness: 0.0,
+            });
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+          }
+        });
         
         setModel(fbx);
       },
@@ -139,23 +168,24 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
     );
   }
 
+  // Apply opacity via useEffect when model or progress changes
+  useEffect(() => {
+    if (model) {
+      model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          if (mesh.material instanceof THREE.MeshStandardMaterial) {
+            mesh.material.opacity = opacity;
+            mesh.material.transparent = opacity < 1;
+          }
+        }
+      });
+    }
+  }, [model, opacity]);
+
   return (
     <group ref={groupRef}>
       <primitive object={model} />
-      {model && model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: "#E0E0E0", // Neutral ceramic
-            roughness: 0.8,
-            metalness: 0.0,
-            transparent: true,
-            opacity: opacity
-          });
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-        }
-      })}
     </group>
   );
 }

@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       offset = parsedOffset;
     }
 
-    // Build base query for users
-    let usersQuery = db.select({
+    // Build query for users with optional search filter
+    const baseSelect = db.select({
       id: user.id,
       email: user.email,
       name: user.name,
@@ -55,18 +55,16 @@ export async function GET(request: NextRequest) {
       createdAt: user.createdAt
     }).from(user);
 
-    // Apply search filter if provided
-    if (search && search.trim()) {
-      const searchTerm = search.trim();
-      usersQuery = usersQuery.where(
-        or(
-          like(user.email, `%${searchTerm}%`),
-          like(user.name, `%${searchTerm}%`)
-        )
-      );
-    }
-
     // Apply ordering, pagination and execute query
+    const usersQuery = search && search.trim()
+      ? baseSelect.where(
+          or(
+            like(user.email, `%${search.trim()}%`),
+            like(user.name, `%${search.trim()}%`)
+          )
+        )
+      : baseSelect;
+
     const users = await usersQuery
       .orderBy(desc(user.createdAt))
       .limit(limit + 1) // Get one extra to check if there are more
@@ -79,16 +77,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total users count
-    let totalUsersQuery = db.select({ count: count() }).from(user);
-    if (search && search.trim()) {
-      const searchTerm = search.trim();
-      totalUsersQuery = totalUsersQuery.where(
-        or(
-          like(user.email, `%${searchTerm}%`),
-          like(user.name, `%${searchTerm}%`)
+    const baseCountQuery = db.select({ count: count() }).from(user);
+    const totalUsersQuery = search && search.trim()
+      ? baseCountQuery.where(
+          or(
+            like(user.email, `%${search.trim()}%`),
+            like(user.name, `%${search.trim()}%`)
+          )
         )
-      );
-    }
+      : baseCountQuery;
     const totalUsersResult = await totalUsersQuery;
     const totalUsers = totalUsersResult[0]?.count || 0;
 

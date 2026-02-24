@@ -10,7 +10,7 @@ interface Params {
 
 export async function GET(
   request: NextRequest, 
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -21,7 +21,7 @@ export async function GET(
       }, { status: 401 });
     }
 
-    const { userId } = params;
+    const { userId } = await params;
 
     // Authorization check: users can only access their own designs
     if (userId !== session.user.id) {
@@ -46,7 +46,7 @@ export async function GET(
     // Parse JSON fields for response
     const parsedDesigns = userDesigns.map(design => ({
       ...design,
-      colors: typeof design.colors === 'string' ? JSON.parse(design.colors) : design.colors
+      colors: typeof (design as any).colors === 'string' ? JSON.parse((design as any).colors) : (design as any).colors
     }));
 
     return NextResponse.json(parsedDesigns);

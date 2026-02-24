@@ -10,7 +10,7 @@ interface PageProps {
   };
 }
 
-export async function GET(request: NextRequest, { params }: PageProps) {
+export async function GET(request: NextRequest, { params }: { params: Promise<PageProps['params']> }) {
   try {
     // Check authentication
     const session = await auth.api.getSession({
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: PageProps) {
       }, { status: 401 });
     }
 
-    const { userId } = params;
+    const { userId } = await params;
 
     // Validate userId parameter
     if (!userId) {

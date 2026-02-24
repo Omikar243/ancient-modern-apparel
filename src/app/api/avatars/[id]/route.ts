@@ -78,11 +78,11 @@ function validatePhotos(photos: any) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Validate ID parameter
-    const id = params.id;
+    const { id } = await params;
     if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
       return NextResponse.json(
         { 
@@ -165,11 +165,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Validate ID parameter
-    const id = params.id;
+    const { id } = await params;
     if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
       return NextResponse.json(
         { 
@@ -286,11 +286,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Validate ID parameter
-    const id = params.id;
+    const { id } = await params;
     if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
       return NextResponse.json(
         { 

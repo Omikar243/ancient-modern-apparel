@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     // Authentication check
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const { orderId } = params;
+    const { orderId } = await params;
 
     // Validate orderId is valid integer
     if (!orderId || isNaN(parseInt(orderId)) || parseInt(orderId) <= 0) {

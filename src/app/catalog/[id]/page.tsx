@@ -1,11 +1,12 @@
 import CatalogDetailClient from "./CatalogDetailClient";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function GarmentDetailPage({ params }: Props) {
-  return <CatalogDetailClient params={params} />;
+export default async function GarmentDetailPage({ params }: Props) {
+  const { id } = await params;
+  return <CatalogDetailClient params={{ id }} />;
 }

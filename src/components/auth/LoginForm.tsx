@@ -58,7 +58,7 @@ export const LoginForm = () => {
       }
       
       // Extract session token from response
-      const sessionToken = data?.session?.token || data?.token || (data as any)?.sessionToken;
+      const sessionToken = (data as any)?.session?.token || (data as any)?.token || (data as any)?.sessionToken;
       
       if (sessionToken) {
         // Store token for API requests

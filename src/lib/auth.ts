@@ -26,6 +26,7 @@ function getAuth() {
         ? ["*"] 
         : [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"],
       plugins: [bearer()],
+      telemetry: false, // Disable telemetry to avoid Edge Runtime issues
     });
   }
   return _auth;

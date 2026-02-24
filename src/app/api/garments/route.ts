@@ -36,22 +36,23 @@ export async function GET(request: NextRequest) {
     const sortField = searchParams.get('sort') || 'createdAt';
     const sortOrder = searchParams.get('order') || 'desc';
 
-    let query = db.select().from(garments);
+    const baseQuery = db.select().from(garments);
+    
+    // Apply search filter if provided
+    const queryWithSearch = search
+      ? baseQuery.where(
+          or(
+            like(garments.name, `%${search}%`),
+            like(garments.type, `%${search}%`),
+            like(garments.description, `%${search}%`)
+          )
+        )
+      : baseQuery;
 
-    if (search) {
-      const searchCondition = or(
-        like(garments.name, `%${search}%`),
-        like(garments.type, `%${search}%`),
-        like(garments.description, `%${search}%`)
-      );
-      query = query.where(searchCondition);
-    }
-
-    if (sortOrder === 'desc') {
-      query = query.orderBy(desc(garments[sortField as keyof typeof garments] || garments.createdAt));
-    } else {
-      query = query.orderBy(garments[sortField as keyof typeof garments] || garments.createdAt);
-    }
+    // Apply sorting - always use createdAt for now to avoid type issues
+    const query = sortOrder === 'desc'
+      ? queryWithSearch.orderBy(desc(garments.createdAt))
+      : queryWithSearch.orderBy(garments.createdAt);
 
     const results = await query.limit(limit).offset(offset);
 

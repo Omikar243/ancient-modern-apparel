@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         email: session.user.email,
         name: session.user.name,
       },
-      expires: session.expiresAt,
+      expires: session.session.expiresAt,
     }, { status: 200 });
   } catch (error) {
     console.error('Session fetch error:', error);

@@ -1,5 +1,3 @@
-"use client"
-
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { userAvatars } from '@/db/schema';
@@ -9,11 +7,11 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Validate ID parameter
-    const id = params.id;
+    const { id } = await params;
     if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
       return NextResponse.json(
         { 

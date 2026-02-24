@@ -238,6 +238,7 @@ function FemaleAvatarFallback({ visible }: { visible: boolean }) {
 function HeroModel({ gender }: { gender: "male" | "female" }) {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<THREE.Group | null>(null);
+  const [wireframeModel, setWireframeModel] = useState<THREE.Group | null>(null);
   const [loadError, setLoadError] = useState(false);
 
   // Reset error state when gender changes
@@ -263,8 +264,35 @@ function HeroModel({ gender }: { gender: "male" | "female" }) {
         
         fbx.position.sub(center.multiplyScalar(scale));
         fbx.position.y = -1; // Position lower for hero view
-        
+
+        // Base shaded material
+        fbx.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.material = new THREE.MeshStandardMaterial({
+              color: gender === "male" ? "#d4b5a0" : "#e8c9b8",
+              roughness: 0.4,
+              metalness: 0.3,
+            });
+          }
+        });
+
+        // Create a separate wireframe clone
+        const wireClone = fbx.clone();
+        wireClone.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.material = new THREE.MeshBasicMaterial({
+              color: gender === "male" ? "#10b981" : "#ec4899",
+              wireframe: true,
+              transparent: true,
+              opacity: 0.1,
+            });
+          }
+        });
+
         setModel(fbx);
+        setWireframeModel(wireClone);
         setLoadError(false);
       },
       undefined,
@@ -286,33 +314,9 @@ function HeroModel({ gender }: { gender: "male" | "female" }) {
 
   return (
     <group ref={groupRef}>
-      <primitive object={model} />
-      {/* Apply material to model */}
-      {model && model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: gender === "male" ? "#d4b5a0" : "#e8c9b8",
-            roughness: 0.4,
-            metalness: 0.3,
-          });
-        }
-      })}
-      
+      {model && <primitive object={model} />}
       {/* Wireframe overlay effect for "tech" feel */}
-      <primitive object={model.clone()}>
-        {model.clone().traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh;
-            mesh.material = new THREE.MeshBasicMaterial({
-              color: gender === "male" ? "#10b981" : "#ec4899",
-              wireframe: true,
-              transparent: true,
-              opacity: 0.1
-            });
-          }
-        })}
-      </primitive>
+      {wireframeModel && <primitive object={wireframeModel} />}
     </group>
   );
 }

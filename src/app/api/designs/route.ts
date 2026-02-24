@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     // Parse JSON fields for response
     const parsedResults = results.map(design => ({
       ...design,
-      colors: typeof design.colors === 'string' ? JSON.parse(design.colors) : design.colors
+      colors: typeof (design as any).colors === 'string' ? JSON.parse((design as any).colors) : (design as any).colors
     }));
 
     return NextResponse.json(parsedResults);
@@ -103,28 +103,36 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Prepare insert data
+    // Prepare insert data - match schema fields
     const now = new Date().toISOString();
     const insertData = {
       userId: session.user.id,
-      templateId: templateId.trim(),
-      materialId,
-      customDesignUrl: customDesignUrl?.trim() || null,
-      colors,
-      status: status || 'draft',
-      orderId: orderId || null,
+      avatarMeasurements: body.avatarMeasurements || {},
+      photoUrls: body.photoUrls || [],
+      designData: {
+        templateId: templateId.trim(),
+        materialId,
+        customDesignUrl: customDesignUrl?.trim() || null,
+        colors,
+        status: status || 'draft',
+        orderId: orderId || null,
+      },
       createdAt: now,
       updatedAt: now
     };
 
     const newDesign = await db.insert(designs)
-      .values(insertData)
+      .values(insertData as any)
       .returning();
 
     // Parse JSON fields for response
+    const designData = typeof newDesign[0].designData === 'string' 
+      ? JSON.parse(newDesign[0].designData as string) 
+      : newDesign[0].designData;
     const responseDesign = {
       ...newDesign[0],
-      colors: typeof newDesign[0].colors === 'string' ? JSON.parse(newDesign[0].colors) : newDesign[0].colors
+      designData,
+      colors: designData?.colors || null
     };
 
     return NextResponse.json(responseDesign, { status: 201 });
