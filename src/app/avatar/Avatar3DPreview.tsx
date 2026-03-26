@@ -26,6 +26,7 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<THREE.Group | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const opacity = 0.5 + (progress / 4) * 0.5; // Start at 0.5 visibility
 
   useEffect(() => {
     const loader = new FBXLoader();
@@ -68,22 +69,7 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
     );
   }, []);
 
-  const opacity = 0.5 + (progress / 4) * 0.5; // Start at 0.5 visibility
-
-  if (loadError) {
-    return <MaleAvatar progress={progress} />;
-  }
-
-  if (!model) {
-    return (
-      <mesh position={[0, 0.9, 0]}>
-        <boxGeometry args={[0.5, 1.8, 0.3]} />
-        <CeramicMaterial opacity={0.3} color="#d4b5a0" />
-      </mesh>
-    );
-  }
-
-  // Apply opacity via useEffect when model or progress changes
+  // Apply opacity when model or progress changes
   useEffect(() => {
     if (model) {
       model.traverse((child) => {
@@ -98,6 +84,19 @@ function MaleAvatarFBX({ progress }: { progress: number }) {
     }
   }, [model, opacity]);
 
+  if (loadError) {
+    return <MaleAvatar progress={progress} />;
+  }
+
+  if (!model) {
+    return (
+      <mesh position={[0, 0.9, 0]}>
+        <boxGeometry args={[0.5, 1.8, 0.3]} />
+        <CeramicMaterial opacity={0.3} color="#d4b5a0" />
+      </mesh>
+    );
+  }
+
   return (
     <group ref={groupRef}>
       <primitive object={model} />
@@ -109,6 +108,7 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<THREE.Group | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const opacity = 0.5 + (progress / 4) * 0.5;
 
   useEffect(() => {
     const loader = new FBXLoader();
@@ -152,23 +152,7 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
       }
     );
   }, []);
-
-  const opacity = 0.5 + (progress / 4) * 0.5;
-
-  if (loadError) {
-    return <FemaleAvatar progress={progress} />;
-  }
-
-  if (!model) {
-    return (
-      <mesh position={[0, 0.9, 0]}>
-        <boxGeometry args={[0.5, 1.8, 0.3]} />
-        <CeramicMaterial opacity={0.3} color="#e8c9b8" />
-      </mesh>
-    );
-  }
-
-  // Apply opacity via useEffect when model or progress changes
+  // Apply opacity when model or progress changes
   useEffect(() => {
     if (model) {
       model.traverse((child) => {
@@ -182,6 +166,19 @@ function FemaleAvatarFBX({ progress }: { progress: number }) {
       });
     }
   }, [model, opacity]);
+
+  if (loadError) {
+    return <FemaleAvatar progress={progress} />;
+  }
+
+  if (!model) {
+    return (
+      <mesh position={[0, 0.9, 0]}>
+        <boxGeometry args={[0.5, 1.8, 0.3]} />
+        <CeramicMaterial opacity={0.3} color="#e8c9b8" />
+      </mesh>
+    );
+  }
 
   return (
     <group ref={groupRef}>

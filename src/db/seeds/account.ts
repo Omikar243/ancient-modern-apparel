@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { account } from '@/db/schema';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 
 async function main() {

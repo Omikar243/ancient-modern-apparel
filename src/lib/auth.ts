@@ -3,7 +3,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { NextRequest } from 'next/server';
 import { db } from "@/db";
 import { bearer } from "better-auth/plugins";
-import { Headers } from 'next/server'
 
 let _auth: ReturnType<typeof betterAuth> | null = null;
 
@@ -26,7 +25,9 @@ function getAuth() {
         ? ["*"] 
         : [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"],
       plugins: [bearer()],
-      telemetry: false, // Disable telemetry to avoid Edge Runtime issues
+      telemetry: {
+        enabled: false,
+      },
     });
   }
   return _auth;

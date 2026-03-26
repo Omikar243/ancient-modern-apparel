@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -57,7 +58,7 @@ export function Navbar() {
       }`}
     >
       <div className="container mx-auto px-4 md:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-6 lg:gap-10">
           {/* Logo */}
           <Link href="/" className="relative z-50 group">
             <h1 className={`text-3xl md:text-4xl font-serif font-bold tracking-tight transition-colors ${isScrolled ? "text-foreground" : "text-foreground"}`}>
@@ -94,6 +95,7 @@ export function Navbar() {
                   <User className="w-4 h-4" />
                   {session.user.name || session.user.email?.split('@')[0]}
                 </Link>
+                <ThemeToggle />
                 <Button 
                   variant="ghost"
                   size="sm"
@@ -112,6 +114,7 @@ export function Navbar() {
                 >
                   Login
                 </Link>
+                <ThemeToggle />
                 <Link href="/register">
                   <Button 
                     variant="outline" 
@@ -126,14 +129,20 @@ export function Navbar() {
 
           {/* Mobile Toggle */}
           <div className="md:hidden z-50 flex items-center gap-4">
-             <Link href="/cart">
-              <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/cart">
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Open cart"
+                title="Cart"
+              >
                 <ShoppingCart className="w-5 h-5" />
               </button>
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-foreground"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              title={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>

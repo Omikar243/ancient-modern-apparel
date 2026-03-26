@@ -8,6 +8,7 @@ import { useAuthSession } from "@/lib/useAuthSession";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function NavBar({ className }: { className?: string }) {
   const pathname = usePathname();
@@ -43,6 +44,7 @@ export function NavBar({ className }: { className?: string }) {
 
   return (
     <nav className={cn("flex items-center space-x-6", className)}>
+      <ThemeToggle />
       <Link href="/avatar" className={isActive("/avatar")}>
         Avatar
       </Link>
