@@ -61,7 +61,6 @@ export default function CatalogClient() {
     // Public access - always load catalog
     fetchGarments();
     fetchMaterials();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchGarments = async () => {

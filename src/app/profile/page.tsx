@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { ArrowUpRight, Clock, Heart, ShoppingBag, Plus, ShoppingCart } from "lucide-react";
 
 export default function ProfilePage() {

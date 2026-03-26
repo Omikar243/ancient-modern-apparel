@@ -3,6 +3,10 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { NextRequest } from 'next/server';
 import { db } from "@/db";
 import { bearer } from "better-auth/plugins";
+import {
+  safeDeleteUserFromSupabaseAuth,
+  safeSyncUserToSupabaseAuth,
+} from "@/lib/supabase-user-sync";
 
 let _auth: ReturnType<typeof betterAuth> | null = null;
 
@@ -27,6 +31,25 @@ function getAuth() {
       plugins: [bearer()],
       telemetry: {
         enabled: false,
+      },
+      databaseHooks: {
+        user: {
+          create: {
+            after: async (user) => {
+              await safeSyncUserToSupabaseAuth(user);
+            },
+          },
+          update: {
+            after: async (user) => {
+              await safeSyncUserToSupabaseAuth(user);
+            },
+          },
+          delete: {
+            after: async (user) => {
+              await safeDeleteUserFromSupabaseAuth(user);
+            },
+          },
+        },
       },
     });
   }
