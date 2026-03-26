@@ -9,6 +9,7 @@ import { GlobalBackground } from "@/components/layout/GlobalBackground";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
+import { getSupabasePublicUrl } from "@/lib/supabase-assets";
 
 // Remove old heroImages and featuredProducts definition as we'll redefine them or use dynamic components
 
@@ -40,10 +41,10 @@ const features = [
 ];
 
 const featuredProducts = [
-  { id: 1, name: "Saree Modern", price: "$89", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg", category: "Women" },
-  { id: 2, name: "Kurta Blend", price: "$65", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg", category: "Men" },
-  { id: 3, name: "Anarkali Fusion", price: "$120", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/ethnic-wear-fusion%2c-blending-ancient-i-ec0d520f-20250925192112.jpg", category: "Women" },
-  { id: 4, name: "Royal Sherwani", price: "$150", image: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg", category: "Men" },
+  { id: 1, name: "Saree Modern", price: "$89", image: getSupabasePublicUrl("project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/woman-in-saree-with-modern-twist%2c-fusi-7bb4767e-20250925192050.jpg"), category: "Women" },
+  { id: 2, name: "Kurta Blend", price: "$65", image: getSupabasePublicUrl("project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg"), category: "Men" },
+  { id: 3, name: "Anarkali Fusion", price: "$120", image: getSupabasePublicUrl("project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/ethnic-wear-fusion%2c-blending-ancient-i-ec0d520f-20250925192112.jpg"), category: "Women" },
+  { id: 4, name: "Royal Sherwani", price: "$150", image: getSupabasePublicUrl("project-uploads/f519de12-627b-4639-a618-2eb11a7b20bc/generated_images/traditional-indian-attire%2c-ancient-clo-b7ef4ecc-20250925192058.jpg"), category: "Men" },
 ];
 
 export default function Home() {
