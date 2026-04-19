@@ -71,6 +71,21 @@ This repository is currently centered on proving the end-to-end concept:
 - `npm run build` creates a production build
 - `npm run start` runs the production server
 - `npm run lint` runs linting
+- `npm run typecheck` runs TypeScript checking
+- `npm run db:push` pushes the current Drizzle schema to Turso
+- `npm run backend:dev` starts the local Python avatar pipeline service
+
+## Avatar Local Validation
+
+To validate the new 4-view avatar flow locally:
+
+1. Install frontend dependencies with `npm install`
+2. Install backend dependencies with `python -m pip install -r backend/requirements.txt`
+3. Push the schema with `npm run db:push`
+4. Set `AVATAR_PIPELINE_URL=http://127.0.0.1:8000` in `.env`
+5. Start the Python service with `npm run backend:dev`
+6. Start Next.js with `npm run dev`
+7. Open `/avatar` and complete the upload -> process -> preview flow
 
 ## Release
 

@@ -3,6 +3,21 @@ import { db } from '@/db';
 import { avatars } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
+import { getLatestLegacyAvatarExtras } from '@/lib/avatar-session-service';
+
+function parseMaybeJson(value: any): any {
+  let current = value;
+  while (typeof current === 'string') {
+    try {
+      const parsed = JSON.parse(current);
+      if (parsed === current) break;
+      current = parsed;
+    } catch {
+      break;
+    }
+  }
+  return current;
+}
 
 // Validation helper functions
 function validateMeasurements(measurements: any) {
@@ -96,11 +111,15 @@ export async function GET(request: NextRequest) {
       .offset(offset);
 
     // Parse JSON fields for response
+    const legacyExtras = await getLatestLegacyAvatarExtras(session.user.id);
+
     const parsedAvatars = userAvatars.map(avatar => ({
       id: avatar.id,
       userId: avatar.userId,
-      measurements: typeof avatar.measurements === 'string' ? JSON.parse(avatar.measurements) : avatar.measurements,
-      photos: typeof avatar.photos === 'string' ? JSON.parse(avatar.photos) : avatar.photos,
+      measurements: parseMaybeJson(avatar.measurements),
+      photos: parseMaybeJson(avatar.photos),
+      fittedModelUrl: legacyExtras.fittedModelUrl,
+      avatarSessionId: legacyExtras.avatarSessionId,
       createdAt: avatar.createdAt,
       updatedAt: avatar.updatedAt
     }));

@@ -6,7 +6,10 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "typecheck": "tsc --noEmit",
+        "db:push": "drizzle-kit push",
+        "backend:dev": "python -m uvicorn backend.service:app --reload --app-dir ."
     },
     "dependencies": {
         "@babel/parser": "^7.28.4",

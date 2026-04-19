@@ -83,6 +83,9 @@ export const garments = sqliteTable('garments', {
   imageUrl: text('image_url'),
   price: real('price').notNull(),
   category: text('category').notNull(),
+  measurements: text('measurements', { mode: 'json' }),
+  qualityRating: integer('quality_rating'),
+  history: text('history'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
@@ -126,6 +129,25 @@ export const avatars = sqliteTable('avatars', {
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   measurements: text('measurements', { mode: 'json' }).notNull(),
   photos: text('photos', { mode: 'json' }).notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const avatarSessions = sqliteTable('avatar_sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  status: text('status').notNull(),
+  captureViews: text('capture_views', { mode: 'json' }).notNull(),
+  inputImageUrls: text('input_image_urls', { mode: 'json' }).notNull(),
+  normalizedImageUrls: text('normalized_image_urls', { mode: 'json' }).default('{}'),
+  maskUrls: text('mask_urls', { mode: 'json' }).default('{}'),
+  previewImageUrls: text('preview_image_urls', { mode: 'json' }).default('[]'),
+  resultGlbUrl: text('result_glb_url'),
+  resultObjUrl: text('result_obj_url'),
+  resultMeta: text('result_meta', { mode: 'json' }).default('{}'),
+  pipelineVersion: text('pipeline_version').notNull().default('phase1-smpl-baseline'),
+  errorCode: text('error_code'),
+  errorMessage: text('error_message'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

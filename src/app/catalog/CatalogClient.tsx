@@ -26,6 +26,31 @@ interface Garment {
   category: string;
 }
 
+function savePreviewGarment(garment: Garment, userAvatar: any) {
+  sessionStorage.setItem(
+    "previewGarment",
+    JSON.stringify({
+      garmentId: garment.id,
+      garment: {
+        id: garment.id,
+        name: garment.name,
+        garment: garment.name,
+        material: "Selected Material",
+        color: "blue",
+        price: garment.price,
+        imageUrl: garment.imageUrl || "/placeholder.svg",
+        description: garment.description,
+      },
+      avatarData: userAvatar
+        ? {
+            measurements: userAvatar.measurements,
+            modelUrl: userAvatar.fittedModelUrl,
+          }
+        : null,
+    })
+  );
+}
+
 interface Material {
   id: number;
   name: string;
@@ -103,7 +128,9 @@ export default function CatalogClient() {
         const response = await fetch("/api/avatars/by-user/" + session.user.id);
         if (response.ok) {
           const avatarsData = await response.json();
-          const latestAvatar = avatarsData.length > 0 ? avatarsData[0] : null;
+          const latestAvatar = Array.isArray(avatarsData)
+            ? (avatarsData.length > 0 ? avatarsData[0] : null)
+            : avatarsData;
           setUserAvatar(latestAvatar);
         } else {
           setAvatarError("No avatar found, using defaults");
@@ -134,34 +161,45 @@ export default function CatalogClient() {
     setFilteredGarments(filtered);
   }, [garments, searchTerm, selectedCategory, priceRange]);
 
-  const handleAddToCart = (garment: Garment) => {
+  const loadLatestAvatar = async () => {
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    const response = await fetch(`/api/avatars/by-user/${session.user.id}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const latestAvatar = Array.isArray(data) ? data[0] : data;
+    setUserAvatar(latestAvatar);
+    setAvatarError(null);
+    return latestAvatar;
+  };
+
+  const handlePreview = (garment: Garment) => {
     if (!session?.user) {
-      toast.error("Please log in to customize and add garments to your cart.");
+      toast.error("Please log in to preview garments on your avatar.");
       router.push("/login?redirect=/catalog");
       return;
     }
-    const cartItem = {
-      id: garment.id,
-      name: garment.name,
-      price: garment.price,
-      imageUrl: garment.imageUrl || "/placeholder.svg",
+    const openPreview = async () => {
+      const latestAvatar = userAvatar || await loadLatestAvatar();
+      if (!latestAvatar) {
+        toast.warning("Create your avatar first to preview garments.");
+        router.push("/avatar");
+        return;
+      }
+      savePreviewGarment(garment, latestAvatar);
+      router.push(`/preview?garmentId=${garment.id}`);
     };
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (!cart.find((item: any) => item.id === garment.id)) {
-      cart.push(cartItem);
-      localStorage.setItem("cart", JSON.stringify(cart));
-      toast.success(`${garment.name} added to cart`);
-    } else {
-      toast.info("Item already in cart");
-    }
-    if (!userAvatar) {
-      toast.warning("Create your avatar first to preview garments.");
-      router.push("/avatar");
-      return;
-    }
-    const avatarData = userAvatar ? { measurements: userAvatar.measurements, modelUrl: userAvatar.fittedModelUrl } : null;
-    sessionStorage.setItem("previewGarment", JSON.stringify({ garmentId: garment.id, avatarData }));
-    router.push("/preview");
+
+    void openPreview();
   };
 
   if (loading) {
@@ -307,11 +345,10 @@ export default function CatalogClient() {
                       className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-2xl bg-background/60 backdrop-blur-sm hover:border-primary/30 hover:scale-105 h-full"
                     >
                       <div className="relative h-64 overflow-hidden rounded-t-2xl">
-                        <Image 
+                        <img 
                           src={garment.imageUrl || "/placeholder.svg"} 
                           alt={garment.name} 
-                          fill 
-                          className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </div>
@@ -336,10 +373,10 @@ export default function CatalogClient() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleAddToCart(garment);
+                            handlePreview(garment);
                           }}
                         >
-                          {session?.user ? "Curate in Atelier" : "Reveal Your Form"}
+                          {session?.user ? "Preview on My Avatar" : "Reveal Your Form"}
                         </Button>
                       </CardContent>
                     </Card>

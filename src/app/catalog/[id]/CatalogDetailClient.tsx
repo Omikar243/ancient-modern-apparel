@@ -27,6 +27,7 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
   const [garment, setGarment] = useState<GarmentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<any>(null);
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const id = params.id;
@@ -50,6 +51,31 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
     if (id) fetchGarment();
   }, [id]);
 
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (!session?.user?.id) {
+        setUserAvatar(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/avatars/by-user/${session.user.id}`);
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setUserAvatar(Array.isArray(data) ? data[0] : data);
+      } catch (avatarError) {
+        console.error("Avatar fetch error:", avatarError);
+      }
+    };
+
+    if (!isPending) {
+      void fetchUserAvatar();
+    }
+  }, [session?.user?.id, isPending]);
+
   const handleAddToCart = () => {
     if (!session?.user) {
       toast.error("Please log in to add to cart.");
@@ -72,6 +98,60 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
       toast.info("Item already in cart");
     }
     router.push("/cart");
+  };
+
+  const handlePreview = () => {
+    const openPreview = async () => {
+      let latestAvatar = userAvatar;
+      if (!latestAvatar && session?.user?.id) {
+        const response = await fetch(`/api/avatars/by-user/${session.user.id}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          latestAvatar = Array.isArray(data) ? data[0] : data;
+          setUserAvatar(latestAvatar);
+        }
+      }
+
+      if (!latestAvatar) {
+        toast.warning("Create your avatar first to preview garments.");
+        router.push("/avatar");
+        return;
+      }
+
+      sessionStorage.setItem(
+        "previewGarment",
+        JSON.stringify({
+          garmentId: garment!.id,
+          garment: {
+            id: garment!.id,
+            name: garment!.name,
+            garment: garment!.name,
+            material: "Selected Material",
+            color: "blue",
+            price: garment!.price,
+            imageUrl: garment!.imageUrl || "/placeholder.svg",
+            description: garment!.description,
+          },
+          avatarData: {
+            measurements: latestAvatar.measurements,
+            modelUrl: latestAvatar.fittedModelUrl,
+          },
+        })
+      );
+
+      router.push(`/preview?garmentId=${garment!.id}`);
+    };
+
+    if (!session?.user) {
+      toast.error("Please log in to preview garments.");
+      router.push("/login?redirect=/catalog");
+      return;
+    }
+    if (!garment) return;
+    void openPreview();
   };
 
   if (loading) {
@@ -107,11 +187,10 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
 
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           <div className="relative h-96 rounded-lg overflow-hidden">
-            <Image
+            <img
               src={garment.imageUrl || "/placeholder.svg"}
               alt={garment.name}
-              fill
-              className="object-cover"
+              className="h-full w-full object-cover"
             />
           </div>
 
@@ -140,9 +219,14 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
 
             <div className="space-y-2">
               <p className="text-muted-foreground">{garment.description}</p>
-              <Button onClick={handleAddToCart} className="w-full">
-                Add to Cart
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={handlePreview} className="flex-1">
+                  Preview on My Avatar
+                </Button>
+                <Button onClick={handleAddToCart} variant="outline" className="flex-1">
+                  Add to Cart
+                </Button>
+              </div>
             </div>
           </div>
         </div>
