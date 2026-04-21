@@ -213,31 +213,31 @@ export default function Preview() {
     }
   }, [router, session?.user]);
 
-  const activeLook = selectedDesign
+  const activeLook = garmentForPreview
     ? {
-        source: "design" as const,
-        title: selectedDesign.name,
-        garment: selectedDesign.garment,
-        material: selectedDesign.material,
-        color: selectedDesign.color,
-        purchased: selectedDesign.purchased,
-        measurements: selectedDesign.measurements,
-        bodyType: selectedDesign.bodyType || { hourglass: 50, athletic: 50 },
-        skinTone: selectedDesign.skinTone || "peachpuff",
-        description: selectedDesign.description,
+        source: "catalog" as const,
+        title: garmentForPreview.name,
+        garment: garmentForPreview.garment,
+        material: garmentForPreview.material,
+        color: garmentForPreview.color,
+        purchased: true,
+        measurements: userAvatar?.measurements || defaultMeasurements,
+        bodyType: { hourglass: 50, athletic: 50 },
+        skinTone: "peachpuff",
+        description: garmentForPreview.description || "Previewing the selected garment on your latest avatar.",
       }
-    : garmentForPreview
+    : selectedDesign
       ? {
-          source: "catalog" as const,
-          title: garmentForPreview.name,
-          garment: garmentForPreview.garment,
-          material: garmentForPreview.material,
-          color: garmentForPreview.color,
-          purchased: true,
-          measurements: userAvatar?.measurements || defaultMeasurements,
-          bodyType: { hourglass: 50, athletic: 50 },
-          skinTone: "peachpuff",
-          description: garmentForPreview.description || "Previewing the selected garment on your latest avatar.",
+          source: "design" as const,
+          title: selectedDesign.name,
+          garment: selectedDesign.garment,
+          material: selectedDesign.material,
+          color: selectedDesign.color,
+          purchased: selectedDesign.purchased,
+          measurements: selectedDesign.measurements,
+          bodyType: selectedDesign.bodyType || { hourglass: 50, athletic: 50 },
+          skinTone: selectedDesign.skinTone || "peachpuff",
+          description: selectedDesign.description,
         }
       : null;
 

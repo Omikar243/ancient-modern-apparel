@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Loader2, UploadCloud } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,7 @@ async function validateImageFile(file: File) {
 
 export default function Upload4Views() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, isPending } = useSession();
   const [files, setFiles] = useState<FileMap>(initialFiles);
   const [previews, setPreviews] = useState<PreviewMap>(initialPreviews);
@@ -81,6 +82,36 @@ export default function Upload4Views() {
       router.push("/login?redirect=/avatar");
     }
   }, [isPending, router, session?.user]);
+
+  useEffect(() => {
+    const restoreLatestAvatar = async () => {
+      if (!session?.user || searchParams.get("fresh") === "1") {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/avatar/latest", {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        if (data?.sessionId) {
+          router.replace(`/avatar/${data.sessionId}`);
+        }
+      } catch (restoreError) {
+        console.error("Failed to restore latest avatar session:", restoreError);
+      }
+    };
+
+    if (!isPending) {
+      void restoreLatestAvatar();
+    }
+  }, [isPending, router, searchParams, session?.user]);
 
   const readyCount = useMemo(
     () => REQUIRED_VIEWS.filter((view) => files[view] && !errors[view]).length,

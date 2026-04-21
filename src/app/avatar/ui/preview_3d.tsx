@@ -128,7 +128,7 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
           </div>
           <div className="flex gap-3">
             <Button variant="outline" asChild>
-              <Link href="/avatar">Start Over</Link>
+              <Link href="/avatar?fresh=1">Start Over</Link>
             </Button>
             {result?.modelUrl ? (
               <Button asChild>

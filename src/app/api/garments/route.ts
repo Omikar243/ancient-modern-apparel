@@ -4,6 +4,23 @@ import { garments } from '@/db/schema';
 import { eq, like, or, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 
+function mapGarment(garment: any) {
+  return {
+    id: garment.id,
+    name: garment.name,
+    type: garment.type,
+    description: garment.description,
+    imageUrl: garment.imageUrl ?? garment.image_url ?? null,
+    price: garment.price,
+    category: garment.category,
+    measurements: garment.measurements ?? null,
+    qualityRating: garment.qualityRating ?? garment.quality_rating ?? null,
+    history: garment.history ?? null,
+    createdAt: garment.createdAt ?? garment.created_at,
+    updatedAt: garment.updatedAt ?? garment.updated_at,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     // No authentication required for GET requests - catalog data is public
@@ -27,7 +44,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Garment not found' }, { status: 404 });
       }
 
-      return NextResponse.json(garment[0]);
+      return NextResponse.json(mapGarment(garment[0]));
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
@@ -56,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     const results = await query.limit(limit).offset(offset);
 
-    return NextResponse.json(results);
+    return NextResponse.json(results.map(mapGarment));
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json({ 
@@ -118,7 +135,7 @@ export async function POST(request: NextRequest) {
       .values(insertData)
       .returning();
 
-    return NextResponse.json(newGarment[0], { status: 201 });
+    return NextResponse.json(mapGarment(newGarment[0]), { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json({ 
@@ -213,7 +230,7 @@ export async function PUT(request: NextRequest) {
       .where(eq(garments.id, parseInt(id)))
       .returning();
 
-    return NextResponse.json(updated[0]);
+    return NextResponse.json(mapGarment(updated[0]));
   } catch (error) {
     console.error('PUT error:', error);
     return NextResponse.json({ 
@@ -254,7 +271,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Garment deleted successfully',
-      deletedGarment: deleted[0]
+      deletedGarment: mapGarment(deleted[0])
     });
   } catch (error) {
     console.error('DELETE error:', error);

@@ -45,6 +45,9 @@ export function NavBar({ className }: { className?: string }) {
   return (
     <nav className={cn("flex items-center space-x-6", className)}>
       <ThemeToggle />
+      <Link href="/" className={isActive("/")}>
+        Home
+      </Link>
       <Link href="/avatar" className={isActive("/avatar")}>
         Avatar
       </Link>
