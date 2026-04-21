@@ -8,7 +8,9 @@ import {
   safeSyncUserToSupabaseAuth,
 } from "@/lib/supabase-user-sync";
 
-let _auth: ReturnType<typeof betterAuth> | null = null;
+type AuthInstance = ReturnType<typeof betterAuth>;
+
+let _auth: AuthInstance | null = null;
 
 function getAuth() {
   if (!_auth) {
@@ -56,10 +58,20 @@ function getAuth() {
   return _auth;
 }
 
-// Export the auth instance directly - no proxy needed
-export const auth = getAuth();
+export const auth = new Proxy({} as AuthInstance, {
+  get(_, prop) {
+    const instance = getAuth();
+    const value = instance[prop as keyof AuthInstance];
+
+    if (typeof value === "function") {
+      return value.bind(instance);
+    }
+
+    return value;
+  },
+}) as AuthInstance;
 
 export async function getCurrentUser(headers: Headers) {
-  const session = await auth.api.getSession({ headers });
+  const session = await getAuth().api.getSession({ headers });
   return session?.user || null;
 }
