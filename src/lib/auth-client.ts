@@ -50,7 +50,7 @@ export const useSession = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${getBaseURL()}/api/auth/get-session`, {
+      const response = await fetch(`${getBaseURL()}/api/auth/session`, {
         method: 'GET',
         headers,
         credentials: 'include',
