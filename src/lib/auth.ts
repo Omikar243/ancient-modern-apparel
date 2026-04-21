@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { NextRequest } from 'next/server';
 import { db } from "@/db";
 import { bearer } from "better-auth/plugins";
 import {
@@ -12,8 +11,43 @@ type AuthInstance = ReturnType<typeof betterAuth>;
 
 let _auth: AuthInstance | null = null;
 
+function getConfiguredSiteUrl() {
+  if (process.env.BETTER_AUTH_URL) {
+    return process.env.BETTER_AUTH_URL;
+  }
+
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return "http://localhost:3000";
+}
+
+function getTrustedOrigins(siteUrl: string) {
+  if (process.env.NODE_ENV === "development") {
+    return ["*"];
+  }
+
+  return Array.from(
+    new Set(
+      [
+        siteUrl,
+        process.env.BETTER_AUTH_URL,
+        process.env.NEXT_PUBLIC_SITE_URL,
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+      ].filter((value): value is string => Boolean(value))
+    )
+  );
+}
+
 function getAuth() {
   if (!_auth) {
+    const siteUrl = getConfiguredSiteUrl();
+
     _auth = betterAuth({
       database: drizzleAdapter(db, {
         provider: "sqlite",
@@ -26,10 +60,8 @@ function getAuth() {
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // Update every 24 hours
       },
-      baseURL: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-      trustedOrigins: process.env.NODE_ENV === "development" 
-        ? ["*"] 
-        : [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"],
+      baseURL: siteUrl,
+      trustedOrigins: getTrustedOrigins(siteUrl),
       plugins: [bearer()],
       telemetry: {
         enabled: false,
