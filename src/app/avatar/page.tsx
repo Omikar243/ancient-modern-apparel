@@ -1,5 +1,11 @@
+import { Suspense } from "react";
+
 import Upload4Views from "./ui/upload_4_views";
 
 export default function AvatarPage() {
-  return <Upload4Views />;
+  return (
+    <Suspense fallback={null}>
+      <Upload4Views />
+    </Suspense>
+  );
 }
