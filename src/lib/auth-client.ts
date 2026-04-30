@@ -47,6 +47,16 @@ export const authClient = createAuthClient({
   }
 });
 
+export function clearClientAuthState() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.removeItem("bearer_token");
+  document.cookie = "bearer_token=; path=/; max-age=0; SameSite=Lax";
+  document.cookie = "bearer_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+}
+
 // Custom session hook that properly handles bearer tokens in iframe environments
 export const useSession = () => {
   const [session, setSession] = useState<any>(null);

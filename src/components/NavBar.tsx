@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { useAuthSession } from "@/lib/useAuthSession";
-import { authClient } from "@/lib/auth-client";
+import { authClient, clearClientAuthState } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -16,19 +16,27 @@ export function NavBar({ className }: { className?: string }) {
   const { data: session, isPending } = useAuthSession();
 
   const handleSignOut = async () => {
+    let remoteSignOutFailed = false;
+
     try {
       const { error } = await authClient.signOut();
       if (error?.code) {
-        toast.error(error.code);
-        return;
+        remoteSignOutFailed = true;
       }
-      localStorage.removeItem("bearer_token");
-      toast.success("Logged out successfully");
-      router.push("/");
-      router.refresh(); // Refresh to update session
     } catch (error) {
-      toast.error("Logout failed");
+      remoteSignOutFailed = true;
+    } finally {
+      clearClientAuthState();
+      router.replace("/");
+      router.refresh();
     }
+
+    if (remoteSignOutFailed) {
+      toast.error("Signed out locally. Refresh if your session appears to persist.");
+      return;
+    }
+
+    toast.success("Logged out successfully");
   };
 
   const isActive = (path: string) => pathname === path ? "text-primary font-semibold underline underline-offset-4" : "text-foreground hover:text-primary transition-colors hover:underline underline-offset-4";

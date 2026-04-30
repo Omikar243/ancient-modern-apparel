@@ -6,7 +6,7 @@ import { Menu, X, ShoppingCart, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useSession, authClient, clearClientAuthState } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -26,16 +26,28 @@ export function Navbar() {
   }, []);
 
   const handleSignOut = async () => {
-    const { error } = await authClient.signOut();
-    if (error?.code) {
-      toast.error("Failed to sign out");
-    } else {
-      localStorage.removeItem("bearer_token");
-      document.cookie = "bearer_token=; path=/; max-age=0";
-      refetch();
-      toast.success("Signed out successfully");
-      router.push("/");
+    let remoteSignOutFailed = false;
+
+    try {
+      const { error } = await authClient.signOut();
+      if (error?.code) {
+        remoteSignOutFailed = true;
+      }
+    } catch (error) {
+      remoteSignOutFailed = true;
+    } finally {
+      clearClientAuthState();
+      await refetch();
+      router.replace("/");
+      router.refresh();
     }
+
+    if (remoteSignOutFailed) {
+      toast.error("Signed out locally. Refresh if your session appears to persist.");
+      return;
+    }
+
+    toast.success("Signed out successfully");
   };
 
   const navLinks = [
