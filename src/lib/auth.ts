@@ -7,10 +7,6 @@ import {
   safeSyncUserToSupabaseAuth,
 } from "@/lib/supabase-user-sync";
 
-type AuthInstance = ReturnType<typeof betterAuth>;
-
-let _auth: AuthInstance | null = null;
-
 function getConfiguredSiteUrl() {
   if (process.env.BETTER_AUTH_URL) {
     return process.env.BETTER_AUTH_URL;
@@ -44,66 +40,48 @@ function getTrustedOrigins(siteUrl: string) {
   );
 }
 
-function getAuth() {
-  if (!_auth) {
-    const siteUrl = getConfiguredSiteUrl();
+const siteUrl = getConfiguredSiteUrl();
 
-    _auth = betterAuth({
-      database: drizzleAdapter(db, {
-        provider: "sqlite",
-      }),
-      emailAndPassword: {    
-        enabled: true,
-        requireEmailVerification: false
-      },
-      session: {
-        expiresIn: 60 * 60 * 24 * 7, // 7 days
-        updateAge: 60 * 60 * 24, // Update every 24 hours
-      },
-      baseURL: siteUrl,
-      trustedOrigins: getTrustedOrigins(siteUrl),
-      plugins: [bearer()],
-      telemetry: {
-        enabled: false,
-      },
-      databaseHooks: {
-        user: {
-          create: {
-            after: async (user) => {
-              await safeSyncUserToSupabaseAuth(user);
-            },
-          },
-          update: {
-            after: async (user) => {
-              await safeSyncUserToSupabaseAuth(user);
-            },
-          },
-          delete: {
-            after: async (user) => {
-              await safeDeleteUserFromSupabaseAuth(user);
-            },
-          },
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "sqlite",
+  }),
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // Update every 24 hours
+  },
+  baseURL: siteUrl,
+  trustedOrigins: getTrustedOrigins(siteUrl),
+  plugins: [bearer()],
+  telemetry: {
+    enabled: false,
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          await safeSyncUserToSupabaseAuth(user);
         },
       },
-    });
-  }
-  return _auth;
-}
-
-export const auth = new Proxy({} as AuthInstance, {
-  get(_, prop) {
-    const instance = getAuth();
-    const value = instance[prop as keyof AuthInstance];
-
-    if (typeof value === "function") {
-      return value.bind(instance);
-    }
-
-    return value;
+      update: {
+        after: async (user) => {
+          await safeSyncUserToSupabaseAuth(user);
+        },
+      },
+      delete: {
+        after: async (user) => {
+          await safeDeleteUserFromSupabaseAuth(user);
+        },
+      },
+    },
   },
-}) as AuthInstance;
+});
 
 export async function getCurrentUser(headers: Headers) {
-  const session = await getAuth().api.getSession({ headers });
+  const session = await auth.api.getSession({ headers });
   return session?.user || null;
 }
