@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient, clearClientAuthState, hydrateBearerTokenFromServer } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,17 +20,9 @@ export const LoginForm = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const { data: session, refetch } = useSession();
+  const { refetch } = useSession();
   
   const redirectTo = search.get("redirect") || "/";
-
-  // Watch for session to become available after login
-  useEffect(() => {
-    if (loginSuccess && session?.user) {
-      toast.success("Logged in successfully!");
-      router.push(redirectTo);
-    }
-  }, [loginSuccess, session, redirectTo, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +44,7 @@ export const LoginForm = () => {
         if (error.code === "BAD_EMAIL_PASSWORD") {
           errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
         }
+        clearClientAuthState();
         toast.error(errorMessage);
         setLoading(false);
         return;
@@ -66,22 +59,30 @@ export const LoginForm = () => {
         
         // Also set as cookie for any server-side needs
         document.cookie = `bearer_token=${sessionToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      } else {
+        await hydrateBearerTokenFromServer();
       }
       
       // Mark login as successful and trigger session refresh
       setLoginSuccess(true);
-      await refetch();
-      
-      // If session is already available, the useEffect will handle redirect
-      // Otherwise fall back to direct navigation after a delay
-      setTimeout(() => {
-        if (!session?.user) {
-          router.push(redirectTo);
-        }
-      }, 500);
+      const refreshedSession = await refetch();
+
+      if (refreshedSession?.user) {
+        toast.success("Logged in successfully!");
+        router.replace(redirectTo);
+        router.refresh();
+        return;
+      }
+
+      clearClientAuthState();
+      setLoginSuccess(false);
+      setLoading(false);
+      toast.error("Login did not create a valid session. Please try again.");
       
     } catch (err) {
       console.error("Login error:", err);
+      clearClientAuthState();
+      setLoginSuccess(false);
       toast.error("Login failed. Please try again.");
       setLoading(false);
     }

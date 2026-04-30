@@ -22,6 +22,15 @@ const getBaseURL = () => {
   return 'http://localhost:3000';
 };
 
+function persistBearerToken(token: string | null | undefined) {
+  if (typeof window === "undefined" || !token) {
+    return;
+  }
+
+  localStorage.setItem("bearer_token", token);
+  document.cookie = `bearer_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+}
+
 export const authClient = createAuthClient({
   baseURL: getBaseURL(),
   fetchOptions: {
@@ -35,11 +44,9 @@ export const authClient = createAuthClient({
     onSuccess: async (ctx) => {
       try {
         const data = ctx.data as any;
-        const token = data?.session?.token || data?.token;
-        if (token && typeof window !== 'undefined') {
-          localStorage.setItem("bearer_token", token);
-          document.cookie = `bearer_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        }
+        const responseToken = ctx.response.headers.get("set-auth-token");
+        const dataToken = data?.session?.token || data?.token || data?.sessionToken;
+        persistBearerToken(responseToken || dataToken);
       } catch (e) {
         // Ignore parsing errors
       }
@@ -55,6 +62,21 @@ export function clearClientAuthState() {
   localStorage.removeItem("bearer_token");
   document.cookie = "bearer_token=; path=/; max-age=0; SameSite=Lax";
   document.cookie = "bearer_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+}
+
+export async function hydrateBearerTokenFromServer() {
+  const response = await fetch("/api/auth/get-bearer", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = (await response.json()) as { token?: string };
+  persistBearerToken(data.token);
+  return data.token ?? null;
 }
 
 // Custom session hook that properly handles bearer tokens in iframe environments
@@ -82,12 +104,15 @@ export const useSession = () => {
       if (response.ok) {
         const data = await response.json();
         setSession(data);
+        return data;
       } else {
         setSession(null);
+        return null;
       }
     } catch (error) {
       console.error("Session fetch error:", error);
       setSession(null);
+      return null;
     } finally {
       setIsPending(false);
     }
