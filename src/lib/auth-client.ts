@@ -95,7 +95,7 @@ export const useSession = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('/api/auth/session', {
+      const response = await fetch('/api/auth/get-session', {
         method: 'GET',
         headers,
         credentials: 'include',
@@ -103,8 +103,19 @@ export const useSession = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setSession(data);
-        return data;
+        const normalized = data?.user
+          ? {
+              user: {
+                id: data.user.id,
+                email: data.user.email,
+                name: data.user.name,
+              },
+              expires: data.session?.expiresAt ?? null,
+            }
+          : { user: null, expires: null };
+
+        setSession(normalized);
+        return normalized;
       } else {
         setSession(null);
         return null;

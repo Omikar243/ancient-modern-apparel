@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    
-    if (!session) {
+    const upstream = await fetch(new URL("/api/auth/get-session", request.url), {
+      method: "GET",
+      headers: request.headers,
+      cache: "no-store",
+    });
+
+    if (!upstream.ok) {
+      return NextResponse.json({ error: 'Session error' }, { status: upstream.status });
+    }
+
+    const session = await upstream.json();
+
+    if (!session?.user || !session?.session) {
       return NextResponse.json({ user: null, expires: null }, { status: 200 });
     }
 
