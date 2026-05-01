@@ -7,6 +7,8 @@ import {
   safeSyncUserToSupabaseAuth,
 } from "@/lib/supabase-user-sync";
 
+let authConfigLogged = false;
+
 function getConfiguredSiteUrl() {
   if (process.env.BETTER_AUTH_URL) {
     return process.env.BETTER_AUTH_URL;
@@ -23,24 +25,83 @@ function getConfiguredSiteUrl() {
   return "http://localhost:3000";
 }
 
+function normalizeOrigin(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return null;
+  }
+}
+
+function parseTrustedOriginsFromEnv() {
+  const raw = process.env.BETTER_AUTH_TRUSTED_ORIGINS;
+  if (!raw) {
+    return [];
+  }
+
+  return raw
+    .split(",")
+    .map((item) => normalizeOrigin(item))
+    .filter((value): value is string => Boolean(value));
+}
+
 function getTrustedOrigins(siteUrl: string) {
   if (process.env.NODE_ENV === "development") {
     return ["*"];
   }
 
+  const autoOrigins = [
+    siteUrl,
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_SITE_URL,
+    process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  ]
+    .map((value) => normalizeOrigin(value))
+    .filter((value): value is string => Boolean(value));
+
   return Array.from(
     new Set(
-      [
-        siteUrl,
-        process.env.BETTER_AUTH_URL,
-        process.env.NEXT_PUBLIC_SITE_URL,
-        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
-      ].filter((value): value is string => Boolean(value))
+      [...autoOrigins, ...parseTrustedOriginsFromEnv()]
     )
   );
 }
 
 const siteUrl = getConfiguredSiteUrl();
+const trustedOrigins = getTrustedOrigins(siteUrl);
+
+export function getAuthDiagnostics() {
+  return {
+    nodeEnv: process.env.NODE_ENV ?? null,
+    hasBetterAuthSecret: Boolean(process.env.BETTER_AUTH_SECRET),
+    hasBetterAuthUrl: Boolean(process.env.BETTER_AUTH_URL),
+    hasNextPublicSiteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL),
+    hasTursoConnectionUrl: Boolean(process.env.TURSO_CONNECTION_URL),
+    hasTursoAuthToken: Boolean(process.env.TURSO_AUTH_TOKEN),
+    vercelUrl: process.env.VERCEL_URL ?? null,
+    nextPublicVercelUrl: process.env.NEXT_PUBLIC_VERCEL_URL ?? null,
+    siteUrl,
+    trustedOrigins,
+  };
+}
+
+function logAuthConfigOnce() {
+  if (authConfigLogged) {
+    return;
+  }
+
+  authConfigLogged = true;
+  console.info("[auth-config]", getAuthDiagnostics());
+}
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -55,7 +116,7 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // Update every 24 hours
   },
   baseURL: siteUrl,
-  trustedOrigins: getTrustedOrigins(siteUrl),
+  trustedOrigins,
   plugins: [bearer()],
   telemetry: {
     enabled: false,
@@ -80,6 +141,8 @@ export const auth = betterAuth({
     },
   },
 });
+
+logAuthConfigOnce();
 
 export async function getCurrentUser(headers: Headers) {
   const session = await auth.api.getSession({ headers });
