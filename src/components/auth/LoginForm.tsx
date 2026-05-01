@@ -12,6 +12,48 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 
+function getAuthErrorMessage(error: unknown) {
+  if (!error) {
+    return "Login failed. Please try again.";
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "object") {
+    const candidate = error as {
+      code?: string;
+      message?: string;
+      error?: {
+        message?: string;
+        statusText?: string;
+      };
+      statusText?: string;
+      status?: number;
+    };
+
+    if (candidate.code === "BAD_EMAIL_PASSWORD") {
+      return "Invalid email or password. Please make sure you have already registered an account and try again.";
+    }
+
+    return (
+      candidate.message ||
+      candidate.error?.message ||
+      candidate.error?.statusText ||
+      candidate.statusText ||
+      (candidate.status ? `Login failed with status ${candidate.status}.` : null) ||
+      "Login failed. Please try again."
+    );
+  }
+
+  return "Login failed. Please try again.";
+}
+
 export const LoginForm = () => {
   const router = useRouter();
   const search = useSearchParams();
@@ -39,13 +81,9 @@ export const LoginForm = () => {
         rememberMe,
       });
       
-      if (error?.code) {
-        let errorMessage = "Login failed. Please try again.";
-        if (error.code === "BAD_EMAIL_PASSWORD") {
-          errorMessage = "Invalid email or password. Please make sure you have already registered an account and try again.";
-        }
+      if (error) {
         clearClientAuthState();
-        toast.error(errorMessage);
+        toast.error(getAuthErrorMessage(error));
         setLoading(false);
         return;
       }
@@ -83,7 +121,7 @@ export const LoginForm = () => {
       console.error("Login error:", err);
       clearClientAuthState();
       setLoginSuccess(false);
-      toast.error("Login failed. Please try again.");
+      toast.error(getAuthErrorMessage(err));
       setLoading(false);
     }
   };
