@@ -7,8 +7,6 @@ import {
   safeSyncUserToSupabaseAuth,
 } from "@/lib/supabase-user-sync";
 
-let authConfigLogged = false;
-
 function getConfiguredSiteUrl() {
   if (process.env.BETTER_AUTH_URL) {
     return process.env.BETTER_AUTH_URL;
@@ -79,30 +77,6 @@ function getTrustedOrigins(siteUrl: string) {
 const siteUrl = getConfiguredSiteUrl();
 const trustedOrigins = getTrustedOrigins(siteUrl);
 
-export function getAuthDiagnostics() {
-  return {
-    nodeEnv: process.env.NODE_ENV ?? null,
-    hasBetterAuthSecret: Boolean(process.env.BETTER_AUTH_SECRET),
-    hasBetterAuthUrl: Boolean(process.env.BETTER_AUTH_URL),
-    hasNextPublicSiteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL),
-    hasTursoConnectionUrl: Boolean(process.env.TURSO_CONNECTION_URL),
-    hasTursoAuthToken: Boolean(process.env.TURSO_AUTH_TOKEN),
-    vercelUrl: process.env.VERCEL_URL ?? null,
-    nextPublicVercelUrl: process.env.NEXT_PUBLIC_VERCEL_URL ?? null,
-    siteUrl,
-    trustedOrigins,
-  };
-}
-
-function logAuthConfigOnce() {
-  if (authConfigLogged) {
-    return;
-  }
-
-  authConfigLogged = true;
-  console.info("[auth-config]", getAuthDiagnostics());
-}
-
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -141,8 +115,6 @@ export const auth = betterAuth({
     },
   },
 });
-
-logAuthConfigOnce();
 
 export async function getCurrentUser(headers: Headers) {
   const session = await auth.api.getSession({ headers });
