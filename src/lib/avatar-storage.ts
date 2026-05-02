@@ -3,8 +3,20 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 const AVATAR_BUCKET = "avatars";
 
 function ensureSupabaseConfigured() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Supabase storage is not configured");
+  const hasSupabaseUrl = Boolean(
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
+  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  if (!hasSupabaseUrl || !hasServiceKey) {
+    const missing = [
+      !hasSupabaseUrl ? "SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL" : null,
+      !hasServiceKey ? "SUPABASE_SERVICE_ROLE_KEY" : null,
+    ].filter(Boolean);
+
+    throw new Error(
+      `Supabase storage is not configured. Missing: ${missing.join(", ")}.`
+    );
   }
 }
 
