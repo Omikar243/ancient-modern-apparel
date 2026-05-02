@@ -13,6 +13,8 @@ const REQUIRED_VIEWS: AvatarView[] = ["front", "back", "left", "right"];
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MIN_RESOLUTION = 768;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const UPLOAD_MAX_DIMENSION = 1400;
+const UPLOAD_JPEG_QUALITY = 0.82;
 
 type FileMap = Record<AvatarView, File | null>;
 type PreviewMap = Record<AvatarView, string | null>;
@@ -64,6 +66,61 @@ async function validateImageFile(file: File) {
     return null;
   } finally {
     URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function readApiPayload(response: Response) {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return { error: text || `Request failed with status ${response.status}` };
+  }
+}
+
+async function optimizeImageForUpload(file: File, view: AvatarView) {
+  const sourceUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const nextImage = new Image();
+      nextImage.onload = () => resolve(nextImage);
+      nextImage.onerror = reject;
+      nextImage.src = sourceUrl;
+    });
+
+    const largestSide = Math.max(image.width, image.height);
+    const scale = largestSide > UPLOAD_MAX_DIMENSION ? UPLOAD_MAX_DIMENSION / largestSide : 1;
+    const targetWidth = Math.max(1, Math.round(image.width * scale));
+    const targetHeight = Math.max(1, Math.round(image.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return file;
+    }
+
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const optimizedBlob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", UPLOAD_JPEG_QUALITY);
+    });
+
+    if (!optimizedBlob) {
+      return file;
+    }
+
+    const baseName = file.name.replace(/\.[^.]+$/, "") || view;
+    return new File([optimizedBlob], `${baseName}.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
   }
 }
 
@@ -154,12 +211,21 @@ export default function Upload4Views() {
     setFormError(null);
 
     try {
+      const optimizedEntries = await Promise.all(
+        REQUIRED_VIEWS.map(async (view) => {
+          const file = files[view];
+          if (!file) {
+            throw new Error(`Missing ${view} image.`);
+          }
+
+          const optimizedFile = await optimizeImageForUpload(file, view);
+          return [view, optimizedFile] as const;
+        })
+      );
+
       const formData = new FormData();
-      REQUIRED_VIEWS.forEach((view) => {
-        const file = files[view];
-        if (file) {
-          formData.append(view, file);
-        }
+      optimizedEntries.forEach(([view, file]) => {
+        formData.append(view, file);
       });
 
       const uploadResponse = await fetch("/api/avatar/upload", {
@@ -167,9 +233,14 @@ export default function Upload4Views() {
         body: formData,
       });
 
-      const uploadData = await uploadResponse.json();
+      const uploadData = await readApiPayload(uploadResponse);
       if (!uploadResponse.ok) {
-        throw new Error(uploadData.error || "Upload failed");
+        throw new Error(
+          uploadData?.error ||
+            (uploadResponse.status === 413
+              ? "Your 4 photos are too large to upload together. Try slightly smaller images."
+              : "Upload failed")
+        );
       }
 
       const processResponse = await fetch("/api/avatar/process", {
@@ -180,8 +251,8 @@ export default function Upload4Views() {
         body: JSON.stringify({ sessionId: uploadData.sessionId }),
       });
 
+      const processData = await readApiPayload(processResponse);
       if (!processResponse.ok) {
-        const processData = await processResponse.json();
         throw new Error(processData.error || "Processing failed");
       }
 
