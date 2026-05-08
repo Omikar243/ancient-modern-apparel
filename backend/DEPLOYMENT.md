@@ -42,6 +42,11 @@ Using the same Git repository:
 
 This follows Vercel's monorepo guidance for separate projects with different root directories, and Vercel's FastAPI docs indicate a standalone FastAPI app can deploy with a standard `app` entrypoint such as `main.py`.
 
+Notes:
+
+- Python version is pinned via `backend/.python-version`
+- `backend/vercel.json` only configures function duration and region; do not set a Python `runtime` string there, because Vercel infers Python from the `.py` entrypoint
+
 ### 2. Configure backend environment variables
 
 Set these in the backend Vercel project:
