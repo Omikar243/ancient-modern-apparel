@@ -35,6 +35,7 @@ export interface AvatarSessionResultMeta {
   smplParams?: Record<string, unknown> | null;
   confidence?: number;
   warnings?: string[];
+  pipelineMode?: "fallback" | "external";
   stageTimings?: Partial<Record<AvatarStage, number>>;
   pipelineOutputs?: Record<string, unknown>;
 }
@@ -71,6 +72,7 @@ export interface AvatarPipelineResult {
   status: Extract<AvatarSessionStatus, "completed" | "failed">;
   stage: AvatarStage;
   progress: number;
+  pipelineMode?: "fallback" | "external";
   previewImageUrls?: string[];
   normalizedImageUrls?: AvatarImageMap;
   maskUrls?: AvatarImageMap;

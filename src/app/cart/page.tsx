@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Eye, ExternalLink, ShoppingCart, Trash2 } from "lucide-react";
+import { Eye, ExternalLink, ShieldCheck, ShoppingCart, Sparkles, Trash2 } from "lucide-react";
 
 interface CartItem {
   id: number;
@@ -99,6 +99,7 @@ export default function Cart() {
           price: item.price,
           imageUrl: item.imageUrl || "/placeholder.svg",
           description: item.description || `${item.name} preview from your cart.`,
+          category: item.category,
         },
         avatarData: latestAvatar
           ? {
@@ -175,6 +176,40 @@ export default function Cart() {
           <h1 className="text-5xl font-serif font-bold text-foreground leading-tight">The Sanctum of Selections</h1>
         </div>
 
+        {cartItems.length > 0 ? (
+          <div className="mb-10 grid gap-4 md:grid-cols-3">
+            <Card className="border-0 bg-background/55 shadow-lg backdrop-blur-sm">
+              <CardContent className="flex items-center gap-3 p-5">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Selected Pieces</div>
+                  <div className="text-2xl font-serif font-bold text-foreground">{cartItems.length}</div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-background/55 shadow-lg backdrop-blur-sm">
+              <CardContent className="flex items-center gap-3 p-5">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Avatar State</div>
+                  <div className="text-sm font-medium text-foreground">
+                    {userAvatar ? "Ready for garment preview" : "Create avatar to preview"}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-background/55 shadow-lg backdrop-blur-sm">
+              <CardContent className="flex items-center gap-3 p-5">
+                <ShoppingCart className="h-5 w-5 text-primary" />
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Cart Value</div>
+                  <div className="text-2xl font-serif font-bold text-foreground">${total.toFixed(2)}</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
+
         {cartItems.length === 0 ? (
           <Card className="border-0 shadow-2xl backdrop-blur-sm bg-background/60 text-center py-20 rounded-3xl">
             <CardHeader className="space-y-2">
@@ -205,8 +240,17 @@ export default function Cart() {
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="text-xl font-serif font-bold text-foreground leading-tight">{item.name}</h3>
-                        <p className="text-sm text-muted-foreground">One-time rite of possession</p>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="text-xl font-serif font-bold text-foreground leading-tight">{item.name}</h3>
+                          {item.category ? (
+                            <span className="rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                              {item.category}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {item.description || "One-time rite of possession"}
+                        </p>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-2xl font-serif font-bold text-primary">${item.price}</span>

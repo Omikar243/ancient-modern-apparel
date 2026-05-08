@@ -40,6 +40,7 @@ function savePreviewGarment(garment: Garment, userAvatar: any) {
         price: garment.price,
         imageUrl: garment.imageUrl || "/placeholder.svg",
         description: garment.description,
+        category: garment.category,
       },
       avatarData: userAvatar
         ? {

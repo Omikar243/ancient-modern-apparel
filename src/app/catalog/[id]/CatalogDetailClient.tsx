@@ -138,6 +138,7 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
             price: garment!.price,
             imageUrl: garment!.imageUrl || "/placeholder.svg",
             description: garment!.description,
+            category: garment!.category,
           },
           avatarData: {
             measurements: latestAvatar.measurements,

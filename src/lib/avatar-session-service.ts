@@ -150,6 +150,7 @@ export async function completeAvatarSession(params: {
     smplParams: params.pipelineResult.smplParams ?? existing.resultMeta.smplParams ?? null,
     confidence: params.pipelineResult.confidence ?? existing.resultMeta.confidence,
     warnings: params.pipelineResult.warnings ?? existing.resultMeta.warnings ?? [],
+    pipelineMode: params.pipelineResult.pipelineMode ?? existing.resultMeta.pipelineMode,
     stageTimings: existing.resultMeta.stageTimings ?? {},
     pipelineOutputs: {
       ...(existing.resultMeta.pipelineOutputs ?? {}),
@@ -308,6 +309,8 @@ export async function buildAvatarSessionResponse(session: AvatarSessionRecord) {
     measurements: session.resultMeta.measurements ?? null,
     smplParams: session.resultMeta.smplParams ?? null,
     confidence: session.resultMeta.confidence ?? null,
+    pipelineMode: session.resultMeta.pipelineMode ?? "fallback",
+    pipelineVersion: session.pipelineVersion,
     modelUrl: session.resultGlbUrl,
     errorCode: session.errorCode,
     errorMessage: session.errorMessage,

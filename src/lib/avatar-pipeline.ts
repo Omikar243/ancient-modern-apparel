@@ -128,23 +128,41 @@ async function runRemotePipeline(request: AvatarPipelineRequest) {
     return null;
   }
 
-  const response = await fetch(`${pipelineUrl}/avatar/process`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(process.env.AVATAR_PIPELINE_TOKEN
-        ? { Authorization: `Bearer ${process.env.AVATAR_PIPELINE_TOKEN}` }
-        : {}),
-    },
-    body: JSON.stringify(request),
-  });
+  try {
+    const response = await fetch(`${pipelineUrl}/avatar/process`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.AVATAR_PIPELINE_TOKEN
+          ? { Authorization: `Bearer ${process.env.AVATAR_PIPELINE_TOKEN}` }
+          : {}),
+      },
+      body: JSON.stringify(request),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Avatar pipeline request failed with status ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Avatar pipeline request failed with status ${response.status}`);
+    }
+
+    const pipelineResult = (await response.json()) as AvatarPipelineResult;
+    return persistRemoteOutputs(request, {
+      ...pipelineResult,
+      pipelineMode: "external",
+      warnings: [
+        ...(pipelineResult.warnings ?? []),
+        "Phase 2 preprocessing is active for this avatar session.",
+      ],
+    });
+  } catch (error) {
+    console.error("External avatar pipeline unavailable, using fallback pipeline:", error);
+    return {
+      ...runFallbackPipeline(request),
+      warnings: [
+        "The external preprocessing service was unavailable, so this avatar used the standard fallback pipeline.",
+        "Deploy the Python backend and set AVATAR_PIPELINE_URL for live segmentation and alignment in production.",
+      ],
+    };
   }
-
-  const pipelineResult = (await response.json()) as AvatarPipelineResult;
-  return persistRemoteOutputs(request, pipelineResult);
 }
 
 function runFallbackPipeline(request: AvatarPipelineRequest): AvatarPipelineResult {
@@ -154,6 +172,7 @@ function runFallbackPipeline(request: AvatarPipelineRequest): AvatarPipelineResu
     status: "completed",
     stage: "complete",
     progress: 100,
+    pipelineMode: "fallback",
     previewImageUrls: Object.values(request.views),
     normalizedImageUrls: request.views,
     maskUrls: {},

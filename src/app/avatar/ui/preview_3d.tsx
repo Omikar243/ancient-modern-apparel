@@ -34,6 +34,8 @@ interface SessionResult {
   previewImages: string[];
   measurements: AvatarMeasurements | null;
   confidence: number | null;
+  pipelineMode: "fallback" | "external";
+  pipelineVersion: string;
   modelUrl: string | null;
   errorCode: string | null;
   errorMessage: string | null;
@@ -182,6 +184,8 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
 
   const confidenceLabel =
     result?.confidence != null ? `${Math.round(result.confidence * 100)}%` : "Pending";
+  const pipelineBadgeLabel =
+    result?.pipelineMode === "external" ? "Enhanced preprocessing active" : "Standard production pipeline";
 
   if (isPending || loading) {
     return (
@@ -204,6 +208,9 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
             <p className="text-sm text-muted-foreground">Track progress, review the result, and download your model.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="rounded-full border border-border bg-muted/40 px-3 py-1.5 font-medium text-foreground/90">
+              {pipelineBadgeLabel}
+            </div>
             <div className="rounded-full border border-border bg-muted/40 px-3 py-1.5 font-medium text-foreground/90">
               {stageLabels[result?.stage ?? "upload"] ?? "Preparing your avatar"}
             </div>
@@ -283,6 +290,11 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                     </span>
                   </div>
                 ) : null}
+                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
+                  {result?.pipelineMode === "external"
+                    ? "Enhanced preprocessing is active for this session, including cleaned silhouettes and aligned captures."
+                    : "This session used the standard production pipeline. The external Phase 2 backend can be connected later for segmentation and alignment."}
+                </div>
                 {result?.status === "failed" ? (
                   <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                     {result.errorMessage || "We couldn't finish building this avatar. Please try another capture set."}

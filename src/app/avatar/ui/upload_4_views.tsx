@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, Loader2, UploadCloud } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Sparkles, UploadCloud } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,11 @@ const UPLOAD_JPEG_QUALITY = 0.82;
 type FileMap = Record<AvatarView, File | null>;
 type PreviewMap = Record<AvatarView, string | null>;
 type ErrorMap = Record<AvatarView, string | null>;
+type PipelineStatus = {
+  mode: "fallback" | "external";
+  label: string;
+  description: string;
+};
 
 const initialFiles: FileMap = {
   front: null,
@@ -133,12 +138,33 @@ export default function Upload4Views() {
   const [errors, setErrors] = useState<ErrorMap>(initialErrors);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [pipelineStatus, setPipelineStatus] = useState<PipelineStatus | null>(null);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.push("/login?redirect=/avatar");
     }
   }, [isPending, router, session?.user]);
+
+  useEffect(() => {
+    const loadPipelineStatus = async () => {
+      try {
+        const response = await fetch("/api/avatar/pipeline-status", {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setPipelineStatus(data);
+      } catch (statusError) {
+        console.error("Failed to load avatar pipeline status:", statusError);
+      }
+    };
+
+    void loadPipelineStatus();
+  }, []);
 
   useEffect(() => {
     const restoreLatestAvatar = async () => {
@@ -358,6 +384,17 @@ export default function Upload4Views() {
                   <div>Use even lighting to reduce shadows and silhouette errors.</div>
                 </div>
               </div>
+              {pipelineStatus ? (
+                <div className="rounded-xl border border-border bg-gradient-to-br from-muted/60 to-background p-4">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    {pipelineStatus.label}
+                  </div>
+                  <div className="mt-2 text-xs leading-5 text-muted-foreground">
+                    {pipelineStatus.description}
+                  </div>
+                </div>
+              ) : null}
               {formError ? (
                 <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-destructive">
                   {formError}

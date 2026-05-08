@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import * as THREE from "three";
+import { ExternalLink, ShoppingBag } from "lucide-react";
 
 const CanvasWrapper = dynamic(() => import("../avatar/CanvasWrapper"), { ssr: false });
 
@@ -49,6 +50,7 @@ interface PreviewGarment {
   description?: string;
   imageUrl?: string;
   price?: number;
+  category?: string;
 }
 
 const defaultMeasurements: Measurements = {
@@ -367,6 +369,66 @@ export default function Preview() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-8">
+                {garmentForPreview ? (
+                  <div className="grid gap-6 rounded-3xl border border-border/20 bg-muted/20 p-6 md:grid-cols-[220px_1fr]">
+                    <div className="overflow-hidden rounded-2xl border border-border/20 bg-background/70">
+                      <img
+                        src={garmentForPreview.imageUrl || "/placeholder.svg"}
+                        alt={garmentForPreview.name}
+                        className="aspect-[4/5] h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col justify-between gap-5">
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Badge className="bg-primary/15 text-primary hover:bg-primary/15">
+                            Ready on your avatar
+                          </Badge>
+                          {garmentForPreview.category ? (
+                            <Badge variant="secondary">{garmentForPreview.category.toUpperCase()}</Badge>
+                          ) : null}
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-serif font-bold text-foreground">{garmentForPreview.name}</h3>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            {garmentForPreview.description || "Selected from your catalog or cart for avatar preview."}
+                          </p>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-3 text-sm">
+                          <div className="rounded-2xl border border-border/20 bg-background/70 p-3">
+                            <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Material</div>
+                            <div className="mt-1 font-medium text-foreground">{garmentForPreview.material}</div>
+                          </div>
+                          <div className="rounded-2xl border border-border/20 bg-background/70 p-3">
+                            <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Color</div>
+                            <div className="mt-1 font-medium capitalize text-foreground">{garmentForPreview.color}</div>
+                          </div>
+                          <div className="rounded-2xl border border-border/20 bg-background/70 p-3">
+                            <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Value</div>
+                            <div className="mt-1 font-medium text-foreground">
+                              {garmentForPreview.price != null ? `$${garmentForPreview.price}` : "Curated piece"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <Button asChild variant="outline" className="rounded-full">
+                          <Link href={`/catalog/${garmentForPreview.id}`}>
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Open Product
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" className="rounded-full">
+                          <Link href="/cart">
+                            <ShoppingBag className="mr-2 h-4 w-4" />
+                            Return to Cart
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="relative h-[600px] rounded-3xl overflow-hidden border-2 border-primary/20 shadow-2xl bg-gradient-to-br from-muted/20 to-accent/5">
                   <Canvas camera={{ position: [0, 1.7, 3] }} className="w-full h-full">
                     <ambientLight intensity={0.6} />
