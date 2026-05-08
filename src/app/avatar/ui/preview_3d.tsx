@@ -129,6 +129,23 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
     [result?.maskViews]
   );
 
+  const shouldShowPreviewImages = useMemo(() => {
+    const previewImages = result?.previewImages ?? [];
+    if (!previewImages.length) {
+      return false;
+    }
+
+    const normalizedImages = orderedNormalizedViews.map(({ image }) => image);
+    if (
+      normalizedImages.length === previewImages.length &&
+      normalizedImages.every((image, index) => image === previewImages[index])
+    ) {
+      return false;
+    }
+
+    return true;
+  }, [orderedNormalizedViews, result?.previewImages]);
+
   if (isPending || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -282,9 +299,9 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                     </div>
                   </div>
                 ) : null}
-                {result?.previewImages?.length ? (
+                {shouldShowPreviewImages ? (
                   <div className="grid grid-cols-2 gap-3">
-                    {result.previewImages.map((image, index) => (
+                    {result?.previewImages?.map((image, index) => (
                       <img
                         key={image}
                         src={image}
