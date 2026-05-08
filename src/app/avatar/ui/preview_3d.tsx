@@ -4,7 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Download, Loader2, RefreshCw } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  ImageIcon,
+  Loader2,
+  RefreshCw,
+  ScanLine,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +47,18 @@ const stageLabels: Record<string, string> = {
   export: "Finalizing your avatar",
   complete: "Your avatar is ready",
 };
+
+function toDisplayWarning(warning: string) {
+  if (/built-in fallback reconstruction/i.test(warning)) {
+    return "This preview uses the standard production avatar pipeline.";
+  }
+
+  if (/AVATAR_PIPELINE_URL|Phase 2 segmentation|alignment in production/i.test(warning)) {
+    return "Higher-fidelity preprocessing will improve edge cleanup and view alignment in a later upgrade.";
+  }
+
+  return warning;
+}
 
 export default function Preview3D({ sessionId }: { sessionId: string }) {
   const router = useRouter();
@@ -146,6 +166,23 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
     return true;
   }, [orderedNormalizedViews, result?.previewImages]);
 
+  const orderedInputViews = useMemo(
+    () =>
+      ["front", "back", "left", "right"].flatMap((view) => {
+        const image = result?.views?.[view as keyof ImageMap];
+        return image ? [{ view, image }] : [];
+      }),
+    [result?.views]
+  );
+
+  const displayWarnings = useMemo(() => {
+    const warnings = result?.warnings?.length ? result.warnings : ["No quality notes yet."];
+    return warnings.map(toDisplayWarning);
+  }, [result?.warnings]);
+
+  const confidenceLabel =
+    result?.confidence != null ? `${Math.round(result.confidence * 100)}%` : "Pending";
+
   if (isPending || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -165,6 +202,14 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
           <div>
             <h1 className="text-3xl font-semibold">Your 3D Avatar</h1>
             <p className="text-sm text-muted-foreground">Track progress, review the result, and download your model.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="rounded-full border border-border bg-muted/40 px-3 py-1.5 font-medium text-foreground/90">
+              {stageLabels[result?.stage ?? "upload"] ?? "Preparing your avatar"}
+            </div>
+            <div className="rounded-full border border-border bg-muted/40 px-3 py-1.5 font-medium text-foreground/90">
+              Confidence {confidenceLabel}
+            </div>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" asChild>
@@ -191,14 +236,14 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-border/80 bg-gradient-to-b from-muted/20 to-background">
             <CardHeader>
               <CardTitle>3D Preview</CardTitle>
               <CardDescription>
                 Rotate and inspect the generated body model directly in the browser.
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-[520px] bg-muted/20">
+            <CardContent className="h-[520px] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_55%)]">
               <SessionModelViewer measurements={measurements} />
             </CardContent>
           </Card>
@@ -230,6 +275,14 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                     Processing your avatar
                   </Button>
                 ) : null}
+                {result?.status === "completed" ? (
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+                    <span className="inline-flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Your avatar is ready to preview and use with garments.
+                    </span>
+                  </div>
+                ) : null}
                 {result?.status === "failed" ? (
                   <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                     {result.errorMessage || "We couldn't finish building this avatar. Please try another capture set."}
@@ -249,21 +302,40 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                 <div className="rounded-xl border p-3">Waist: {measurements.waist} cm</div>
                 <div className="rounded-xl border p-3">Hips: {measurements.hips} cm</div>
                 <div className="rounded-xl border p-3">Shoulders: {measurements.shoulders} cm</div>
-                <div className="rounded-xl border p-3">
-                  Confidence: {result?.confidence ? `${Math.round(result.confidence * 100)}%` : "Pending"}
-                </div>
+                <div className="rounded-xl border p-3">Confidence: {confidenceLabel}</div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Session Notes</CardTitle>
-                <CardDescription>Uploaded views and any quality notes for this reconstruction.</CardDescription>
+                <CardTitle>Capture Review</CardTitle>
+                <CardDescription>Review the uploaded angles, cleaned views, and quality notes for this avatar.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
+                {orderedInputViews.length ? (
+                  <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-foreground/80">
+                      <ImageIcon className="h-3.5 w-3.5" />
+                      Original Captures
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {orderedInputViews.map(({ view, image }) => (
+                        <div key={view} className="space-y-2">
+                          <div className="text-xs font-medium capitalize text-foreground">{view}</div>
+                          <img
+                            src={image}
+                            alt={`${view} original avatar capture`}
+                            className="aspect-[3/4] w-full rounded-xl border object-cover bg-white"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 {orderedNormalizedViews.length ? (
                   <div className="space-y-3">
-                    <div className="text-xs font-medium uppercase tracking-wide text-foreground/80">
+                    <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-foreground/80">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
                       Normalized Views
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -282,7 +354,8 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                 ) : null}
                 {orderedMaskViews.length ? (
                   <div className="space-y-3">
-                    <div className="text-xs font-medium uppercase tracking-wide text-foreground/80">
+                    <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-foreground/80">
+                      <ScanLine className="h-3.5 w-3.5" />
                       Segmentation Masks
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -300,18 +373,23 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                   </div>
                 ) : null}
                 {shouldShowPreviewImages ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {result?.previewImages?.map((image, index) => (
-                      <img
-                        key={image}
-                        src={image}
-                        alt={`Processed avatar preview ${index + 1}`}
-                        className="aspect-[3/4] w-full rounded-xl border object-cover"
-                      />
-                    ))}
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium uppercase tracking-wide text-foreground/80">
+                      Processed Previews
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {result?.previewImages?.map((image, index) => (
+                        <img
+                          key={image}
+                          src={image}
+                          alt={`Processed avatar preview ${index + 1}`}
+                          className="aspect-[3/4] w-full rounded-xl border object-cover"
+                        />
+                      ))}
+                    </div>
                   </div>
                 ) : null}
-                {(result?.warnings?.length ? result.warnings : ["No warnings reported for this session yet."]).map((warning) => (
+                {displayWarnings.map((warning) => (
                   <div key={warning} className="rounded-xl border bg-muted/30 p-3">
                     {warning}
                   </div>
