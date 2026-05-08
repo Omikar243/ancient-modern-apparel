@@ -67,6 +67,14 @@ export async function uploadAvatarAsset(params: {
 }
 
 export async function createAvatarSignedUrl(path: string, expiresIn = 60 * 60) {
+  if (!path) {
+    throw new Error("Avatar asset path is required to create a signed URL.");
+  }
+
+  if (/^(https?:)?\/\//i.test(path) || path.startsWith("data:")) {
+    return path;
+  }
+
   ensureSupabaseConfigured();
 
   const { data, error } = await supabaseAdmin.storage

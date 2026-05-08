@@ -48,6 +48,20 @@ npm run dev
 
 4. Open `http://localhost:3000`
 
+### Production Auth Environment (Vercel)
+
+Set these environment variables in Vercel to avoid `Invalid origin` login failures:
+
+```env
+BETTER_AUTH_URL=https://your-primary-domain.com
+NEXT_PUBLIC_SITE_URL=https://your-primary-domain.com
+BETTER_AUTH_TRUSTED_ORIGINS=https://your-primary-domain.com,https://www.your-primary-domain.com,https://your-project.vercel.app
+```
+
+- Use full `https://` origins only.
+- Separate multiple origins with commas.
+- Redeploy after changing environment variables.
+
 ## Project Structure
 
 - `src/app` contains routes, pages, and API handlers
