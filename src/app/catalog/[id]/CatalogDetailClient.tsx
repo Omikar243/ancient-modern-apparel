@@ -88,6 +88,10 @@ export default function CatalogDetailClient({ params }: { params: { id: string }
       name: garment.name,
       price: garment.price,
       imageUrl: garment.imageUrl || "/placeholder.svg",
+      garment: garment.name,
+      type: garment.type,
+      description: garment.description,
+      category: garment.category,
     };
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     if (!cart.find((item: any) => item.id === garment.id)) {

@@ -7,18 +7,23 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { Eye, ExternalLink, ShoppingCart, Trash2 } from "lucide-react";
 
 interface CartItem {
   id: number;
   name: string;
   price: number;
   imageUrl: string;
+  garment?: string;
+  type?: string;
+  description?: string;
+  category?: string;
 }
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<any>(null);
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
@@ -40,6 +45,37 @@ export default function Cart() {
     setIsLoaded(true);
   }, []);
 
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (!session?.user?.id) {
+        setUserAvatar(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/avatars/by-user/${session.user.id}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          setUserAvatar(null);
+          return;
+        }
+
+        const data = await response.json();
+        setUserAvatar(Array.isArray(data) ? data[0] : data);
+      } catch (avatarError) {
+        console.error("Cart avatar fetch error:", avatarError);
+        setUserAvatar(null);
+      }
+    };
+
+    if (!isPending) {
+      void fetchUserAvatar();
+    }
+  }, [isPending, session?.user?.id]);
+
   const removeFromCart = (id: number) => {
     const updated = cartItems.filter(item => item.id !== id);
     setCartItems(updated);
@@ -48,6 +84,63 @@ export default function Cart() {
   };
 
   const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+  const savePreviewGarment = (item: CartItem, latestAvatar: any) => {
+    sessionStorage.setItem(
+      "previewGarment",
+      JSON.stringify({
+        garmentId: item.id,
+        garment: {
+          id: item.id,
+          name: item.name,
+          garment: item.garment || item.name,
+          material: "Selected Material",
+          color: "blue",
+          price: item.price,
+          imageUrl: item.imageUrl || "/placeholder.svg",
+          description: item.description || `${item.name} preview from your cart.`,
+        },
+        avatarData: latestAvatar
+          ? {
+              measurements: latestAvatar.measurements,
+              modelUrl: latestAvatar.fittedModelUrl,
+            }
+          : null,
+      })
+    );
+  };
+
+  const loadLatestAvatar = async () => {
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    const response = await fetch(`/api/avatars/by-user/${session.user.id}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const latestAvatar = Array.isArray(data) ? data[0] : data;
+    setUserAvatar(latestAvatar);
+    return latestAvatar;
+  };
+
+  const handlePreview = async (item: CartItem) => {
+    const latestAvatar = userAvatar || await loadLatestAvatar();
+    if (!latestAvatar) {
+      toast.warning("Create your avatar first to preview garments.");
+      router.push("/avatar");
+      return;
+    }
+
+    savePreviewGarment(item, latestAvatar);
+    router.push(`/preview?garmentId=${item.id}`);
+  };
 
   // Show loading while checking auth
   if (isPending || !isLoaded) {
@@ -126,6 +219,21 @@ export default function Cart() {
                           <Trash2 className="w-5 h-5" />
                         </Button>
                       </div>
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Button asChild variant="outline" className="flex-1 rounded-full">
+                          <Link href={`/catalog/${item.id}`}>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Product
+                          </Link>
+                        </Button>
+                        <Button
+                          onClick={() => void handlePreview(item)}
+                          className="flex-1 rounded-full"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview on My Avatar
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -151,7 +259,7 @@ export default function Cart() {
                 onClick={() => {
                   if (cartItems.length > 0) {
                     toast.success("Proceeding to the unveiling");
-                    router.push(`/preview?cart=${encodeURIComponent(JSON.stringify(cartItems))}`);
+                    void handlePreview(cartItems[0]);
                   }
                 }}
                 disabled={cartItems.length === 0}
