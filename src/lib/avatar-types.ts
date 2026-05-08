@@ -65,13 +65,18 @@ export interface AvatarPipelineRequest {
   pipelineVersion: string;
 }
 
+export type AvatarImageMap = Partial<Record<AvatarView, string>>;
+
 export interface AvatarPipelineResult {
   status: Extract<AvatarSessionStatus, "completed" | "failed">;
   stage: AvatarStage;
   progress: number;
   previewImageUrls?: string[];
-  normalizedImageUrls?: Partial<Record<AvatarView, string>>;
-  maskUrls?: Partial<Record<AvatarView, string>>;
+  normalizedImageUrls?: AvatarImageMap;
+  maskUrls?: AvatarImageMap;
+  previewImageDataUrls?: string[];
+  normalizedImageDataUrls?: AvatarImageMap;
+  maskDataUrls?: AvatarImageMap;
   resultGlbUrl?: string | null;
   resultObjUrl?: string | null;
   measurements?: AvatarMeasurements;

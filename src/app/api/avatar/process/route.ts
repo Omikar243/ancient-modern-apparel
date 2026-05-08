@@ -6,6 +6,7 @@ import {
   getAvatarSessionById,
   updateAvatarSessionStatus,
 } from "@/lib/avatar-session-service";
+import { createAvatarSignedUrl } from "@/lib/avatar-storage";
 import { runAvatarPipeline } from "@/lib/avatar-pipeline";
 
 export async function POST(request: NextRequest) {
@@ -40,10 +41,17 @@ export async function POST(request: NextRequest) {
     });
 
     try {
+      const signedViews = {
+        front: await createAvatarSignedUrl(avatarSession.inputImageUrls.front),
+        back: await createAvatarSignedUrl(avatarSession.inputImageUrls.back),
+        left: await createAvatarSignedUrl(avatarSession.inputImageUrls.left),
+        right: await createAvatarSignedUrl(avatarSession.inputImageUrls.right),
+      };
+
       const pipelineResult = await runAvatarPipeline({
         sessionId,
         userId: session.user.id,
-        views: avatarSession.inputImageUrls,
+        views: signedViews,
         pipelineVersion: avatarSession.pipelineVersion,
       });
 

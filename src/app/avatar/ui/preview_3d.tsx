@@ -12,12 +12,17 @@ import { useSession } from "@/lib/auth-client";
 import type { AvatarMeasurements } from "@/lib/avatar-types";
 const SessionModelViewer = dynamic(() => import("./session_model_viewer"), { ssr: false });
 
+type ImageMap = Partial<Record<"front" | "back" | "left" | "right", string>>;
+
 interface SessionResult {
   sessionId: string;
   status: "uploaded" | "queued" | "processing" | "completed" | "failed";
   stage: string;
   progress: number;
   warnings: string[];
+  views: ImageMap;
+  normalizedViews: ImageMap;
+  maskViews: ImageMap;
   previewImages: string[];
   measurements: AvatarMeasurements | null;
   confidence: number | null;
@@ -104,6 +109,24 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
         shoulders: 44,
       },
     [result?.measurements]
+  );
+
+  const orderedNormalizedViews = useMemo(
+    () =>
+      ["front", "back", "left", "right"].flatMap((view) => {
+        const image = result?.normalizedViews?.[view as keyof ImageMap];
+        return image ? [{ view, image }] : [];
+      }),
+    [result?.normalizedViews]
+  );
+
+  const orderedMaskViews = useMemo(
+    () =>
+      ["front", "back", "left", "right"].flatMap((view) => {
+        const image = result?.maskViews?.[view as keyof ImageMap];
+        return image ? [{ view, image }] : [];
+      }),
+    [result?.maskViews]
   );
 
   if (isPending || loading) {
@@ -221,13 +244,51 @@ export default function Preview3D({ sessionId }: { sessionId: string }) {
                 <CardDescription>Uploaded views and any quality notes for this reconstruction.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
+                {orderedNormalizedViews.length ? (
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium uppercase tracking-wide text-foreground/80">
+                      Normalized Views
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {orderedNormalizedViews.map(({ view, image }) => (
+                        <div key={view} className="space-y-2">
+                          <div className="text-xs font-medium capitalize text-foreground">{view}</div>
+                          <img
+                            src={image}
+                            alt={`${view} normalized avatar view`}
+                            className="aspect-[3/4] w-full rounded-xl border object-cover bg-white"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {orderedMaskViews.length ? (
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium uppercase tracking-wide text-foreground/80">
+                      Segmentation Masks
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {orderedMaskViews.map(({ view, image }) => (
+                        <div key={view} className="space-y-2">
+                          <div className="text-xs font-medium capitalize text-foreground">{view}</div>
+                          <img
+                            src={image}
+                            alt={`${view} segmentation mask`}
+                            className="aspect-[3/4] w-full rounded-xl border object-cover bg-white"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 {result?.previewImages?.length ? (
                   <div className="grid grid-cols-2 gap-3">
                     {result.previewImages.map((image, index) => (
                       <img
                         key={image}
                         src={image}
-                        alt={`Uploaded avatar view ${index + 1}`}
+                        alt={`Processed avatar preview ${index + 1}`}
                         className="aspect-[3/4] w-full rounded-xl border object-cover"
                       />
                     ))}

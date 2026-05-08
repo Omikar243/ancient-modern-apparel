@@ -255,6 +255,24 @@ export async function buildAvatarSessionResponse(session: AvatarSessionRecord) {
     right: await createAvatarSignedUrl(session.inputImageUrls.right),
   };
 
+  const normalizedViews = Object.fromEntries(
+    await Promise.all(
+      Object.entries(session.normalizedImageUrls).map(async ([view, path]) => [
+        view,
+        await createAvatarSignedUrl(path),
+      ])
+    )
+  );
+
+  const maskViews = Object.fromEntries(
+    await Promise.all(
+      Object.entries(session.maskUrls).map(async ([view, path]) => [
+        view,
+        await createAvatarSignedUrl(path),
+      ])
+    )
+  );
+
   const previewImages = await Promise.all(
     session.previewImageUrls.map((path) => createAvatarSignedUrl(path))
   );
@@ -278,12 +296,14 @@ export async function buildAvatarSessionResponse(session: AvatarSessionRecord) {
         : session.status === "queued"
           ? 30
           : session.status === "processing"
-            ? 65
+            ? 70
             : session.status === "completed"
               ? 100
               : 0,
     warnings: session.resultMeta.warnings ?? [],
     views: signedInputUrls,
+    normalizedViews,
+    maskViews,
     previewImages,
     measurements: session.resultMeta.measurements ?? null,
     smplParams: session.resultMeta.smplParams ?? null,
