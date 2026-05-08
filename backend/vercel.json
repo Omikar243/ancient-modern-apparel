@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "main.py": {
+      "runtime": "python3.12",
+      "maxDuration": 60
+    }
+  },
+  "regions": ["iad1"]
+}
