@@ -24,14 +24,6 @@ function resolvePipelineUrl() {
     return process.env.AVATAR_PIPELINE_URL.replace(/\/$/, "");
   }
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/_/backend`;
-  }
-
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/_/backend`;
-  }
-
   return null;
 }
 
@@ -174,8 +166,8 @@ function runFallbackPipeline(request: AvatarPipelineRequest): AvatarPipelineResu
     },
     confidence: 0.61,
     warnings: [
-      "Using the built-in local reconstruction fallback for this session.",
-      "This preview is still coarse and will improve as the full reconstruction pipeline is expanded.",
+      "Using the built-in fallback reconstruction because no external avatar pipeline is configured.",
+      "Set AVATAR_PIPELINE_URL to a separately deployed Python backend to enable Phase 2 segmentation and alignment in production.",
     ],
   };
 }
