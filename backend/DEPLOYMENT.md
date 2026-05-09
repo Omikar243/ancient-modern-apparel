@@ -9,7 +9,7 @@ This repository now supports a split deployment model:
 
 The FastAPI app entrypoint is:
 
-- `backend/main.py`
+- `backend/index.py`
 
 The main endpoint used by the storefront is:
 
@@ -45,7 +45,8 @@ This follows Vercel's monorepo guidance for separate projects with different roo
 Notes:
 
 - Python version is pinned via `backend/.python-version`
-- `backend/vercel.json` only configures function duration and region; do not set a Python `runtime` string there, because Vercel infers Python from the `.py` entrypoint
+- `backend/vercel.json` only configures the region
+- Vercel's FastAPI runtime expects a supported root entrypoint such as `index.py`, `app.py`, or `server.py`
 
 ### 2. Configure backend environment variables
 
