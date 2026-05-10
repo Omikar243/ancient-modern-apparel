@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
+import { Eye, EyeOff } from "lucide-react";
 
 function getAuthErrorMessage(error: unknown) {
   if (!error) {
@@ -59,6 +60,7 @@ export const LoginForm = () => {
   const search = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
@@ -159,16 +161,28 @@ export const LoginForm = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-base font-medium text-foreground">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                  autoComplete="off" 
-                  className="h-12 rounded-xl text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                  placeholder="Enter your password"
-                />
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                    autoComplete="off" 
+                    className="h-12 rounded-xl pr-12 text-lg bg-card/50 border-border/50 focus:border-primary focus:ring-primary/20"
+                    placeholder="Enter your password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-10 w-10 -translate-y-1/2 rounded-lg text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-muted/20 rounded-xl">
                 <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} className="border-foreground/30" />
