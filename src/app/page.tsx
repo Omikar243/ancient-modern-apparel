@@ -128,7 +128,7 @@ export default function Home() {
                   <p className="text-[10px] text-muted-foreground">Analysis complete. 98% compatibility with Silk Georgette.</p>
                 </div>
 
-                <div className="absolute bottom-8 right-8 bg-background/60 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 max-w-[180px]">
+                <div className="absolute bottom-12 right-8 w-[180px] bg-background/60 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center text-accent-foreground">
                       <Eye className="w-4 h-4" />

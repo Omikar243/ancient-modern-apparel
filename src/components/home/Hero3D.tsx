@@ -362,8 +362,8 @@ export function Hero3D() {
         />
       </Canvas>
       
-      {/* Interactive Toggle Overlay */}
-      <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+      {/* Interactive Toggle Overlay — centered under Live Preview card (page.tsx: right-8 max-w-[180px]) */}
+      <div className="absolute bottom-4 right-8 z-10 flex w-[180px] max-w-[180px] justify-center gap-2">
         <button 
           onClick={() => setActiveGender("female")}
           className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
