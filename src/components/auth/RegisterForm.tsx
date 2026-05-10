@@ -64,12 +64,12 @@ export const RegisterForm = () => {
 
   return (
     <div className="w-full max-w-[480px] mx-auto z-10 relative">
-      <Card className="border-0 bg-white/10 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] rounded-2xl overflow-hidden">
+      <Card className="border border-border/40 bg-card/80 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] dark:bg-card/50 rounded-2xl overflow-hidden">
         <CardHeader className="text-center space-y-4 pt-10 pb-2">
-          <CardTitle className="text-4xl font-serif font-light text-[#1a1a1a] tracking-wide">
+          <CardTitle className="text-4xl font-serif font-normal text-foreground tracking-wide">
             Create Account
           </CardTitle>
-          <CardDescription className="text-base text-[#666666] font-light tracking-wider uppercase text-xs">
+          <CardDescription className="text-base text-foreground/80 dark:text-foreground/85 font-light tracking-wider uppercase text-xs">
             Join the exclusive circle.
           </CardDescription>
         </CardHeader>
@@ -83,7 +83,7 @@ export const RegisterForm = () => {
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoComplete="name"
-                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                className="h-12 border-0 border-b border-border rounded-none bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-primary transition-colors"
                 placeholder="Full Name"
               />
             </div>
@@ -96,7 +96,7 @@ export const RegisterForm = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                className="h-12 border-0 border-b border-border rounded-none bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-primary transition-colors"
                 placeholder="Email Address"
               />
             </div>
@@ -109,7 +109,7 @@ export const RegisterForm = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                className="h-12 border-0 border-b border-border rounded-none bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-primary transition-colors"
                 placeholder="Password"
               />
             </div>
@@ -122,7 +122,7 @@ export const RegisterForm = () => {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="h-12 border-0 border-b border-[#E5E5E5] rounded-none bg-transparent px-0 text-base placeholder:text-[#999999] focus-visible:ring-0 focus-visible:border-[#C5A059] transition-colors"
+                className="h-12 border-0 border-b border-border rounded-none bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-primary transition-colors"
                 placeholder="Confirm Password"
               />
             </div>
@@ -138,9 +138,9 @@ export const RegisterForm = () => {
             >
               {loading ? "Registering..." : "Register"}
             </Button>
-            <p className="text-center text-xs text-[#888888] font-light">
+            <p className="text-center text-xs text-muted-foreground font-light">
               Already a member?{" "}
-              <Link className="text-[#1a1a1a] border-b border-[#1a1a1a] pb-0.5 hover:text-[#C5A059] hover:border-[#C5A059] transition-colors" href="/login">
+              <Link className="text-foreground font-medium border-b border-foreground/80 pb-0.5 hover:text-primary hover:border-primary transition-colors" href="/login">
                 Sign In
               </Link>
             </p>

@@ -102,7 +102,7 @@ function GoldRing({ position, scale = 1, rotationSpeed = 0.5 }: { position: [num
 
 export default function LuxuryRegisterBackground() {
     return (
-        <div className="fixed inset-0 w-full h-full -z-10 bg-neutral-50">
+        <div className="fixed inset-0 w-full h-full -z-10 bg-gradient-to-br from-background via-muted/20 to-accent/5">
             <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
                 {/* Lighting */}
                 <ambientLight intensity={0.5} />
@@ -119,10 +119,10 @@ export default function LuxuryRegisterBackground() {
                 <GoldRing position={[0, 0, -10]} scale={2} rotationSpeed={0.3} />
 
                 {/* Fog for depth */}
-                <fog attach="fog" args={['#ffffff', 5, 25]} />
+                <fog attach="fog" args={['#FAFAFA', 5, 25]} />
             </Canvas>
-            {/* Overlay for better text readability if needed */}
-            <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+            {/* Subtle tint aligned with site background; keeps rings readable */}
+            <div className="absolute inset-0 bg-background/25 backdrop-blur-[1px]" />
         </div>
     );
 }
