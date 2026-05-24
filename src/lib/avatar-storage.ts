@@ -66,20 +66,39 @@ export async function uploadAvatarAsset(params: {
   return params.path;
 }
 
+function resolveAvatarStoragePath(path: string) {
+  if (!path || path.startsWith("data:") || !/^(https?:)?\/\//i.test(path)) {
+    return path;
+  }
+
+  const signedMatch = path.match(/\/storage\/v1\/object\/sign\/[^/]+\/(.+?)(?:\?|$)/i);
+  if (signedMatch?.[1]) {
+    return decodeURIComponent(signedMatch[1]);
+  }
+
+  const publicMatch = path.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+?)(?:\?|$)/i);
+  if (publicMatch?.[1]) {
+    return decodeURIComponent(publicMatch[1]);
+  }
+
+  return path;
+}
+
 export async function createAvatarSignedUrl(path: string, expiresIn = 60 * 60) {
   if (!path) {
     throw new Error("Avatar asset path is required to create a signed URL.");
   }
 
-  if (/^(https?:)?\/\//i.test(path) || path.startsWith("data:")) {
-    return path;
+  const storagePath = resolveAvatarStoragePath(path);
+  if (/^(https?:)?\/\//i.test(storagePath) || storagePath.startsWith("data:")) {
+    return storagePath;
   }
 
   ensureSupabaseConfigured();
 
   const { data, error } = await supabaseAdmin.storage
     .from(AVATAR_BUCKET)
-    .createSignedUrl(path, expiresIn);
+    .createSignedUrl(storagePath, expiresIn);
 
   if (error) {
     throw error;

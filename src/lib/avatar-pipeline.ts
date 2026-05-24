@@ -167,14 +167,15 @@ async function runRemotePipeline(request: AvatarPipelineRequest) {
 
 function runFallbackPipeline(request: AvatarPipelineRequest): AvatarPipelineResult {
   const measurements = deriveMeasurementsFromViews();
+  const storagePaths = request.viewPaths ?? request.views;
 
   return {
     status: "completed",
     stage: "complete",
     progress: 100,
     pipelineMode: "fallback",
-    previewImageUrls: Object.values(request.views),
-    normalizedImageUrls: request.views,
+    previewImageUrls: Object.values(storagePaths),
+    normalizedImageUrls: storagePaths,
     maskUrls: {},
     resultGlbUrl: `/api/avatar/model/${request.sessionId}`,
     resultObjUrl: null,

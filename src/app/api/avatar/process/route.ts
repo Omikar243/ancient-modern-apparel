@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
         sessionId,
         userId: session.user.id,
         views: signedViews,
+        viewPaths: avatarSession.inputImageUrls,
         pipelineVersion: avatarSession.pipelineVersion,
       });
 

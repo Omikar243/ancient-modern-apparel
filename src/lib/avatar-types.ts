@@ -63,6 +63,7 @@ export interface AvatarPipelineRequest {
   sessionId: string;
   userId: string;
   views: AvatarCaptureViewMap;
+  viewPaths?: AvatarCaptureViewMap;
   pipelineVersion: string;
 }
 
