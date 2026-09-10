@@ -7,6 +7,10 @@ import { getSupabasePublicUrl } from "@/lib/supabase-assets";
 
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
+import { Cormorant_Garamond, Geist } from "next/font/google";
+
+const display = Cormorant_Garamond({ subsets: ["latin"], variable: "--font-display", weight: ["400", "500", "600"] });
+const interfaceFont = Geist({ subsets: ["latin"], variable: "--font-interface" });
 
 const ClientLayout = dynamic(() => import("@/components/ClientLayout").then(mod => mod.ClientLayout));
 const routeMessengerScriptUrl = getSupabasePublicUrl("scripts/route-messenger.js");
@@ -23,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased font-serif">
+      <body className={`${display.variable} ${interfaceFont.variable} antialiased`}>
         <ErrorReporter />
         {routeMessengerScriptUrl ? (
           <Script

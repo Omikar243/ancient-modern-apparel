@@ -5,7 +5,6 @@ import { useRef, useState, useEffect } from "react";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { FBXLoader } from "three-stdlib";
-import { motion } from "framer-motion";
 import { useMemo } from "react";
 
 interface Hero3DProps {
@@ -33,7 +32,7 @@ function MaleAvatarFallback({ visible }: { visible: boolean }) {
   const wireMaterial = useMemo(
     () => (
       <meshBasicMaterial
-        color="#10b981"
+        color="#D4AF37"
         wireframe={true}
         transparent={true}
         opacity={0.3}
@@ -139,7 +138,7 @@ function FemaleAvatarFallback({ visible }: { visible: boolean }) {
   const wireMaterial = useMemo(
     () => (
       <meshBasicMaterial
-        color="#ec4899"
+        color="#D4AF37"
         wireframe={true}
         transparent={true}
         opacity={0.3}
@@ -283,7 +282,7 @@ function HeroModel({ gender }: { gender: "male" | "female" }) {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
             mesh.material = new THREE.MeshBasicMaterial({
-              color: gender === "male" ? "#10b981" : "#ec4899",
+              color: "#D4AF37",
               wireframe: true,
               transparent: true,
               opacity: 0.1,
@@ -324,14 +323,6 @@ function HeroModel({ gender }: { gender: "male" | "female" }) {
 export function Hero3D() {
   const [activeGender, setActiveGender] = useState<"male" | "female">("female");
 
-  // Toggle gender every few seconds for dynamic feel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveGender(prev => prev === "female" ? "male" : "female");
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="w-full h-full relative">
       <Canvas
@@ -347,7 +338,7 @@ export function Hero3D() {
         <pointLight 
           position={[2, 2, 2]} 
           intensity={0.8} 
-          color={activeGender === "male" ? "#10b981" : "#ec4899"} 
+          color="#C41E3A" 
         />
         
         <HeroModel gender={activeGender} />
@@ -363,23 +354,25 @@ export function Hero3D() {
       </Canvas>
       
       {/* Interactive Toggle Overlay — centered under Live Preview card (page.tsx: right-8 max-w-[180px]) */}
-      <div className="absolute bottom-4 right-8 z-10 flex w-[180px] max-w-[180px] justify-center gap-2">
+      <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-black/35 p-1 backdrop-blur-sm">
         <button 
           onClick={() => setActiveGender("female")}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
+          aria-pressed={activeGender === "female"}
+          className={`min-h-9 rounded-full px-4 text-[10px] font-semibold uppercase tracking-[0.14em] transition-all ${
             activeGender === "female" 
-              ? "bg-primary text-primary-foreground shadow-lg scale-105" 
-              : "bg-background/50 text-muted-foreground backdrop-blur hover:bg-background/80"
+              ? "bg-primary text-primary-foreground" 
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Female
         </button>
         <button 
           onClick={() => setActiveGender("male")}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
+          aria-pressed={activeGender === "male"}
+          className={`min-h-9 rounded-full px-4 text-[10px] font-semibold uppercase tracking-[0.14em] transition-all ${
             activeGender === "male" 
-              ? "bg-primary text-primary-foreground shadow-lg scale-105" 
-              : "bg-background/50 text-muted-foreground backdrop-blur hover:bg-background/80"
+              ? "bg-primary text-primary-foreground" 
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Male

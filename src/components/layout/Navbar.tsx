@@ -65,15 +65,15 @@ export function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-background/80 backdrop-blur-lg border-b border-border/40 shadow-sm py-3"
-          : "bg-transparent py-4"
+          ? "bg-background/90 backdrop-blur-md border-b border-border/70 py-3"
+          : "bg-transparent py-5"
       }`}
     >
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between gap-6 lg:gap-10">
           {/* Logo */}
           <Link href="/" className="relative z-50 group">
-            <h1 className={`text-3xl md:text-4xl font-serif font-bold tracking-tight transition-colors ${isScrolled ? "text-foreground" : "text-foreground"}`}>
+            <h1 className="font-serif text-2xl font-medium tracking-[-0.04em] text-foreground transition-colors md:text-3xl">
               Indi<span className="text-primary group-hover:text-accent transition-colors duration-300">Fusion</span>
             </h1>
           </Link>
@@ -84,7 +84,7 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-base font-medium transition-colors relative group ${
+                className={`relative text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors group ${
                   isActive(link.href) ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -102,7 +102,7 @@ export function Navbar() {
               <div className="flex items-center gap-4">
                 <Link 
                   href="/profile"
-                  className="flex items-center gap-2 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <User className="w-4 h-4" />
                   {session.user.name || session.user.email?.split('@')[0]}
@@ -122,7 +122,7 @@ export function Navbar() {
               <>
                 <Link 
                   href="/login"
-                  className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Login
                 </Link>
@@ -130,7 +130,7 @@ export function Navbar() {
                 <Link href="/register">
                   <Button 
                     variant="outline" 
-                    className="rounded-full px-8 border-primary/50 text-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-300 shadow-sm hover:shadow-md"
+                    className="rounded-none border-primary/60 px-6 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
                   >
                     Register
                   </Button>
