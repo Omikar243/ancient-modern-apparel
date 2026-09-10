@@ -310,7 +310,7 @@ export function GlobalBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none bg-background transition-colors duration-700">
+    <div className="fixed inset-0 z-0 h-full w-full pointer-events-none bg-transparent transition-colors duration-700">
       {/* Gradient Overlay for depth */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-transparent to-background/5 z-0" />
       

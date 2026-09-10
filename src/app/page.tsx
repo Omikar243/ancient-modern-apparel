@@ -21,7 +21,7 @@ const featuredProducts = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+    <main className="min-h-screen overflow-x-hidden text-foreground selection:bg-primary selection:text-primary-foreground">
       <GlobalBackground />
       <div className="relative z-10">
         <Navbar />
