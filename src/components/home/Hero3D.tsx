@@ -324,9 +324,9 @@ export function Hero3D() {
   const [activeGender, setActiveGender] = useState<"male" | "female">("female");
 
   useEffect(() => {
-    // Keep the preview feeling alive without interrupting the design flow:
-    // switch to the other model once after a random 120–200 second interval.
-    const delay = 120_000 + Math.floor(Math.random() * 80_001);
+    // Keep the preview feeling alive with a switch at any random time
+    // within 200 seconds, then choose a fresh interval after each switch.
+    const delay = Math.floor(Math.random() * 200_001);
     const timer = window.setTimeout(() => {
       setActiveGender((current) => (current === "female" ? "male" : "female"));
     }, delay);
